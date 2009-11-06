@@ -28,6 +28,7 @@ let read_string in_chan =
 
 type response = Status of string | Error;;
 let send_and_receive_command command connection =
+    (* Send command, and recieve the results *)
     let in_chan, out_chan = connection
     in
     begin

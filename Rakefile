@@ -40,7 +40,7 @@ end
 
 desc "Delete droppings"
 task :clean do
-    ["cmx", "cmi", "o"].each do |file_ending|
+    ["cmx", "cmi", "o", "cmo"].each do |file_ending|
         FileList["*.#{file_ending}"].each do |src|
             rm src
         end

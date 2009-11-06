@@ -18,17 +18,19 @@ end
 
 template_text = %q{let main () =
     begin
-% a = 0
+% mod_count = 0
 % tests.each_pair do |mod_name, test_names|
-% a += 1
+% mod_count += 1
+% func_count = 0
         print_endline "In module <%=mod_name%>:";
 % test_names.each do |name|
+% func_count += 1
             print_string "    <%=name%>... ";
             <%=mod_name%>.<%=name%>();
-% if a == tests.length then
+% if mod_count == tests.length and func_count == test_names.length then
             print_endline "passed"
 % else
-            print_newline "passed";
+            print_endline "passed";
 
 % end
 % end
