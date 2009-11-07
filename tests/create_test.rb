@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require "erb"
 
-MODULE_NAMER = /^(.*)\.ml$/
+MODULE_NAMER = /([^\/]*)\.ml$/
 tests = {}
 ARGV.each do |filename|
     module_name = MODULE_NAMER.match(filename)[1].capitalize
