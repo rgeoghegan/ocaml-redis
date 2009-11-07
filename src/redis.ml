@@ -26,7 +26,7 @@ let read_string in_chan =
     in
     iter (Buffer.create 100);;
 
-type response = Status of string | Error;;
+type response = Status of string | Undecipherable;;
 let send_and_receive_command command connection =
     (* Send command, and recieve the results *)
     let in_chan, out_chan = connection
@@ -37,5 +37,8 @@ let send_and_receive_command command connection =
         flush out_chan;
         match (input_char in_chan) with
             '+' -> Status(read_string in_chan) |
-            _ -> Error
+            _ -> begin
+                    ignore (input_line in_chan);
+                    Undecipherable
+                end
     end

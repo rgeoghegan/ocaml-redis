@@ -1,8 +1,8 @@
 type next_script_line = ReadThisLine of string | WriteThisLine of string | NoMore;;
 let next_script_line_to_string x =
     match x with
-        ReadThisLine(body) -> "ReadThisLine(" ^ body ^ ")" | 
-        WriteThisLine(body) -> "WriteThisLine(" ^ body ^ ")" | 
+        ReadThisLine(body) -> Printf.sprintf "ReadThisLine(%S)" body | 
+        WriteThisLine(body) -> Printf.sprintf "WriteThisLine(%S)" body | 
         NoMore -> "NoMore";;
 
 let get_next_line script_file =
@@ -20,6 +20,7 @@ let get_next_line script_file =
 let rec execute_each_line input output script_lines =
     let next_line = get_next_line script_lines
     in
+    (*let _ = print_endline ("Next token: " ^ (next_script_line_to_string next_line)) in*)
     let go_down a_string = begin
             output_string input a_string;
             output_string input "\n";
@@ -58,12 +59,15 @@ let use_test_script script_name test_function =
         0 -> (* Child process *)
             begin
                 (test_function (input_chan_read, output_chan_write));
-                if not ((input_line input_chan_read) = "That's all folks!")
-                then failwith (Printf.sprintf "Script %S did not finish properly" script_name )
+                let next_line = input_line input_chan_read in
+                if not ((next_line) = "That's all folks!")
+                then failwith (Printf.sprintf "Script %S did not finish properly (got %S)" script_name next_line)
                 else exit 0
             end |
         x -> (* Parent process *)
             begin 
                 execute_each_line input_chan_write output_chan_read (open_in script_name);
-                ignore (Unix.wait())
+                match Unix.wait() with
+                    (_, Unix.WEXITED(0)) -> () |
+                    (_, _) -> exit 1
             end

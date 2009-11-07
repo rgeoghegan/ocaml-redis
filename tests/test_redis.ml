@@ -21,6 +21,10 @@ let test_send_and_receive_command () =
             assert (
                 Redis.send_and_receive_command "foo" connection
                 = Redis.Status("bar")
+            );
+            assert (
+                Redis.send_and_receive_command "foo" connection
+                = Redis.Undecipherable
             )
         end
     in
