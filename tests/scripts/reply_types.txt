@@ -1,6 +1,9 @@
-# Status
+# Single line reply
 <foo
 >+bar
 # Undecipherable
 <foo
 >!
+# Integer reply
+<foo
+>:42
