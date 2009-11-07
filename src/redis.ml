@@ -44,3 +44,9 @@ let send_and_receive_command command connection =
                     Undecipherable
                 end
     end
+
+(* Individual commands *)
+let ping connection =
+    (* PING *)
+    (send_and_receive_command "PING" connection) = Status("PONG");;
+    

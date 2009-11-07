@@ -37,3 +37,12 @@ let test_send_and_receive_command () =
         end
     in
     Script.use_test_script "tests/scripts/reply_types.txt" test_func;;
+
+(* Individual commands *)
+let test_ping () =
+    let test_func connection =
+        assert (
+            (Redis.ping connection) = true
+        )
+    in
+    Script.use_test_script "tests/scripts/ping.txt" test_func;;
