@@ -1,8 +1,9 @@
-type next_script_line = ReadThisLine of string | WriteThisLine of string | NoMore;;
+type next_script_line = ReadThisLine of string | WriteThisLine of string | NoMore | Skip;;
 let next_script_line_to_string x =
     match x with
         ReadThisLine(body) -> Printf.sprintf "ReadThisLine(%S)" body | 
         WriteThisLine(body) -> Printf.sprintf "WriteThisLine(%S)" body | 
+        Skip -> "Skip" |
         NoMore -> "NoMore";;
 
 let get_next_line script_file =
@@ -14,7 +15,8 @@ let get_next_line script_file =
         match next_line.[0] with
             '<' -> ReadThisLine(body) |
             '>' -> WriteThisLine(body) |
-            _ -> failwith "Error in script"
+            '#' -> Skip |
+            _ -> failwith (Printf.sprintf "Error in script with line %S"  next_line)
     with End_of_file -> NoMore;;
     
 let rec execute_each_line input output script_lines =
@@ -29,6 +31,7 @@ let rec execute_each_line input output script_lines =
     in
     match next_line with
         NoMore -> go_down "That's all folks!" |
+        Skip -> execute_each_line input output script_lines |
         ReadThisLine(body) -> begin
                 let inputted_line = input_line output
                 in
