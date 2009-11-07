@@ -7,3 +7,6 @@
 # Integer reply
 <foo
 >:42
+# Bulk reply
+<foo
+>$42

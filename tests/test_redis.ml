@@ -30,6 +30,10 @@ let test_send_and_receive_command () =
                 Redis.send_and_receive_command "foo" connection
                 = Redis.Integer(42)
             );
+            assert (
+                Redis.send_and_receive_command "foo" connection
+                = Redis.Bulk(42)
+            );
         end
     in
     Script.use_test_script "tests/scripts/reply_types.txt" test_func;;
