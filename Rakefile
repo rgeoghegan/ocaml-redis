@@ -2,7 +2,7 @@ desc "Compile the library"
 task :lib
 
 desc "Run unit tests"
-task :test => [:clean, :test_binary] do
+task :test => :test_binary do
     sh "./build/test"
 end
 

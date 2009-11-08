@@ -26,24 +26,43 @@ let read_string in_chan =
     in
     iter (Buffer.create 100);;
 
-type response = Status of string | Undecipherable | Integer of int | Bulk of int;;
-let send_and_receive_command command connection =
-    (* Send command, and recieve the results *)
-    let in_chan, out_chan = connection
-    in
-    begin
+let get_bulk_data size (in_chan, _) =
+    let out_buf = Buffer.create size
+    in begin
+        Buffer.add_channel out_buf in_chan size;
+        ignore (input_char in_chan); (* Remove \r\n *)
+        ignore (input_char in_chan);
+        Buffer.contents out_buf
+    end;;
+
+let send_command command (_, out_chan) = begin
         output_string out_chan command;
         output_string out_chan "\r\n";
         flush out_chan;
-        match (input_char in_chan) with
-            '+' -> Status(read_string in_chan) |
-            ':' -> Integer(int_of_string (read_string in_chan)) |
-            '$' -> Bulk(int_of_string (read_string in_chan)) |
-            _ -> begin
-                    ignore (input_line in_chan);
-                    Undecipherable
-                end
-    end
+    end;;
+
+type response = Status of string | Undecipherable | Integer of int | Bulk of string;;
+let receive_answer connection =
+    let in_chan, _ = connection
+    in
+    match (input_char in_chan) with
+        '+' -> Status(read_string in_chan) |
+        ':' -> Integer(int_of_string (read_string in_chan)) |
+        '$' -> Bulk(
+                get_bulk_data (int_of_string (read_string in_chan)) connection
+            ) |
+        _ -> begin
+            ignore (input_line in_chan);
+            Undecipherable
+        end;;
+
+let send_and_receive_command command connection =
+    (* Send command, and recieve the results *)
+    begin
+        send_command command connection;
+        receive_answer connection
+    end;;
+
 
 (* Individual commands *)
 let ping connection =

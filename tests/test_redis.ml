@@ -1,10 +1,11 @@
-let piped_channel () =
-    let pipe_read, pipe_write = Unix.pipe()
-    in
-        (Unix.in_channel_of_descr pipe_read), (Unix.out_channel_of_descr pipe_write);; 
+let response_to_string r = match r with
+    Redis.Status(x) -> Printf.sprintf "Status(%S)" x |
+    Redis.Undecipherable -> "Undecipherable" |
+    Redis.Integer(x) -> Printf.sprintf "Integer(%d)" x |
+    Redis.Bulk(x) -> Printf.sprintf "Bulk(%S)" x;;
 
 let test_read_string () =
-    let test_pipe_read, test_pipe_write = piped_channel()
+    let test_pipe_read, test_pipe_write = Script.piped_channel()
     in
     begin
         output_string test_pipe_write "test string\r\n";
@@ -15,8 +16,37 @@ let test_read_string () =
         )
     end;;
 
+let test_send_command () =
+    let test_func connection =
+        Redis.send_command "foo" connection
+    in
+    Script.use_test_script "tests/scripts/send_command.txt" test_func;;
+
+let test_receive_answer () =
+    let test_func connection =
+        begin
+            assert (
+                Redis.receive_answer connection
+                = Redis.Status("bar")
+            );
+            assert (
+                Redis.receive_answer connection
+                = Redis.Undecipherable
+            );
+            assert (
+                Redis.receive_answer connection
+                = Redis.Integer(42)
+            );
+            assert (
+                Redis.receive_answer connection
+                = Redis.Bulk("aaa")
+            )
+        end
+    in
+    Script.use_test_script "tests/scripts/receive_answer.txt" test_func;;
+
 let test_send_and_receive_command () =
-    let test_func connection = 
+    let test_func connection =
         begin
             assert (
                 Redis.send_and_receive_command "foo" connection
@@ -32,7 +62,7 @@ let test_send_and_receive_command () =
             );
             assert (
                 Redis.send_and_receive_command "foo" connection
-                = Redis.Bulk(42)
+                = Redis.Bulk("aaa")
             );
         end
     in

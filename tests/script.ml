@@ -1,3 +1,8 @@
+let debug_string comment value  = begin
+    Printf.printf "%s %S\n" comment value;
+    flush stdout
+end;;
+
 type next_script_line = ReadThisLine of string | WriteThisLine of string | NoMore | Skip;;
 let next_script_line_to_string x =
     match x with
@@ -22,11 +27,11 @@ let get_next_line script_file =
 let rec execute_each_line input output script_lines =
     let next_line = get_next_line script_lines
     in
-    (*let _ = print_endline ("Next token: " ^ (next_script_line_to_string next_line)) in*)
+    (*let _ = debug_string "Next token: " (next_script_line_to_string next_line) in*)
     let go_down a_string = begin
             output_string input a_string;
             output_string input "\n";
-            flush input
+            flush input;
         end
     in
     match next_line with
@@ -62,10 +67,11 @@ let use_test_script script_name test_function =
         0 -> (* Child process *)
             begin
                 (test_function (input_chan_read, output_chan_write));
-                let next_line = input_line input_chan_read in
+                let next_line = input_line input_chan_read
+                in
                 if not ((next_line) = "That's all folks!")
-                then failwith (Printf.sprintf "Script %S did not finish properly (got %S)" script_name next_line)
-                else exit 0
+                    then failwith (Printf.sprintf "Script %S did not finish properly (got %S)" script_name next_line)
+                    else exit 0
             end |
         x -> (* Parent process *)
             begin 
@@ -73,4 +79,4 @@ let use_test_script script_name test_function =
                 match Unix.wait() with
                     (_, Unix.WEXITED(0)) -> () |
                     (_, _) -> exit 1
-            end
+            end;;
