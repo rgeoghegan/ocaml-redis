@@ -35,8 +35,8 @@ let get_bulk_data size (in_chan, _) =
         Buffer.contents out_buf
     end;;
 
-let send_command command (_, out_chan) = begin
-        output_string out_chan command;
+let send_text text (_, out_chan) = begin
+        output_string out_chan text;
         output_string out_chan "\r\n";
         flush out_chan;
     end;;
@@ -59,7 +59,7 @@ let receive_answer connection =
 let send_and_receive_command command connection =
     (* Send command, and recieve the results *)
     begin
-        send_command command connection;
+        send_text command connection;
         receive_answer connection
     end;;
 
@@ -68,4 +68,18 @@ let send_and_receive_command command connection =
 let ping connection =
     (* PING *)
     (send_and_receive_command "PING" connection) = Status("PONG");;
-    
+
+let exists key connection =
+    (* EXISTS *)
+    (send_and_receive_command ("EXISTS " ^ key) connection) = Integer(1);;
+
+let set key value connection =
+    (* SET *)
+    begin
+        send_text (Printf.sprintf "SET %s %d" key (String.length value)) connection;
+        send_text value connection;
+        match receive_answer connection with
+            Status("OK") -> () |
+            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
+            _ -> failwith "Did not recognize what I got back"
+    end;;

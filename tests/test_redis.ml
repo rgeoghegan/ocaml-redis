@@ -16,11 +16,11 @@ let test_read_string () =
         )
     end;;
 
-let test_send_command () =
+let test_send_text () =
     let test_func connection =
-        Redis.send_command "foo" connection
+        Redis.send_text "foo" connection
     in
-    Script.use_test_script "tests/scripts/send_command.txt" test_func;;
+    Script.use_test_script "tests/scripts/send_text.txt" test_func;;
 
 let test_receive_answer () =
     let test_func connection =
@@ -76,3 +76,20 @@ let test_ping () =
         )
     in
     Script.use_test_script "tests/scripts/ping.txt" test_func;;
+
+let test_exists () =
+    let test_func connection = begin
+        assert (
+            (Redis.exists "real_key" connection) = true
+        );
+        assert (
+            (Redis.exists "fake_key" connection) = false
+        )
+    end in
+    Script.use_test_script "tests/scripts/exists.txt" test_func;;
+
+let test_set () =
+    let test_func connection =
+        Redis.set "key" "aaa" connection
+    in
+    Script.use_test_script "tests/scripts/set.txt" test_func;;
