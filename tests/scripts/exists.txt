@@ -1,4 +1,0 @@
-<EXISTS real_key
->:1
-<EXISTS fake_key
->:0

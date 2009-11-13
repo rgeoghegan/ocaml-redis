@@ -1,9 +1,0 @@
-# Single line reply
->+bar
-# Undecipherable
->!
-# Integer reply
->:42
-# Bulk reply
->$3
->aaa

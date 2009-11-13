@@ -18,6 +18,7 @@ end
 
 template_text = %q{let main () =
     begin
+        print_newline ();
 % mod_count = 0
 % tests.each_pair do |mod_name, test_names|
 % mod_count += 1
