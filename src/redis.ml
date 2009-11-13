@@ -83,3 +83,9 @@ let set key value connection =
             Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
             _ -> failwith "Did not recognize what I got back"
     end;;
+
+let get key connection =
+    (* GET *)
+    match send_and_receive_command ("GET " ^ key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;

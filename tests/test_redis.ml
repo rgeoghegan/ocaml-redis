@@ -20,7 +20,8 @@ let test_send_text () =
     let test_func connection =
         Redis.send_text "foo" connection
     in
-    Script.use_test_script "tests/scripts/send_text.txt" test_func;;
+    Script.use_test_script [Script.ReadThisLine("foo\r")] test_func;;
+
 
 let test_receive_answer () =
     let test_func connection =
@@ -43,9 +44,17 @@ let test_receive_answer () =
             )
         end
     in
-    Script.use_test_script "tests/scripts/receive_answer.txt" test_func;;
+    Script.use_test_script 
+        [
+            Script.WriteThisLine("+bar\r");
+            Script.WriteThisLine("!\r");
+            Script.WriteThisLine(":42\r");
+            Script.WriteThisLine("$3\r");
+            Script.WriteThisLine("aaa\r")
+        ]
+        test_func;;
 
-let test_send_and_receive_command () =
+(*let test_send_and_receive_command () =
     let test_func connection =
         begin
             assert (
@@ -69,7 +78,7 @@ let test_send_and_receive_command () =
     Script.use_test_script "tests/scripts/reply_types.txt" test_func;;
 
 (* Individual commands *)
-let test_ping () =
+ let test_ping () =
     let test_func connection =
         assert (
             (Redis.ping connection) = true
@@ -77,7 +86,7 @@ let test_ping () =
     in
     Script.use_test_script "tests/scripts/ping.txt" test_func;;
 
-let test_exists () =
+ let test_exists () =
     let test_func connection = begin
         assert (
             (Redis.exists "real_key" connection) = true
@@ -88,8 +97,17 @@ let test_exists () =
     end in
     Script.use_test_script "tests/scripts/exists.txt" test_func;;
 
-let test_set () =
+ let test_set () =
     let test_func connection =
         Redis.set "key" "aaa" connection
     in
     Script.use_test_script "tests/scripts/set.txt" test_func;;
+
+ let test_get () =
+    let test_func connection = 
+        assert (
+            (Redis.get "key" connection) = "aaa"
+        )
+    in
+    Script.use_test_script "tests/scripts/get.txt" test_func;;
+*)
