@@ -32,18 +32,22 @@ let send_text text (_, out_chan) = begin
         flush out_chan;
     end;;
 
-type response = Status of string | Undecipherable | Integer of int | Bulk of string | Multibulk of string list;;
+type bulk_data = Nil | Data of string;;
+type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list;;
 
 let get_bulk_data (in_chan, _) =
     let size = int_of_string (read_string in_chan)
     in
-    let out_buf = Buffer.create size
-    in begin
-        Buffer.add_channel out_buf in_chan size;
-        ignore (input_char in_chan); (* Remove \r\n *)
-        ignore (input_char in_chan);
-        Buffer.contents out_buf
-    end;;
+    match size with 
+        -1 -> Nil
+        | 0 -> Data("")
+        | _ -> let out_buf = Buffer.create size
+            in begin
+                Buffer.add_channel out_buf in_chan size;
+                ignore (input_char in_chan); (* Remove \r\n *)
+                ignore (input_char in_chan);
+                Data(Buffer.contents out_buf)
+            end;;
 
 let get_multibulk_data size conn =
     let in_chan, out_chan = conn
@@ -115,3 +119,26 @@ let getset key new_value connection =
     match receive_answer connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
+
+let mget keys connection = 
+    (* MGET *)
+    let joiner buf new_item = begin
+            Buffer.add_char buf ' ';
+            Buffer.add_string buf new_item
+        end
+    in
+    let command_string = match keys with 
+            [] -> failwith "Need at least one key"
+            | x ->
+                let out_buffer = Buffer.create 256
+                in begin
+                        Buffer.add_string out_buffer "MGET";
+                        List.iter (joiner out_buffer) x;
+                        out_buffer
+                    end
+    in
+    match send_and_receive_command (Buffer.contents command_string) connection with
+        Multibulk(l) -> l |
+        _ -> failwith "Did not recognize what I got back";;
+    
+        

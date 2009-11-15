@@ -6,6 +6,12 @@ task :test => :test_binary do
     sh "./build/test"
 end
 
+desc "Run smoke test"
+task :smoke_test => ["build/smoke_test"] do
+    sh "echo flushdb | nc 127.0.0.1 6379"
+    sh "./build/smoke_test"
+end
+
 # Test files
 
 desc "Create the binary used for testing"
@@ -25,6 +31,11 @@ end
 file "build/all_test.ml" => ["tests/create_test.rb"] do
     test_files = FileList["tests/test*.ml"].join(" ")
     sh "ruby tests/create_test.rb #{test_files} > build/all_test.ml"
+end
+
+file "build/smoke_test" => [:lib, "tests/smoke_test.ml"] do
+    sh "ocamlopt -I build -c -o build/smoke_test tests/smoke_test.ml"
+    sh "ocamlopt -I build -o build/smoke_test Unix.cmxa build/redis.cmx build/smoke_test.cmx"
 end
 
 
