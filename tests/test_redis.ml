@@ -1,8 +1,16 @@
+let rec multi_bulk_list_to_string l =
+    match l with
+        [] -> ""
+        | h :: t -> Printf.sprintf "; %S%s" h (multi_bulk_list_to_string t);;
+
 let response_to_string r = match r with
     Redis.Status(x) -> Printf.sprintf "Status(%S)" x |
     Redis.Undecipherable -> "Undecipherable" |
     Redis.Integer(x) -> Printf.sprintf "Integer(%d)" x |
-    Redis.Bulk(x) -> Printf.sprintf "Bulk(%S)" x;;
+    Redis.Bulk(x) -> Printf.sprintf "Bulk(%S)" x |
+    Redis.Multibulk(x) -> match x with
+        [] -> Printf.sprintf "Multibulk([])" |
+        h :: t -> Printf.sprintf "Multibulk([%S%s])" h (multi_bulk_list_to_string t);;
 
 let test_read_string () =
     let test_pipe_read, test_pipe_write = Script.piped_channel()
@@ -20,7 +28,7 @@ let test_send_text () =
     let test_func connection =
         Redis.send_text "foo" connection
     in
-    Script.use_test_script [Script.ReadThisLine("foo\r")] test_func;;
+    Script.use_test_script [Script.ReadThisLine("foo")] test_func;;
 
 
 let test_receive_answer () =
@@ -41,16 +49,25 @@ let test_receive_answer () =
             assert (
                 Redis.receive_answer connection
                 = Redis.Bulk("aaa")
+            );
+            assert (
+                Redis.receive_answer connection
+                = Redis.Multibulk(["rory"; "tim"])
             )
         end
     in
     Script.use_test_script 
         [
-            Script.WriteThisLine("+bar\r");
-            Script.WriteThisLine("!\r");
-            Script.WriteThisLine(":42\r");
-            Script.WriteThisLine("$3\r");
-            Script.WriteThisLine("aaa\r")
+            Script.WriteThisLine("+bar"); (* Status *)
+            Script.WriteThisLine("!"); (* Undecipherable *)
+            Script.WriteThisLine(":42"); (* Integer *)
+            Script.WriteThisLine("$3"); (* Bulk *)
+            Script.WriteThisLine("aaa");
+            Script.WriteThisLine("*2"); (* Multibulk *)
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+            Script.WriteThisLine("$3");
+            Script.WriteThisLine("tim")
         ]
         test_func;;
 
@@ -77,18 +94,18 @@ let test_send_and_receive_command () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("foo\r");
-            Script.WriteThisLine("+bar\r");
+            Script.ReadThisLine("foo");
+            Script.WriteThisLine("+bar");
 
-            Script.ReadThisLine("foo\r");
-            Script.WriteThisLine("!\r"); (* Undecipherable *)
+            Script.ReadThisLine("foo");
+            Script.WriteThisLine("!"); (* Undecipherable *)
 
-            Script.ReadThisLine("foo\r");
-            Script.WriteThisLine(":42\r"); (* Integer reply *)
+            Script.ReadThisLine("foo");
+            Script.WriteThisLine(":42"); (* Integer reply *)
 
-            Script.ReadThisLine("foo\r");
-            Script.WriteThisLine("$3\r"); (* Bulk reply *)
-            Script.WriteThisLine("aaa\r")
+            Script.ReadThisLine("foo");
+            Script.WriteThisLine("$3"); (* Bulk reply *)
+            Script.WriteThisLine("aaa")
         ]
         test_func;;
 
@@ -101,8 +118,8 @@ let test_ping () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("PING\r");
-            Script.WriteThisLine("+PONG\r")
+            Script.ReadThisLine("PING");
+            Script.WriteThisLine("+PONG")
         ]
         test_func;;
 
@@ -117,10 +134,10 @@ let test_exists () =
     end in
     Script.use_test_script
         [
-            Script.ReadThisLine("EXISTS real_key\r");
-            Script.WriteThisLine(":1\r");
-            Script.ReadThisLine("EXISTS fake_key\r");
-            Script.WriteThisLine(":0\r")
+            Script.ReadThisLine("EXISTS real_key");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("EXISTS fake_key");
+            Script.WriteThisLine(":0")
         ]
         test_func;;
 
@@ -130,9 +147,9 @@ let test_set () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET key 3\r");
-            Script.ReadThisLine("aaa\r");
-            Script.WriteThisLine("+OK\r")
+            Script.ReadThisLine("SET key 3");
+            Script.ReadThisLine("aaa");
+            Script.WriteThisLine("+OK")
         ]
         test_func;;
 
@@ -144,8 +161,25 @@ let test_get () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("GET key\r");
-            Script.WriteThisLine("$3\r");
-            Script.WriteThisLine("aaa\r")
+            Script.ReadThisLine("GET key");
+            Script.WriteThisLine("$3");
+            Script.WriteThisLine("aaa")
         ]
         test_func;;
+
+let test_getset () =
+    let test_func connection =
+        assert (
+            (Redis.getset "key" "now" connection) = "previous"
+        )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("GETSET key 3");
+            Script.ReadThisLine("now");
+            Script.WriteThisLine("$8");
+            Script.WriteThisLine("previous")
+        ]
+        test_func;;
+    
+        

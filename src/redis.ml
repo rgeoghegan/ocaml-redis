@@ -26,7 +26,17 @@ let read_string in_chan =
     in
     iter (Buffer.create 100);;
 
-let get_bulk_data size (in_chan, _) =
+let send_text text (_, out_chan) = begin
+        output_string out_chan text;
+        output_string out_chan "\r\n";
+        flush out_chan;
+    end;;
+
+type response = Status of string | Undecipherable | Integer of int | Bulk of string | Multibulk of string list;;
+
+let get_bulk_data (in_chan, _) =
+    let size = int_of_string (read_string in_chan)
+    in
     let out_buf = Buffer.create size
     in begin
         Buffer.add_channel out_buf in_chan size;
@@ -35,29 +45,37 @@ let get_bulk_data size (in_chan, _) =
         Buffer.contents out_buf
     end;;
 
-let send_text text (_, out_chan) = begin
-        output_string out_chan text;
-        output_string out_chan "\r\n";
-        flush out_chan;
-    end;;
+let get_multibulk_data size conn =
+    let in_chan, out_chan = conn
+    in
+    let rec iter i data =
+        match i with
+            0 -> Multibulk(List.rev data)
+            | x -> match input_char in_chan with
+                '$' -> iter
+                    (i - 1)
+                    ((get_bulk_data conn) :: data)
+                | _ -> Undecipherable
+    in
+    iter size [];;
 
-type response = Status of string | Undecipherable | Integer of int | Bulk of string;;
 let receive_answer connection =
     let in_chan, _ = connection
     in
     match (input_char in_chan) with
-        '+' -> Status(read_string in_chan) |
-        ':' -> Integer(int_of_string (read_string in_chan)) |
-        '$' -> Bulk(
-                get_bulk_data (int_of_string (read_string in_chan)) connection
-            ) |
-        _ -> begin
+        '+' -> Status(read_string in_chan)
+        | ':' -> Integer(int_of_string (read_string in_chan))
+        | '$' -> Bulk(
+                get_bulk_data connection
+            )
+        | '*' -> get_multibulk_data (int_of_string (read_string in_chan)) connection
+        | _ -> begin
             ignore (input_line in_chan);
             Undecipherable
         end;;
 
 let send_and_receive_command command connection =
-    (* Send command, and recieve the results *)
+    (* Send command, and receive the results *)
     begin
         send_text command connection;
         receive_answer connection
@@ -87,5 +105,13 @@ let set key value connection =
 let get key connection =
     (* GET *)
     match send_and_receive_command ("GET " ^ key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let getset key new_value connection =
+    (* GETSET *)
+    send_text (Printf.sprintf "GETSET %s %d" key (String.length new_value)) connection;
+    send_text new_value connection;
+    match receive_answer connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;

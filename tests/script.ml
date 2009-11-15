@@ -13,7 +13,7 @@ let next_script_line_to_string x =
 let rec execute_each_line input output script =
     let send_out a_string = begin
             output_string input a_string;
-            output_string input "\n";
+            output_string input "\r\n";
             flush input;
         end
     in
@@ -26,7 +26,7 @@ let rec execute_each_line input output script =
                     ReadThisLine(body) ->
                         let inputted_line = input_line output
                         in
-                        if  not (body = inputted_line)
+                        if  not ((body ^ "\r") = inputted_line)
                             then failwith (Printf.sprintf "Inputted line %S does not match %S" body inputted_line)
                     | WriteThisLine(body) -> send_out body
                 in
@@ -53,7 +53,7 @@ let use_test_script script test_function =
                 (test_function (input_chan_read, output_chan_write));
                 let next_line = input_line input_chan_read
                 in
-                if not ((next_line) = "That's all folks!")
+                if not ((next_line) = "That's all folks!\r")
                     then failwith (Printf.sprintf "Script did not finish properly (got %S)" next_line)
                     else exit 0
             end |
