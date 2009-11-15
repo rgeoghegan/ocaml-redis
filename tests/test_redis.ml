@@ -209,3 +209,17 @@ let test_mget () =
             Script.WriteThisLine("not cool")
         ]
         test_func;;
+
+let test_flushdb () =
+    let test_func conn =
+        assert (
+            true = Redis.flushdb conn
+        )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("FLUSHDB");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;
+            

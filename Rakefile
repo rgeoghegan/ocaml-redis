@@ -8,7 +8,6 @@ end
 
 desc "Run smoke test"
 task :smoke_test => ["build/smoke_test"] do
-    sh "echo flushdb | nc 127.0.0.1 6379"
     sh "./build/smoke_test"
 end
 

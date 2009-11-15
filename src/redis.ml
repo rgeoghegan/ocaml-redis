@@ -87,14 +87,13 @@ let send_and_receive_command command connection =
 
 
 (* Individual commands *)
+
+(* Connection handling *)
 let ping connection =
     (* PING *)
     (send_and_receive_command "PING" connection) = Status("PONG");;
 
-let exists key connection =
-    (* EXISTS *)
-    (send_and_receive_command ("EXISTS " ^ key) connection) = Integer(1);;
-
+(* Commands operating on string values *)
 let set key value connection =
     (* SET *)
     begin
@@ -141,4 +140,12 @@ let mget keys connection =
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
     
-        
+(* Commands operating on the key space *)
+let exists key connection =
+    (* EXISTS *)
+    (send_and_receive_command ("EXISTS " ^ key) connection) = Integer(1);;
+
+(* Multiple databases handling commands *)
+let flushdb connection =
+    (* FLUSHDB *)
+    (send_and_receive_command "FLUSHDB" connection) = Status("OK");;
