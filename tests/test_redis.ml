@@ -222,4 +222,3 @@ let test_flushdb () =
             Script.WriteThisLine("+OK")
         ]
         test_func;;
-            

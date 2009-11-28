@@ -1,5 +1,5 @@
 desc "Compile the library"
-task :lib
+task :library => ["lib/Redis.cmxa"]
 
 desc "Run unit tests"
 task :test => :test_binary do
@@ -11,16 +11,18 @@ task :smoke_test => ["build/smoke_test"] do
     sh "./build/smoke_test"
 end
 
+build_objs = "Unix.cmxa lib/Redis.cmxa"
+
 # Test files
 
 desc "Create the binary used for testing"
 task :test_binary => "build/test"
 
-file "build/test" => [:lib, "build/all_test.cmx"] do
+file "build/test" => [:library, "build/all_test.cmx"] do
     libs = %w{redis script test_redis all_test}.collect { |f|
         "#{f}.cmx"
     }.join " "
-    sh "ocamlopt -I build -o build/test unix.cmxa #{libs}"
+    sh "ocamlopt -I build -o build/test Unix.cmxa #{libs}"
 end
 
 file "build/all_test.cmx" => [:all_test_binaries, "build/all_test.ml"] do
@@ -32,22 +34,49 @@ file "build/all_test.ml" => ["tests/create_test.rb"] do
     sh "ruby tests/create_test.rb #{test_files} > build/all_test.ml"
 end
 
-file "build/smoke_test" => [:lib, "tests/smoke_test.ml"] do
-    sh "ocamlopt -I build -c -o build/smoke_test tests/smoke_test.ml"
-    sh "ocamlopt -I build -o build/smoke_test Unix.cmxa build/redis.cmx build/smoke_test.cmx"
+file "build/smoke_test" => [:library, "tests/smoke_test.ml"] do
+    sh "ocamlopt -I build -o build/smoke_test #{build_objs} tests/smoke_test.ml"
 end
 
 
 # Build binaries
 directory "build"
 
-FileList.new("src/*.ml").each do |filename|
-    build_obj = filename.pathmap("build/%f").ext("cmx")
-    file build_obj => ["build", filename] do
-        sh "ocamlopt -c -o #{build_obj.pathmap("build/%n")} #{filename}"
-    end
-    multitask :lib => build_obj
+all_object_files = FileList.new("src/*.ml").map do |filename|
+    [filename, filename.pathmap("build/%f").ext("cmx")]
 end
+all_object_files.each do |src, obj|
+    file obj => ["build", src] do
+        sh "ocamlopt -I build -c -o #{obj} #{src}"
+    end
+    if src != "src/redis_util.ml" then
+        file obj => ["build/redis_util.cmx"]
+    end
+    if src != "src/redis.ml" then
+        multitask "build/redis.cmx" => obj
+    end
+end
+
+
+directory "lib"
+file "lib/Redis.cmxa" => ["lib", "build/redis_util.cmx", "build/redis.cmx"] do
+    objs = FileList.new("src/redis*.ml").map do |filename|
+        filename.pathmap("build/%f").ext("cmx")
+    end
+    objs.reject! do |filepath|
+        filepath == "build/redis_util.cmx"
+    end
+    sh "ocamlopt -c -I build -o build/redis src/redis.ml"
+    sh "ocamlopt -a -o lib/Redis.cmxa build/redis_util.cmx #{objs.join(" ")}"
+end
+    
+task :blah do
+    objs = FileList.new("src/redis_*.ml").map do |filename|
+        filename.pathmap("build/%f").ext("cmx")
+    end
+    puts objs
+end
+    
 
 file "build/script.cmx" => ["build", "tests/script.ml"] do
     sh "ocamlopt -c -o build/script tests/script.ml"
