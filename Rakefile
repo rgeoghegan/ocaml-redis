@@ -18,15 +18,11 @@ build_objs = "Unix.cmxa lib/Redis.cmxa"
 desc "Create the binary used for testing"
 task :test_binary => "build/test"
 
-file "build/test" => [:library, "build/all_test.cmx"] do
-    libs = %w{redis script test_redis all_test}.collect { |f|
-        "#{f}.cmx"
-    }.join " "
-    sh "ocamlopt -I build -o build/test Unix.cmxa #{libs}"
+test_objs = FileList.new("tests/test*.ml").map do |filename|
+    filename.pathmap("build/%f").ext("cmx")
 end
-
-file "build/all_test.cmx" => [:all_test_binaries, "build/all_test.ml"] do
-    sh "ocamlopt -c -I build -o build/all_test build/all_test.ml"
+file "build/test" => ([:library, "build/all_test.ml", "build/script.cmx"] + test_objs) do
+    sh "ocamlopt -I build -o build/test Unix.cmxa lib/Redis.cmxa build/script.cmx #{test_objs.join(" ")} build/all_test.ml"
 end
 
 file "build/all_test.ml" => ["tests/create_test.rb"] do
@@ -78,8 +74,8 @@ task :blah do
 end
     
 
-file "build/script.cmx" => ["build", "tests/script.ml"] do
-    sh "ocamlopt -c -o build/script tests/script.ml"
+file "build/script.cmx" => [:library, "build", "tests/script.ml"] do
+    sh "ocamlopt -I build -c -o build/script tests/script.ml"
 end
     
 FileList.new("tests/test_*.ml").each do |filename|

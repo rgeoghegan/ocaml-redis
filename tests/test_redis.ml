@@ -1,43 +1,12 @@
-let response_to_string r =
-    let bulk_printer x =
-        match x with
-            Redis.Nil -> "Nil"
-            | Redis.Data(d) -> Printf.sprintf "Data(%S)" d
-    in
-    let rec multi_bulk_list_to_string l =
-        match l with
-            [] -> ""
-            | h :: t -> Printf.sprintf "; %s%s" (bulk_printer h) (multi_bulk_list_to_string t)
-    in
-    match r with
-        Redis.Status(x) -> Printf.sprintf "Status(%S)" x |
-        Redis.Undecipherable -> "Undecipherable" |
-        Redis.Integer(x) -> Printf.sprintf "Integer(%d)" x |
-        Redis.Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
-        Redis.Multibulk(x) -> match x with
-            [] -> Printf.sprintf "Multibulk([])" |
-            h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t);;
-
-let test_read_string () =
-    let test_pipe_read, test_pipe_write = Script.piped_channel()
-    in
-    begin
-        output_string test_pipe_write "test string\r\n";
-        flush test_pipe_write;
-        assert (
-            Redis.read_string test_pipe_read
-            = "test string"
-        )
-    end;;
-
-let test_send_text () =
+(*
+ let test_send_text () =
     let test_func connection =
         Redis.send_text "foo" connection
     in
     Script.use_test_script [Script.ReadThisLine("foo")] test_func;;
 
 
-let test_receive_answer () =
+ let test_receive_answer () =
     let test_func connection =
         begin
             assert (
@@ -82,7 +51,7 @@ let test_receive_answer () =
         ]
         test_func;;
 
-let test_send_and_receive_command () =
+ let test_send_and_receive_command () =
     let test_func connection =
         begin
             assert (
@@ -121,7 +90,7 @@ let test_send_and_receive_command () =
         test_func;;
 
 (* Individual commands *)
-let test_ping () =
+ let test_ping () =
     let test_func connection =
         assert (
             (Redis.ping connection) = true
@@ -134,7 +103,7 @@ let test_ping () =
         ]
         test_func;;
 
-let test_exists () =
+ let test_exists () =
     let test_func connection = begin
         assert (
             (Redis.exists "real_key" connection) = true
@@ -152,7 +121,7 @@ let test_exists () =
         ]
         test_func;;
 
-let test_set () =
+ let test_set () =
     let test_func connection =
         Redis.set "key" "aaa" connection
     in
@@ -164,7 +133,7 @@ let test_set () =
         ]
         test_func;;
 
-let test_get () =
+ let test_get () =
     let test_func connection = 
         assert (
             (Redis.get "key" connection) = Redis.Data("aaa")
@@ -178,7 +147,7 @@ let test_get () =
         ]
         test_func;;
 
-let test_getset () =
+ let test_getset () =
     let test_func connection =
         assert (
             (Redis.getset "key" "now" connection) = Redis.Data("previous")
@@ -193,7 +162,7 @@ let test_getset () =
         ]
         test_func;;
 
-let test_mget () =
+ let test_mget () =
     let test_func conn =
         assert (
             (Redis.mget ["rory"; "tim"] conn) = [Redis.Data("cool"); Redis.Data("not cool")]
@@ -210,7 +179,7 @@ let test_mget () =
         ]
         test_func;;
 
-let test_flushdb () =
+ let test_flushdb () =
     let test_func conn =
         assert (
             true = Redis.flushdb conn
@@ -222,3 +191,4 @@ let test_flushdb () =
             Script.WriteThisLine("+OK")
         ]
         test_func;;
+*)

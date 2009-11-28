@@ -16,29 +16,28 @@ ARGV.each do |filename|
     end
 end
 
-template_text = %q{let main () =
+template_text = %q{
+let execute_test test_name test_func =
     begin
-        print_newline ();
-% mod_count = 0
-% tests.each_pair do |mod_name, test_names|
-% mod_count += 1
-% func_count = 0
-        print_endline "In module <%=mod_name%>:";
-% test_names.each do |name|
-% func_count += 1
-            print_string "    <%=name%>... ";
-            <%=mod_name%>.<%=name%>();
-% if mod_count == tests.length and func_count == test_names.length then
-            print_endline "passed"
-% else
-            print_endline "passed";
-
-% end
-% end
-% end
+        print_string ("    " ^ test_name ^ "... ");
+        test_func ();
+        print_endline "passed"
     end;;
 
-main();;
+let main () =
+    begin
+        print_newline ();
+% tests.each_pair do |mod_name, test_names|
+        print_endline "In module <%=mod_name%>:";
+% test_names.each do |name|
+            execute_test "<%=name%>" <%=mod_name%>.<%=name%>;
+% end
+% end
+        print_newline ();
+        print_endline "All Done!";
+    end;;
+
+let _ = main();;
 }
 template = ERB.new(template_text, 0, "%")
 puts template.result
