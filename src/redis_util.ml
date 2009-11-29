@@ -21,6 +21,7 @@ let read_string in_chan =
     iter (Buffer.create 100);;
 
 let send_text text (_, out_chan) = begin
+    (* Send the given text out to the connection *)
         output_string out_chan text;
         output_string out_chan "\r\n";
         flush out_chan;
@@ -58,6 +59,7 @@ let get_multibulk_data size conn =
     iter size [];;
 
 let receive_answer connection =
+    (* Get answer back from redis and cast it to the right type *)
     let in_chan, _ = connection
     in
     match (input_char in_chan) with

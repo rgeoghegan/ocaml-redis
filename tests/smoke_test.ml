@@ -4,7 +4,11 @@ let smoke_test conn = begin
     assert ( Redis_util.Data("cool") = Redis.get "rory" conn);
     assert ( Redis_util.Data("cool") = Redis.getset "rory" "not cool" conn);
     assert ( [Redis_util.Data("not cool"); Redis_util.Nil] = Redis.mget ["rory"; "tim"] conn);
-    ignore (Redis.flushdb conn);
+
+    (*
+    Redis.setnx "rory" "uncool" conn;
+    assert ( Redis_util.Data("not cool") = Redis.get "rory" conn); *)
+    ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
 end;;
 

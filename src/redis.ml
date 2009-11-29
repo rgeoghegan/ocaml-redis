@@ -62,18 +62,18 @@ let mget keys connection =
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
+(*
 let setnx key value connection =
     (* SETNX *)
     begin
         send_text (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
         send_text value connection;
         match receive_answer connection with
-            Status("OK") -> () |
-            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
-            _ -> failwith "Did not recognize what I got back"
+            Integer(0) -> false |
+            _ -> true
     end;;
-    
-    
+*)
+
 (* Commands operating on the key space *)
 let exists key connection =
     (* EXISTS *)
