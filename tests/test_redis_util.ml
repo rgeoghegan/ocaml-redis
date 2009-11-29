@@ -35,15 +35,15 @@ let test_receive_answer () =
             );
             assert (
                 Redis_util.receive_answer connection
-                = Redis_util.Bulk(Redis_util.Data("aaa"))
+                = Redis_util.Bulk(Redis_util.String("aaa"))
             );
             assert (
                 Redis_util.receive_answer connection
-                = Redis_util.Bulk(Redis_util.Nil)
+                = Redis_util.Bulk(Redis_util.None)
             );
             assert (
                 Redis_util.receive_answer connection
-                = Redis_util.Multibulk([Redis_util.Data("rory"); Redis_util.Data("tim")])
+                = Redis_util.Multibulk([Redis_util.String("rory"); Redis_util.String("tim")])
             )
         end
     in
@@ -54,7 +54,7 @@ let test_receive_answer () =
             Script.WriteThisLine(":42"); (* Integer *)
             Script.WriteThisLine("$3"); (* Bulk *)
             Script.WriteThisLine("aaa");
-            Script.WriteThisLine("$-1"); (* Nil Bulk *)
+            Script.WriteThisLine("$-1"); (* None Bulk *)
             Script.WriteThisLine("*2"); (* Multibulk *)
             Script.WriteThisLine("$4");
             Script.WriteThisLine("rory");
@@ -80,7 +80,7 @@ let test_send_and_receive_command () =
             );
             assert (
                 Redis_util.send_and_receive_command "foo" connection
-                = Redis_util.Bulk(Redis_util.Data("aaa"))
+                = Redis_util.Bulk(Redis_util.String("aaa"))
             );
         end
     in

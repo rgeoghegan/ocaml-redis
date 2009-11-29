@@ -1,11 +1,12 @@
 let smoke_test conn = begin
+    ignore (Redis.flushdb conn); 
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
-    assert ( Redis_util.Data("cool") = Redis.get "rory" conn);
-    assert ( Redis_util.Data("cool") = Redis.getset "rory" "not cool" conn);
-    assert ( [Redis_util.Data("not cool"); Redis_util.Nil] = Redis.mget ["rory"; "tim"] conn);
+    assert ( Redis_util.String("cool") = Redis.get "rory" conn);
+    assert ( Redis_util.String("cool") = Redis.getset "rory" "not cool" conn);
+    assert ( [Redis_util.String("not cool"); Redis_util.None] = Redis.mget ["rory"; "tim"] conn);
     assert ( false = Redis.setnx "rory" "uncool" conn);
-    assert ( Redis_util.Data("not cool") = Redis.get "rory" conn);
+    assert ( Redis_util.String("not cool") = Redis.get "rory" conn);
 
     assert ( 1 = Redis.incr "rory" conn);
     assert ( 5 = Redis.incrby "rory" 4 conn);
@@ -13,6 +14,12 @@ let smoke_test conn = begin
     assert ( 2 = Redis.decrby "rory" 2 conn);
 
     assert ( 1 = Redis.del ["rory"] conn);
+
+    Redis.set "rory" "cool" conn;
+    (*
+    assert ( Redis_util.None = (Redis.value_type "tim" conn));
+    assert ( Redis_util.String = (Redis.value_type "rory" conn));
+    *)
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"

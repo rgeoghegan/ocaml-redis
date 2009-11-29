@@ -1,8 +1,8 @@
 let response_to_string r =
     let bulk_printer x =
         match x with
-            Redis_util.Nil -> "Nil"
-            | Redis_util.Data(d) -> Printf.sprintf "Data(%S)" d
+            Redis_util.None -> "None"
+            | Redis_util.String(d) -> Printf.sprintf "String(%S)" d
     in
     let rec multi_bulk_list_to_string l =
         match l with

@@ -90,6 +90,13 @@ let del keys connection =
     match send_and_receive_command (Redis_util.aggregate_command "DEL" keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
+
+let value_type key connection =
+    (* TYPE *)
+    match send_and_receive_command ("TYPE " ^ key) connection with
+        Status("string") -> Redis_util.String("") |
+        Status("none") -> Redis_util.None |
+        _ -> failwith "Did not recognize what I got back";;
     
 (* Commands operating on the key space *)
 

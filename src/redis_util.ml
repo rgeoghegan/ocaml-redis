@@ -27,21 +27,21 @@ let send_text text (_, out_chan) = begin
         flush out_chan;
     end;;
 
-type bulk_data = Nil | Data of string;;
+type bulk_data = None | String of string;;
 type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list;;
 
 let get_bulk_data (in_chan, _) =
     let size = int_of_string (read_string in_chan)
     in
     match size with 
-        -1 -> Nil
-        | 0 -> Data("")
+        -1 -> None
+        | 0 -> String("")
         | _ -> let out_buf = Buffer.create size
             in begin
                 Buffer.add_channel out_buf in_chan size;
                 ignore (input_char in_chan); (* Remove \r\n *)
                 ignore (input_char in_chan);
-                Data(Buffer.contents out_buf)
+                String(Buffer.contents out_buf)
             end;;
 
 let get_multibulk_data size conn =

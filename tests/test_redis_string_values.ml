@@ -13,7 +13,7 @@ let test_set () =
 let test_get () =
     let test_func connection = 
         assert (
-            (Redis.get "key" connection) = Redis_util.Data("aaa")
+            (Redis.get "key" connection) = Redis_util.String("aaa")
         )
     in
     Script.use_test_script
@@ -27,7 +27,7 @@ let test_get () =
 let test_getset () =
     let test_func connection =
         assert (
-            (Redis.getset "key" "now" connection) = Redis_util.Data("previous")
+            (Redis.getset "key" "now" connection) = Redis_util.String("previous")
         )
     in
     Script.use_test_script
@@ -42,7 +42,7 @@ let test_getset () =
 let test_mget () =
     let test_func conn =
         assert (
-            (Redis.mget ["rory"; "tim"] conn) = [Redis_util.Data("cool"); Redis_util.Data("not cool")]
+            (Redis.mget ["rory"; "tim"] conn) = [Redis_util.String("cool"); Redis_util.String("not cool")]
         )
     in
     Script.use_test_script
@@ -183,3 +183,20 @@ let test_del () =
         ]
         test_func;;
     
+let test_value_type () =
+    let test_func connection = begin
+        Redis.set "rory" "cool" connection;
+        assert (Redis_util.String("") = Redis.value_type "rory" connection);
+        assert (Redis_util.None = Redis.value_type "tim" connection);
+    end in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("TYPE rory");
+            Script.WriteThisLine("+string");
+            Script.ReadThisLine("TYPE tim");
+            Script.WriteThisLine("+none");
+        ]
+        test_func;;
