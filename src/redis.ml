@@ -14,6 +14,7 @@ let create_connection addr port =
     )
 
 (* Individual commands *)
+
 (* Commands operating on string values *)
 let set key value connection =
     (* SET *)
@@ -60,6 +61,18 @@ let mget keys connection =
     match send_and_receive_command (Buffer.contents command_string) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
+
+let setnx key value connection =
+    (* SETNX *)
+    begin
+        send_text (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
+        send_text value connection;
+        match receive_answer connection with
+            Status("OK") -> () |
+            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+    
     
 (* Commands operating on the key space *)
 let exists key connection =

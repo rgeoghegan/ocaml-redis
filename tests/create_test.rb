@@ -32,8 +32,8 @@ let main () =
 % test_names.each do |name|
             execute_test "<%=name%>" <%=mod_name%>.<%=name%>;
 % end
-% end
         print_newline ();
+% end
         print_endline "All Done!";
     end;;
 

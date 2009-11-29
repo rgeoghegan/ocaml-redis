@@ -1,3 +1,11 @@
+class OcamlFileList < FileList
+    def to_cmx prefix="build"
+        self.map do |filename|
+            filename.pathmap("#{prefix}/%f").ext("cmx")
+        end
+    end
+end
+
 desc "Compile the library"
 task :library => ["lib/Redis.cmxa"]
 
@@ -18,15 +26,12 @@ build_objs = "Unix.cmxa lib/Redis.cmxa"
 desc "Create the binary used for testing"
 task :test_binary => "build/test"
 
-test_objs = FileList.new("tests/test*.ml").map do |filename|
-    filename.pathmap("build/%f").ext("cmx")
-end
-file "build/test" => ([:library, "build/all_test.ml", "build/script.cmx"] + test_objs) do
-    sh "ocamlopt -I build -o build/test Unix.cmxa lib/Redis.cmxa build/script.cmx #{test_objs.join(" ")} build/all_test.ml"
+test_files = OcamlFileList.new("tests/test*.ml")
+file "build/test" => ([:library, "build/all_test.ml", "build/script.cmx"] + test_files.to_cmx("build")) do
+    sh "ocamlopt -I build -o build/test Unix.cmxa lib/Redis.cmxa build/script.cmx #{test_files.to_cmx("build")} build/all_test.ml"
 end
 
-file "build/all_test.ml" => ["tests/create_test.rb"] do
-    test_files = FileList["tests/test*.ml"].join(" ")
+file "build/all_test.ml" => (["tests/create_test.rb"] + test_files.to_cmx) do
     sh "ruby tests/create_test.rb #{test_files} > build/all_test.ml"
 end
 
@@ -90,4 +95,5 @@ end
 desc "Delete droppings"
 task :clean do
     rm_rf "build"
+    rm_rf "lib"
 end

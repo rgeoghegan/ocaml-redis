@@ -1,6 +1,5 @@
-(*
 (* Individual commands *)
- let test_ping () =
+let test_ping () =
     let test_func connection =
         assert (
             (Redis.ping connection) = true
@@ -13,7 +12,7 @@
         ]
         test_func;;
 
- let test_exists () =
+let test_exists () =
     let test_func connection = begin
         assert (
             (Redis.exists "real_key" connection) = true
@@ -31,7 +30,7 @@
         ]
         test_func;;
 
- let test_set () =
+let test_set () =
     let test_func connection =
         Redis.set "key" "aaa" connection
     in
@@ -42,11 +41,10 @@
             Script.WriteThisLine("+OK")
         ]
         test_func;;
-
- let test_get () =
+let test_get () =
     let test_func connection = 
         assert (
-            (Redis.get "key" connection) = Redis.Data("aaa")
+            (Redis.get "key" connection) = Redis_util.Data("aaa")
         )
     in
     Script.use_test_script
@@ -57,10 +55,10 @@
         ]
         test_func;;
 
- let test_getset () =
+let test_getset () =
     let test_func connection =
         assert (
-            (Redis.getset "key" "now" connection) = Redis.Data("previous")
+            (Redis.getset "key" "now" connection) = Redis_util.Data("previous")
         )
     in
     Script.use_test_script
@@ -72,10 +70,10 @@
         ]
         test_func;;
 
- let test_mget () =
+let test_mget () =
     let test_func conn =
         assert (
-            (Redis.mget ["rory"; "tim"] conn) = [Redis.Data("cool"); Redis.Data("not cool")]
+            (Redis.mget ["rory"; "tim"] conn) = [Redis_util.Data("cool"); Redis_util.Data("not cool")]
         )
     in
     Script.use_test_script
@@ -89,7 +87,19 @@
         ]
         test_func;;
 
- let test_flushdb () =
+let test_setnx () =
+    let test_func connection =
+        Redis.setnx "key" "aaa" connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SETNX key 3");
+            Script.ReadThisLine("aaa");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;
+
+let test_flushdb () =
     let test_func conn =
         assert (
             true = Redis.flushdb conn
@@ -101,4 +111,3 @@
             Script.WriteThisLine("+OK")
         ]
         test_func;;
-*)
