@@ -92,7 +92,7 @@ let del keys connection =
         _ -> failwith "Did not recognize what I got back";;
 
 let value_type key connection =
-    (* TYPE *)
+    (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
     match send_and_receive_command ("TYPE " ^ key) connection with
         Status("string") -> Redis_util.String("") |
         Status("none") -> Redis_util.None |

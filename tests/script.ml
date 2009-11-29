@@ -1,3 +1,7 @@
+(*
+This module scripts simple queries and responses from a fake redis server for testing.
+*)
+
 let response_to_string r =
     let bulk_printer x =
         match x with

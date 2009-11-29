@@ -16,10 +16,8 @@ let smoke_test conn = begin
     assert ( 1 = Redis.del ["rory"] conn);
 
     Redis.set "rory" "cool" conn;
-    (*
     assert ( Redis_util.None = (Redis.value_type "tim" conn));
-    assert ( Redis_util.String = (Redis.value_type "rory" conn));
-    *)
+    assert ( Redis_util.String("") = (Redis.value_type "rory" conn));
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
