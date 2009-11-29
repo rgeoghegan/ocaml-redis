@@ -62,7 +62,6 @@ let mget keys connection =
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
-(*
 let setnx key value connection =
     (* SETNX *)
     begin
@@ -72,7 +71,6 @@ let setnx key value connection =
             Integer(0) -> false |
             _ -> true
     end;;
-*)
 
 (* Commands operating on the key space *)
 let exists key connection =

@@ -52,7 +52,7 @@ end
 
 lib_objs = OcamlFileList.new("src/redis*.ml")
 lib_objs.target_dest_source.each do |target, dest, src|
-    file target => ["build"] do
+    file target => ["build", src] do
         compile src
     end
     if not src.match(/redis_util.ml$/) then

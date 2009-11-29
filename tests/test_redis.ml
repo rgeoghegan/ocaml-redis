@@ -87,7 +87,7 @@ let test_mget () =
         ]
         test_func;;
 
-(*let test_setnx () =
+let test_setnx () =
     let test_func connection =
         begin
             assert( Redis.setnx "key" "aaa" connection );
@@ -104,7 +104,6 @@ let test_mget () =
             Script.WriteThisLine(":0")
         ]
         test_func;;
-*)
 
 let test_flushdb () =
     let test_func conn =
