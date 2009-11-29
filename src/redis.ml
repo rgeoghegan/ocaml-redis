@@ -43,22 +43,7 @@ let getset key new_value connection =
 
 let mget keys connection = 
     (* MGET *)
-    let joiner buf new_item = begin
-            Buffer.add_char buf ' ';
-            Buffer.add_string buf new_item
-        end
-    in
-    let command_string = match keys with 
-            [] -> failwith "Need at least one key"
-            | x ->
-                let out_buffer = Buffer.create 256
-                in begin
-                        Buffer.add_string out_buffer "MGET";
-                        List.iter (joiner out_buffer) x;
-                        out_buffer
-                    end
-    in
-    match send_and_receive_command (Buffer.contents command_string) connection with
+    match send_and_receive_command (Redis_util.aggregate_command "MGET" keys) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -96,10 +81,17 @@ let decrby key value connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
-(* Commands operating on the key space *)
 let exists key connection =
     (* EXISTS *)
     (send_and_receive_command ("EXISTS " ^ key) connection) = Integer(1);;
+
+let del keys connection =
+    (* DEL *)
+    match send_and_receive_command (Redis_util.aggregate_command "DEL" keys) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+    
+(* Commands operating on the key space *)
 
 (* Multiple databases handling commands *)
 let flushdb connection =

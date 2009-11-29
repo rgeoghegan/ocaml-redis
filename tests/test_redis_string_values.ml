@@ -137,3 +137,49 @@ let test_decrby () =
             Script.WriteThisLine(":-4")
         ]
         test_func;;
+
+let test_exists () =
+    let test_func connection = begin
+        assert (
+            (Redis.exists "real_key" connection) = true
+        );
+        assert (
+            (Redis.exists "fake_key" connection) = false
+        )
+    end in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("EXISTS real_key");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("EXISTS fake_key");
+            Script.WriteThisLine(":0")
+        ]
+        test_func;;
+
+let test_del () =
+    let test_func connection = begin
+        Redis.set "rory" "cool" connection;
+        Redis.set "tim" "uncool" connection;
+        Redis.set "bob" "unknown" connection;
+        assert (1 == Redis.del ["bob"] connection);
+        assert (2 == Redis.del ["rory"; "tim"; "bob"] connection);
+    end in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("SET tim 6");
+            Script.ReadThisLine("uncool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("SET bob 7");
+            Script.ReadThisLine("unknown");
+            Script.WriteThisLine("+OK");
+
+            Script.ReadThisLine("DEL bob");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("DEL rory tim bob");
+            Script.WriteThisLine(":2")
+        ]
+        test_func;;
+    

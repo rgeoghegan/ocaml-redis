@@ -81,4 +81,18 @@ let send_and_receive_command command connection =
         receive_answer connection
     end;;
 
-
+let aggregate_command command tokens = 
+    let joiner buf new_item = begin
+            Buffer.add_char buf ' ';
+            Buffer.add_string buf new_item
+        end
+    in
+    match tokens with 
+        [] -> failwith "Need at least one key"
+        | x ->
+            let out_buffer = Buffer.create 256
+            in begin
+                    Buffer.add_string out_buffer command;
+                    List.iter (joiner out_buffer) x;
+                    Buffer.contents out_buffer
+                end

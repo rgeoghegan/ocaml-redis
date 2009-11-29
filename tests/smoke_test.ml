@@ -10,9 +10,9 @@ let smoke_test conn = begin
     assert ( 1 = Redis.incr "rory" conn);
     assert ( 5 = Redis.incrby "rory" 4 conn);
     assert ( 4 = Redis.decr "rory" conn);
-    (*
-    assert ( 2 = Redis.decrby "rory" conn);
-    *)
+    assert ( 2 = Redis.decrby "rory" 2 conn);
+
+    assert ( 1 = Redis.del ["rory"] conn);
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
