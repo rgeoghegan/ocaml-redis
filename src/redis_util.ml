@@ -75,7 +75,7 @@ let receive_answer connection =
         end;;
 
 let send_and_receive_command command connection =
-    (* Send command, and receive the results *)
+    (* Send command, and receive the result casted to the right type *)
     begin
         send_text command connection;
         receive_answer connection

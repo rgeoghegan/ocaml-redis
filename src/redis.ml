@@ -72,6 +72,30 @@ let setnx key value connection =
             _ -> true
     end;;
 
+let incr key connection =
+    (* INCR *)
+    match send_and_receive_command (Printf.sprintf "INCR %s" key) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let incrby key value connection =
+    (* INCR *)
+    match send_and_receive_command (Printf.sprintf "INCRBY %s %d" key value) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let decr key connection =
+    (* DECR *)
+    match send_and_receive_command (Printf.sprintf "DECR %s" key) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let decrby key value connection =
+    (* DECR *)
+    match send_and_receive_command (Printf.sprintf "DECRBY %s %d" key value) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Commands operating on the key space *)
 let exists key connection =
     (* EXISTS *)

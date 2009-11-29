@@ -1,0 +1,139 @@
+(* Tests for "Commands operating on string values" *)
+let test_set () =
+    let test_func connection =
+        Redis.set "key" "aaa" connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SET key 3");
+            Script.ReadThisLine("aaa");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;
+let test_get () =
+    let test_func connection = 
+        assert (
+            (Redis.get "key" connection) = Redis_util.Data("aaa")
+        )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("GET key");
+            Script.WriteThisLine("$3");
+            Script.WriteThisLine("aaa")
+        ]
+        test_func;;
+
+let test_getset () =
+    let test_func connection =
+        assert (
+            (Redis.getset "key" "now" connection) = Redis_util.Data("previous")
+        )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("GETSET key 3");
+            Script.ReadThisLine("now");
+            Script.WriteThisLine("$8");
+            Script.WriteThisLine("previous")
+        ]
+        test_func;;
+
+let test_mget () =
+    let test_func conn =
+        assert (
+            (Redis.mget ["rory"; "tim"] conn) = [Redis_util.Data("cool"); Redis_util.Data("not cool")]
+        )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("MGET rory tim");
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.WriteThisLine("$8");
+            Script.WriteThisLine("not cool")
+        ]
+        test_func;;
+
+let test_setnx () =
+    let test_func connection =
+        begin
+            assert( Redis.setnx "key" "aaa" connection );
+            assert( false = Redis.setnx "key" "aaa" connection)
+        end
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SETNX key 3");
+            Script.ReadThisLine("aaa");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SETNX key 3");
+            Script.ReadThisLine("aaa");
+            Script.WriteThisLine(":0")
+        ]
+        test_func;;
+
+let test_incr () =
+    let test_func connection =
+        begin
+            assert( 1 = Redis.incr "key" connection );
+            assert( 2 = Redis.incr "key" connection)
+        end
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("INCR key");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("INCR key");
+            Script.WriteThisLine(":2")
+        ]
+        test_func;;
+
+let test_incrby () =
+    let test_func connection =
+        begin
+            assert( 2 = Redis.incrby "key" 2 connection );
+            assert( 4 = Redis.incrby "key" 2 connection)
+        end
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("INCRBY key 2");
+            Script.WriteThisLine(":2");
+            Script.ReadThisLine("INCRBY key 2");
+            Script.WriteThisLine(":4")
+        ]
+        test_func;;
+
+let test_decr () =
+    let test_func connection =
+        begin
+            assert( -1 = Redis.decr "key" connection );
+            assert( -2 = Redis.decr "key" connection)
+        end
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("DECR key");
+            Script.WriteThisLine(":-1");
+            Script.ReadThisLine("DECR key");
+            Script.WriteThisLine(":-2")
+        ]
+        test_func;;
+
+let test_decrby () =
+    let test_func connection =
+        begin
+            assert( -2 = Redis.decrby "key" 2 connection );
+            assert( -4 = Redis.decrby "key" 2 connection)
+        end
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("DECRBY key 2");
+            Script.WriteThisLine(":-2");
+            Script.ReadThisLine("DECRBY key 2");
+            Script.WriteThisLine(":-4")
+        ]
+        test_func;;
