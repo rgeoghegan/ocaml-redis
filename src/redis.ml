@@ -112,6 +112,12 @@ let randomkey connection =
         Status(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
         
+let rename oldkey newkey connection =
+    (* RENAME *)
+    match send_and_receive_command (Printf.sprintf "RENAME %s %s" oldkey newkey) connection with
+        Status("OK") -> () |
+        Status(x) -> failwith (Printf.sprintf "Received status(%s) when renaming %s to %s" x oldkey newkey) |
+        _ -> failwith "Did not recognize what I got back"
 
 (* Multiple databases handling commands *)
 let flushdb connection =

@@ -21,6 +21,9 @@ let smoke_test conn = begin
 
     assert ( ["rory"] = Redis.keys "*" conn);
     assert ( "rory" = Redis.randomkey conn);
+    
+    Redis.rename "rory" "tim" conn;
+    assert ( "tim" = Redis.randomkey conn);
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"

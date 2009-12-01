@@ -34,3 +34,18 @@ let test_randomkey () =
             Script.WriteThisLine("+rory")
         ]
         test_func;;
+
+let test_rename () =
+    let test_func connection = 
+        Redis.set "rory" "cool" connection;
+        Redis.rename "rory" "tim" connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("RENAME rory tim");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;
