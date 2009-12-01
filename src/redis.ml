@@ -100,6 +100,19 @@ let value_type key connection =
     
 (* Commands operating on the key space *)
 
+let keys pattern connection =
+    (* KEYS *)
+    match send_and_receive_command ("KEYS " ^ pattern) connection with
+        Bulk(String(x)) -> Str.split (Str.regexp " +") x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let randomkey connection =
+    (* RANDOMKEY *)
+    match send_and_receive_command "RANDOMKEY" connection with
+        Status(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+        
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

@@ -50,6 +50,7 @@ end
 
 # Library
 
+external_cmxas = "Unix.cmxa Str.cmxa"
 lib_objs = OcamlFileList.new("src/redis*.ml")
 lib_objs.target_dest_source.each do |target, dest, src|
     file target => ["build", src] do
@@ -70,7 +71,7 @@ end
 
 test_files = OcamlFileList.new("tests/test*.ml")
 file "build/test" => [:library, "build/all_test.ml", "build/script.cmx", :all_test_binaries] do
-    sh "ocamlopt -I build -o build/test Unix.cmxa lib/Redis.cmxa build/script.cmx #{test_files.to_cmx} build/all_test.ml"
+    sh "ocamlopt -I build -o build/test #{external_cmxas} lib/Redis.cmxa build/script.cmx #{test_files.to_cmx} build/all_test.ml"
 end
 
 file "build/all_test.ml" => (["tests/create_test.rb"] + test_files.to_cmx) do
@@ -79,7 +80,7 @@ end
 
 file "build/smoke_test" => [:library, "tests/smoke_test.ml"] do
     compile "tests/smoke_test.ml"
-    sh "ocamlopt -I build -o build/smoke_test Unix.cmxa lib/Redis.cmxa build/smoke_test.cmx"
+    sh "ocamlopt -I build -o build/smoke_test #{external_cmxas} lib/Redis.cmxa build/smoke_test.cmx"
 end
 
 test_files.target_dest_source.each do |target, dest, src|

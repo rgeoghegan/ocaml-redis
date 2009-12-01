@@ -1,4 +1,5 @@
 (* Tests for "Commands operating on string values" *)
+
 let test_set () =
     let test_func connection =
         Redis.set "key" "aaa" connection
@@ -10,6 +11,7 @@ let test_set () =
             Script.WriteThisLine("+OK")
         ]
         test_func;;
+
 let test_get () =
     let test_func connection = 
         assert (

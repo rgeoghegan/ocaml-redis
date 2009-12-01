@@ -19,6 +19,9 @@ let smoke_test conn = begin
     assert ( Redis_util.None = (Redis.value_type "tim" conn));
     assert ( Redis_util.String("") = (Redis.value_type "rory" conn));
 
+    assert ( ["rory"] = Redis.keys "*" conn);
+    assert ( "rory" = Redis.randomkey conn);
+
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
 end;;
