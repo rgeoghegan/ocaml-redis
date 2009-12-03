@@ -30,6 +30,8 @@ let smoke_test conn = begin
     assert ( Redis_util.String("more cool") = Redis.get "rory" conn);
     assert ( Redis_util.String("cool") = Redis.get "tim" conn);
 
+    assert ( 2 == Redis.dbsize conn );
+
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
 end;;

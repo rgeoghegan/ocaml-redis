@@ -68,3 +68,14 @@ let test_renamenx () =
             Script.WriteThisLine(":0")
         ]
         test_func;;
+
+let test_dbsize () =
+    let test_func connection = 
+        assert( 0 == Redis.dbsize connection);
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("DBSIZE");
+            Script.WriteThisLine(":0")
+        ]
+        test_func;;

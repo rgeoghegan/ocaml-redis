@@ -126,6 +126,12 @@ let renamenx oldkey newkey connection =
         Integer(1) -> true |
         _ -> failwith "Did not recognize what I got back";;
 
+let dbsize connection =
+    (* DBSIZE *)
+    match send_and_receive_command  "DBSIZE" connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
