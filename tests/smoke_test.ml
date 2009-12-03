@@ -26,11 +26,11 @@ let smoke_test conn = begin
     assert ( "tim" = Redis.randomkey conn);
 
     Redis.set "rory" "more cool" conn;
-    ignore (Redis.renamenx "rory" "tim" conn);
-    assert ( Redis_util.String("more cool") = Redis.get "rory" conn);
-    assert ( Redis_util.String("cool") = Redis.get "tim" conn);
+    assert ( false = Redis.renamenx "rory" "tim" conn);
 
     assert ( 2 == Redis.dbsize conn );
+
+    assert ( Redis.expire "rory" 10 conn );
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"

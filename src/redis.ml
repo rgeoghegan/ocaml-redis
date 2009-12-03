@@ -132,6 +132,13 @@ let dbsize connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let expire key seconds connection =
+    (* EXPIRE *)
+    match send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection with
+        Integer(0) -> false |
+        Integer(1) -> true | 
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
