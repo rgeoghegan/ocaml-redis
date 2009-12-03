@@ -94,3 +94,21 @@ let test_expire () =
             Script.WriteThisLine(":1")
         ]
         test_func;;
+
+let test_ttl () =
+    let test_func connection =
+        Redis.set "rory" "cool" connection;
+        ignore( Redis.expire "rory" 10 connection);
+        assert( 10 == Redis.ttl "rory" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("EXPIRE rory 10");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("TTL rory");
+            Script.WriteThisLine(":10")
+        ]
+        test_func;;

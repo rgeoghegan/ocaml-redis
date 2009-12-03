@@ -31,6 +31,7 @@ let smoke_test conn = begin
     assert ( 2 == Redis.dbsize conn );
 
     assert ( Redis.expire "rory" 10 conn );
+    assert ( 10 >= Redis.ttl "rory" conn );
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
