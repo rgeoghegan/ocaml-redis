@@ -1,4 +1,9 @@
 #!/usr/bin/env ruby
+# Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
+# Released under the BSD license. See the LICENSE.txt file for more info.
+#
+# Script that generates a global test module based on all the ocaml code files it parses.
+
 require "erb"
 
 MODULE_NAMER = /([^\/]*)\.ml$/

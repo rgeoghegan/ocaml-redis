@@ -1,4 +1,7 @@
-(* Tests for "Commands operating on string values" *)
+(* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
+   Released under the BSD license. See the LICENSE.txt file for more info.
+
+   Tests for "Commands operating on string values" *)
 
 let test_set () =
     let test_func connection =

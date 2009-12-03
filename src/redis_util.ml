@@ -1,4 +1,7 @@
-(* Utility and protocol specific functions *)
+(* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
+   Released under the BSD license. See the LICENSE.txt file for more info.
+
+    Utility and protocol specific functions *)
 
 let read_string in_chan =
     (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)

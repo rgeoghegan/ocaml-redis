@@ -1,7 +1,22 @@
 Redis client library for Ocaml
 ==============================
 
-ocaml-redis implements the client spec of the [Redis key-value store](http://code.google.com/p/redis/). It currently only implements the commands operating on string values listed on the [Redis Command Reference](http://code.google.com/p/redis/wiki/CommandReference) for *Redis 1.0*.
+ocaml-redis implements the client spec of the [Redis key-value store](http://code.google.com/p/redis/).
+
+It currently only implements the commands listed in the following subsection of the [Redis Command Reference](http://code.google.com/p/redis/wiki/CommandReference) for *Redis 1.0*:
+
+* Commands operating on string values
+* Commands operating on the key space
+
+These sections are still to be completed:
+
+* Connection handling
+* Commands operating on lists
+* Commands operating on sets
+* Multiple databases handling commands
+* Sorting
+* Persistence control commands
+* Remote server control commands
 
 Testing
 -------

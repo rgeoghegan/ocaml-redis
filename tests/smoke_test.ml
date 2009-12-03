@@ -1,3 +1,7 @@
+(* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
+   Released under the BSD license. See the LICENSE.txt file for more info.
+
+   Simple smoke test to be run on local server. *)
 let smoke_test conn = begin
     ignore (Redis.flushdb conn); 
     assert ( false = Redis.exists "rory" conn);

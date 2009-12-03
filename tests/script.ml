@@ -1,6 +1,7 @@
-(*
-This module scripts simple queries and responses from a fake redis server for testing.
-*)
+(* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
+   Released under the BSD license. See the LICENSE.txt file for more info.
+
+   This module scripts simple queries and responses from a fake redis server for testing. *)
 
 let response_to_string r =
     let bulk_printer x =
