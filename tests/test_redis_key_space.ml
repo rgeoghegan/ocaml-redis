@@ -49,3 +49,22 @@ let test_rename () =
             Script.WriteThisLine("+OK")
         ]
         test_func;;
+
+let test_renamenx () =
+    let test_func connection = 
+        Redis.set "rory" "cool" connection;
+        Redis.set "tim" "not cool" connection;
+        assert( false == Redis.renamenx "rory" "tim" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("SET tim 8");
+            Script.ReadThisLine("not cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("RENAMENX rory tim");
+            Script.WriteThisLine(":0")
+        ]
+        test_func;;

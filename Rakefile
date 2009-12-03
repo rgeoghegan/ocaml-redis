@@ -20,6 +20,11 @@ task :clean do
     rm_rf "lib"
 end
 
+desc "Start a Redis Server"
+task :start_redis do
+    sh "redis-server var/run/redis.conf"
+end
+
 directory "build"
 directory "lib"
 
