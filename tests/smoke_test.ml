@@ -40,6 +40,8 @@ let smoke_test conn = begin
     (* List operations *)
     Redis.del ["rory"] conn;
     Redis.rpush "rory" "cool" conn;
+    Redis.lpush "rory" "even cooler" conn;
+    assert ( 2 == (Redis.llen "rory" conn));
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"

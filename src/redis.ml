@@ -149,6 +149,35 @@ let ttl key connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+(* Commands operating on lists *)
+let rpush key value connection =
+    (* RPUSH *)
+    begin
+        send_text (Printf.sprintf "RPUSH %s %d" key (String.length value)) connection;
+        send_text value connection;
+        match receive_answer connection with
+            Status("OK") -> () |
+            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+
+let lpush key value connection =
+    (* RPUSH *)
+    begin
+        send_text (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
+        send_text value connection;
+        match receive_answer connection with
+            Status("OK") -> () |
+            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+
+let llen key connection =
+    (* LLEN *)
+    match send_and_receive_command ("LLEN " ^ key) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

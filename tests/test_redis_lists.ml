@@ -15,7 +15,7 @@ let test_rpush () =
         ]
         test_func;;
 
-(*let test_lpush () =
+let test_lpush () =
     let test_func connection =
         Redis.lpush "rory" "cool" connection
     in
@@ -26,4 +26,18 @@ let test_rpush () =
             Script.WriteThisLine("+OK");
         ]
         test_func;;
-*)
+
+let test_llen () =
+    let test_func connection =
+        Redis.rpush "rory" "cool" connection;
+        assert ( 1 = (Redis.llen "rory" connection));
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("RPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LLEN rory");
+            Script.WriteThisLine(":1");
+        ]
+        test_func;;
