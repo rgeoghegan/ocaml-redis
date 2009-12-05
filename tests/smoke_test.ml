@@ -37,6 +37,10 @@ let smoke_test conn = begin
     assert ( Redis.expire "rory" 10 conn );
     assert ( 10 >= Redis.ttl "rory" conn );
 
+    (* List operations *)
+    Redis.del ["rory"] conn;
+    Redis.rpush "rory" "cool" conn;
+
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
 end;;
