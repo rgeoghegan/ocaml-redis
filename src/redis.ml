@@ -196,6 +196,14 @@ let lindex key index connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let lset key index value connection =
+    (* LSET *)
+    begin
+        send_text (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
+        send_text value connection;
+        Redis_util.handle_status (receive_answer connection)
+    end;;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

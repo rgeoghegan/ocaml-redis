@@ -103,3 +103,19 @@ let test_ltrim () =
             Script.WriteThisLine("cool");
         ]
         test_func;;
+
+let test_lset () =
+    let test_func connection =
+        Redis.lpush "rory" "cool" connection;
+        Redis.lset "rory" 0 "even cooler" connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LSET rory 0 11");
+            Script.ReadThisLine("even cooler");
+            Script.WriteThisLine("+OK");
+        ]
+        test_func;;

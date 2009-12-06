@@ -104,3 +104,9 @@ let aggregate_command command tokens =
                     List.iter (joiner out_buffer) x;
                     Buffer.contents out_buffer
                 end
+
+let handle_status status =
+    match status with
+        Status("OK") -> () |
+        Status(x) -> failwith ("Received status(" ^ x ^ ")") |
+        _ -> failwith "Did not recognize what I got back";;

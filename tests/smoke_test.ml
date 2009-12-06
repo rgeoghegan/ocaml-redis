@@ -46,6 +46,7 @@ let smoke_test conn = begin
 
     Redis.ltrim "rory" 0 0 conn;
     assert ( (Redis_util.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler");
+    Redis.lset "rory" 0 "just cool";
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
