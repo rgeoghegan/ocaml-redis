@@ -64,4 +64,22 @@ let test_llen () =
             Script.WriteThisLine("still cool");
         ]
         test_func;;
-    
+
+let test_ltrim () =
+    let test_func connection =
+        Redis.rpush "rory" "cool" connection;
+        Redis.rpush "rory" "still cool" connection;
+        Redis.ltrim "rory" 0 1 connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("RPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("RPUSH rory 10");
+            Script.ReadThisLine("still cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LTRIM rory 0 1");
+            Script.WriteThisLine("+OK");
+        ]
+        test_func;;
