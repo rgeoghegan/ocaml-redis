@@ -33,6 +33,11 @@ let send_text text (_, out_chan) = begin
 type bulk_data = None | String of string;;
 type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list;;
 
+let string_of_bulk_data bd =
+    match bd with
+        String(x) -> x |
+        None -> failwith "Trying to extract string from None";;
+
 let get_bulk_data (in_chan, _) =
     let size = int_of_string (read_string in_chan)
     in

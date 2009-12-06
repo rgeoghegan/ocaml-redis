@@ -23,6 +23,15 @@ let test_send_text () =
     in
     Script.use_test_script [Script.ReadThisLine("foo")] test_func;;
 
+let test_string_of_bulk_data () =
+    begin
+        assert ( "rory" = (Redis_util.string_of_bulk_data (Redis_util.String("rory"))));
+        try
+            (* Test failure when passing in None *)
+            ignore (Redis_util.string_of_bulk_data (Redis_util.None))
+        with Failure(_) -> ()
+    end;;
+
 let test_receive_answer () =
     let test_func connection =
         begin

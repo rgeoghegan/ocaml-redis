@@ -178,6 +178,13 @@ let llen key connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let lrange key start stop connection =
+    (* LRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
+    match send_and_receive_command (Printf.sprintf "LRANGE %s %d %d" key start stop) connection with
+        Multibulk(l) -> l |
+        _ -> failwith "Did not recognize what I got back";;
+        
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
