@@ -190,6 +190,12 @@ let ltrim key start stop connection =
         Status("OK") -> () |
         _ -> failwith "Did not recognize what I got back";;
 
+let lindex key index connection =
+    (* GET *)
+    match send_and_receive_command (Printf.sprintf "LINDEX %s %d" key index) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

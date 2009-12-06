@@ -83,3 +83,23 @@ let test_ltrim () =
             Script.WriteThisLine("+OK");
         ]
         test_func;;
+
+let test_ltrim () =
+    let test_func connection =
+        Redis.rpush "rory" "cool" connection;
+        Redis.rpush "rory" "still cool" connection;
+        assert( Redis_util.String("cool") = (Redis.lindex "rory" 0 connection))
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("RPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("RPUSH rory 10");
+            Script.ReadThisLine("still cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LINDEX rory 0");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+        ]
+        test_func;;

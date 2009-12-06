@@ -44,7 +44,8 @@ let smoke_test conn = begin
     assert ( 2 == (Redis.llen "rory" conn));
     assert ( [Redis_util.String("even cooler"); Redis_util.String("cool")] = (Redis.lrange "rory" 0 1 conn));
 
-    Redis.ltrim "rory" 0 1 conn;
+    Redis.ltrim "rory" 0 0 conn;
+    assert ( (Redis_util.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler");
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
