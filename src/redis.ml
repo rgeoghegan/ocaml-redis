@@ -220,6 +220,12 @@ let lpop key connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let rpop key connection =
+    (* RPOP *)
+    match send_and_receive_command ("RPOP " ^ key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
