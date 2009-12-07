@@ -7,11 +7,11 @@ It currently only implements the commands listed in the following subsection of 
 
 * Commands operating on string values
 * Commands operating on the key space
+* Commands operating on lists
 
 These sections are still to be completed:
 
 * Connection handling
-* Commands operating on lists
 * Commands operating on sets
 * Multiple databases handling commands
 * Sorting
