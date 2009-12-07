@@ -204,6 +204,22 @@ let lset key index value connection =
         Redis_util.handle_status (receive_answer connection)
     end;;
 
+let lrem key count value connection =
+    (* LREM *)
+    begin
+        send_text (Printf.sprintf "LREM %s %d %d" key count (String.length value)) connection;
+        send_text value connection;
+        match receive_answer connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+
+let lpop key connection =
+    (* LPOP *)
+    match send_and_receive_command ("LPOP " ^ key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

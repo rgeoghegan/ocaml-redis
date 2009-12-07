@@ -119,3 +119,39 @@ let test_lset () =
             Script.WriteThisLine("+OK");
         ]
         test_func;;
+
+let test_lrem () =
+    let test_func connection =
+        Redis.lpush "rory" "cool" connection;
+        Redis.lpush "rory" "even cooler" connection;
+        assert (1 == Redis.lrem "rory" 0 "cool" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LPUSH rory 11");
+            Script.ReadThisLine("even cooler");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LREM rory 0 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+        ]
+        test_func;;
+
+let test_lpop () =
+    let test_func connection =
+        Redis.lpush "rory" "cool" connection;
+        assert (Redis_util.String("cool") = Redis.lpop "rory" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("LPOP rory");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+        ]
+        test_func;;
