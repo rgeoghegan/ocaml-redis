@@ -31,7 +31,7 @@ let send_text text (_, out_chan) = begin
     end;;
 
 type bulk_data = None | String of string;;
-type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list;;
+type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
 
 let string_of_bulk_data bd =
     match bd with
@@ -77,6 +77,7 @@ let receive_answer connection =
                 get_bulk_data connection
             )
         | '*' -> get_multibulk_data (int_of_string (read_string in_chan)) connection
+        | '-' -> Error(read_string in_chan)
         | _ -> begin
             ignore (input_line in_chan);
             Undecipherable
@@ -109,4 +110,5 @@ let handle_status status =
     match status with
         Status("OK") -> () |
         Status(x) -> failwith ("Received status(" ^ x ^ ")") |
+        Error(x) -> failwith ("Received error: " ^ x) |
         _ -> failwith "Did not recognize what I got back";;

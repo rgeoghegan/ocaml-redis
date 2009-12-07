@@ -41,6 +41,10 @@ let test_receive_answer () =
             );
             assert (
                 Redis_util.receive_answer connection
+                = Redis_util.Error("baz")
+            );
+            assert (
+                Redis_util.receive_answer connection
                 = Redis_util.Undecipherable
             );
             assert (
@@ -64,6 +68,7 @@ let test_receive_answer () =
     Script.use_test_script 
         [
             Script.WriteThisLine("+bar"); (* Status *)
+            Script.WriteThisLine("-baz"); (* Error *)
             Script.WriteThisLine("!"); (* Undecipherable *)
             Script.WriteThisLine(":42"); (* Integer *)
             Script.WriteThisLine("$3"); (* Bulk *)

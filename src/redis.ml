@@ -95,6 +95,13 @@ let del keys connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let del_one key connection =
+    (* Exactly like "del", except you do not need to provide a list, just one key. Not in spec *)
+    match send_and_receive_command ("DEL " ^ key) connection with
+        Integer(1) -> true |
+        Integer(0) -> false |
+        _ -> failwith "Did not recognize what I got back";;
+
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
     match send_and_receive_command ("TYPE " ^ key) connection with
@@ -225,6 +232,18 @@ let rpop key connection =
     match send_and_receive_command ("RPOP " ^ key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
+
+(* Commands operating on sets *)
+let sadd key member connection =
+    (* SADD *)
+    begin
+        send_text (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
+        send_text member connection;
+        match receive_answer connection with
+            Integer(1) -> true |
+            Integer(0) -> false |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
 
 (* Multiple databases handling commands *)
 let flushdb connection =
