@@ -66,3 +66,38 @@ let test_smove () =
             Script.WriteThisLine(":1");
         ]
         test_func;;
+
+let test_scard () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        ignore (Redis.sadd "rory" "even cooler" connection);
+        assert ( 2 = Redis.scard "rory" connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SADD rory 11");
+            Script.ReadThisLine("even cooler");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SCARD rory");
+            Script.WriteThisLine(":2");
+        ]
+        test_func;;
+
+let test_scard () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        assert ( Redis.sismember "rory" "cool" connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SISMEMBER rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+        ]
+        test_func;;

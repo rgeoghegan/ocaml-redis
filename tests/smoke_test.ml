@@ -70,6 +70,9 @@ let smoke_test conn = begin
     assert ( Redis.sadd "tim" "even cooler" conn);
     assert ( Redis.smove "tim" "rory" "even cooler" conn );
     
+    assert ( 2 = Redis.scard "rory" conn );
+
+    assert ( Redis.sismember "rory" "cool" conn );
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"

@@ -272,7 +272,23 @@ let smove srckey destkey member connection =
             Integer(0) -> false |
             _ -> failwith "Did not recognize what I got back"
     end;;
-    
+
+let scard key connection =
+    (* SCARD *)
+    match send_and_receive_command ("SCARD " ^ key) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let sismember key member connection =
+    (* SISMEMBER *)
+    begin
+        send_text (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
+        send_text member connection;
+        match receive_answer connection with
+            Integer(1) -> true |
+            Integer(0) -> false |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
 
 (* Multiple databases handling commands *)
 let flushdb connection =
