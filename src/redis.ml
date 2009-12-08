@@ -262,6 +262,18 @@ let spop key connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let smove srckey destkey member connection =
+    (* SMOVE *)
+    begin
+        send_text (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
+        send_text member connection;
+        match receive_answer connection with
+            Integer(1) -> true |
+            Integer(0) -> false |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+    
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

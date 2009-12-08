@@ -46,3 +46,23 @@ let test_rem () =
             Script.WriteThisLine("cool");
         ]
         test_func;;
+
+let test_smove () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        ignore (Redis.sadd "tim" "even cooler" connection);
+        assert ( Redis.smove "tim" "rory" "even cooler" connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SADD tim 11");
+            Script.ReadThisLine("even cooler");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SMOVE tim rory 11");
+            Script.ReadThisLine("even cooler");
+            Script.WriteThisLine(":1");
+        ]
+        test_func;;
