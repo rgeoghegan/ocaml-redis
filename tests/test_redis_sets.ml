@@ -30,3 +30,19 @@ let test_rem () =
             Script.WriteThisLine(":1");
         ]
         test_func;;
+
+let test_rem () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        assert (Redis_util.String("cool") = Redis.spop "rory" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SPOP rory");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+        ]
+        test_func;;

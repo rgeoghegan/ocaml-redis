@@ -256,6 +256,12 @@ let srem key member connection =
             _ -> failwith "Did not recognize what I got back"
     end;;
 
+let spop key connection =
+    (* SPOP *)
+    match send_and_receive_command ("SPOP " ^ key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
