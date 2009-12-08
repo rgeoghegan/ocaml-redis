@@ -290,6 +290,12 @@ let sismember key member connection =
             _ -> failwith "Did not recognize what I got back"
     end;;
 
+let smembers key connection =
+    (* SMEMBERS *)
+    match send_and_receive_command ("SMEMBERS " ^ key) connection with
+        Multibulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

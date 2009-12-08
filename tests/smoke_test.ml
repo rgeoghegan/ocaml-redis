@@ -2,6 +2,7 @@
    Released under the BSD license. See the LICENSE.txt file for more info.
 
    Simple smoke test to be run on local server. *)
+
 let smoke_test conn = begin
     ignore (Redis.flushdb conn); 
     assert ( false = Redis.exists "rory" conn);
@@ -73,6 +74,9 @@ let smoke_test conn = begin
     assert ( 2 = Redis.scard "rory" conn );
 
     assert ( Redis.sismember "rory" "cool" conn );
+
+    ignore ( Redis.srem "rory" "cool" conn );
+    assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"

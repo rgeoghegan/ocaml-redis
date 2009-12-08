@@ -101,3 +101,20 @@ let test_scard () =
             Script.WriteThisLine(":1");
         ]
         test_func;;
+
+let test_smembers () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        assert ( [Redis_util.String("cool")] = Redis.smembers "rory" connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SMEMBERS rory");
+            Script.WriteThisLine("*1");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool")
+        ]
+        test_func;;
