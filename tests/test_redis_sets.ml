@@ -118,3 +118,20 @@ let test_smembers () =
             Script.WriteThisLine("cool")
         ]
         test_func;;
+
+let test_sinter () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        assert ( [Redis_util.String("cool")] = Redis.sinter ["rory"; "tim"] connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SINTER rory tim");
+            Script.WriteThisLine("*1");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool")
+        ]
+        test_func;;

@@ -296,6 +296,12 @@ let smembers key connection =
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let sinter keys connection =
+    (* SINTER *)
+    match send_and_receive_command (aggregate_command "SINTER" keys) connection with
+        Multibulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

@@ -78,6 +78,9 @@ let smoke_test conn = begin
     ignore ( Redis.srem "rory" "cool" conn );
     assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
 
+    ignore (Redis.sadd "tim" "even cooler" conn);
+    assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sinter ["rory"; "tim"] conn)) );
+
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
 end;;
