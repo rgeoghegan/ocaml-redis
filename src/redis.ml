@@ -245,6 +245,17 @@ let sadd key member connection =
             _ -> failwith "Did not recognize what I got back"
     end;;
 
+let srem key member connection =
+    (* SREM *)
+    begin
+        send_text (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
+        send_text member connection;
+        match receive_answer connection with
+            Integer(1) -> true |
+            Integer(0) -> false |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

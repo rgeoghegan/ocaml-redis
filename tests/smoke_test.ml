@@ -58,6 +58,9 @@ let smoke_test conn = begin
 
     ignore (Redis.del_one "tim" conn);
     assert ( Redis.sadd "tim" "not cool" conn);
+    assert ( Redis.sadd "tim" "smells" conn);
+
+    assert ( Redis.srem "tim" "smells" conn);
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
