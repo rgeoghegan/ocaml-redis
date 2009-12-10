@@ -313,14 +313,13 @@ let sunion keys connection =
     (* SUNION *)
     match send_and_receive_command (Redis_util.aggregate_command "SUNION" keys) connection with
         Multibulk(x) -> x |
-        y -> begin
-            print_endline (Redis_util.string_of_response y);
-            failwith "Did not recognize what I got back"
-        end;;
-            
-        (*
         _ -> failwith "Did not recognize what I got back";;
-        *)
+
+let sunionstore dstkey keys connection =
+    (* SUNIONSTORE *)
+    match send_and_receive_command (Redis_util.aggregate_command "SUNIONSTORE" (dstkey :: keys)) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
 
 (* Multiple databases handling commands *)
 let flushdb connection =

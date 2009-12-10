@@ -179,3 +179,22 @@ let test_sunion () =
             Script.WriteThisLine("cool")
         ]
         test_func;;
+
+let test_sunionstore () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        ignore (Redis.sadd "tim" "not so cool" connection);
+        assert ( 2 = Redis.sunionstore "bob" ["rory"; "tim"] connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SADD tim 11");
+            Script.ReadThisLine("not so cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SUNIONSTORE bob rory tim");
+            Script.WriteThisLine(":2")
+        ]
+        test_func;;

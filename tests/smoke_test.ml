@@ -85,6 +85,7 @@ let smoke_test conn = begin
     (* Redis.sinterstore "bob" ["rory"; "tim"] conn; *)
 
     assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
+    assert ( 1 = Redis.sunionstore "bob" ["rory"; "tim"] conn );
 
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
