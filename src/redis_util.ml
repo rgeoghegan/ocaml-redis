@@ -38,6 +38,26 @@ let string_of_bulk_data bd =
         String(x) -> x |
         None -> failwith "Trying to extract string from None";;
 
+let string_of_response r =
+    let bulk_printer x =
+        match x with
+            None -> "None"
+            | String(d) -> Printf.sprintf "String(%S)" d
+    in
+    let rec multi_bulk_list_to_string l =
+        match l with
+            [] -> ""
+            | h :: t -> Printf.sprintf "; %s%s" (bulk_printer h) (multi_bulk_list_to_string t)
+    in
+    match r with
+        Status(x) -> Printf.sprintf "Status(%S)" x |
+        Undecipherable -> "Undecipherable" |
+        Integer(x) -> Printf.sprintf "Integer(%d)" x |
+        Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
+        Multibulk(x) -> match x with
+            [] -> Printf.sprintf "Multibulk([])" |
+            h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t);;
+
 let get_bulk_data (in_chan, _) =
     let size = int_of_string (read_string in_chan)
     in
@@ -112,3 +132,4 @@ let handle_status status =
         Status(x) -> failwith ("Received status(" ^ x ^ ")") |
         Error(x) -> failwith ("Received error: " ^ x) |
         _ -> failwith "Did not recognize what I got back";;
+

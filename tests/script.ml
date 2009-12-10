@@ -3,26 +3,6 @@
 
    This module scripts simple queries and responses from a fake redis server for testing. *)
 
-let response_to_string r =
-    let bulk_printer x =
-        match x with
-            Redis_util.None -> "None"
-            | Redis_util.String(d) -> Printf.sprintf "String(%S)" d
-    in
-    let rec multi_bulk_list_to_string l =
-        match l with
-            [] -> ""
-            | h :: t -> Printf.sprintf "; %s%s" (bulk_printer h) (multi_bulk_list_to_string t)
-    in
-    match r with
-        Redis_util.Status(x) -> Printf.sprintf "Status(%S)" x |
-        Redis_util.Undecipherable -> "Undecipherable" |
-        Redis_util.Integer(x) -> Printf.sprintf "Integer(%d)" x |
-        Redis_util.Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
-        Redis_util.Multibulk(x) -> match x with
-            [] -> Printf.sprintf "Multibulk([])" |
-            h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t);;
-
 let debug_string comment value  = begin
     Printf.printf "%s %S\n" comment value;
     flush stdout

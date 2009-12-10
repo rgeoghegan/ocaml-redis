@@ -302,6 +302,26 @@ let sinter keys connection =
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+(*
+let sinterstore dstkey keys connection =
+    (* SINTERSTORE *)
+    Redis_util.handle_status (
+        send_and_receive_command (aggregate_command "SINTERSTORE" (dstkey :: keys)) connection
+    );; *)
+
+let sunion keys connection =
+    (* SUNION *)
+    match send_and_receive_command (Redis_util.aggregate_command "SUNION" keys) connection with
+        Multibulk(x) -> x |
+        y -> begin
+            print_endline (Redis_util.string_of_response y);
+            failwith "Did not recognize what I got back"
+        end;;
+            
+        (*
+        _ -> failwith "Did not recognize what I got back";;
+        *)
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)

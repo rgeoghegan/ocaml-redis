@@ -122,6 +122,7 @@ let test_smembers () =
 let test_sinter () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
+        ignore (Redis.sadd "tim" "cool" connection);
         assert ( [Redis_util.String("cool")] = Redis.sinter ["rory"; "tim"] connection )
     in
     Script.use_test_script
@@ -129,7 +130,50 @@ let test_sinter () =
             Script.ReadThisLine("SADD rory 4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine(":1");
+            Script.ReadThisLine("SADD tim 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("SINTER rory tim");
+            Script.WriteThisLine("*1");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool")
+        ]
+        test_func;;
+
+(* let test_sinterstore () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        ignore (Redis.sadd "tim" "cool" connection);
+        Redis.sinterstore "bob" ["rory"; "tim"] connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SADD tim 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SINTERSTORE bob rory tim");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;*)
+
+let test_sunion () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        ignore (Redis.sadd "tim" "cool" connection);
+        assert ([Redis_util.String("cool")] = Redis.sunion ["rory"; "tim"] connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SADD tim 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SUNION rory tim");
             Script.WriteThisLine("*1");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("cool")
