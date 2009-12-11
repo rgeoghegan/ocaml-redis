@@ -215,4 +215,18 @@ let test_sdiff () =
             Script.WriteThisLine("cool")
         ]
         test_func;;
-        
+
+let test_sdiffstore () =
+    let test_func connection =
+        ignore (Redis.sadd "rory" "cool" connection);
+        assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] connection )
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SDIFFSTORE bob rory tim");
+            Script.WriteThisLine(":1");
+        ]
+        test_func;;

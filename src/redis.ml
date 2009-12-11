@@ -327,6 +327,12 @@ let sdiff keys connection =
         Multibulk(x) -> x|
         _ -> failwith "Did not recognize what I got back";;
 
+let sdiffstore dstkey keys connection =
+    (* SDIFFSTORE *)
+    match send_and_receive_command (Redis_util.aggregate_command "SDIFFSTORE" (dstkey :: keys)) connection with
+        Integer(x) -> x|
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
