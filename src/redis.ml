@@ -321,6 +321,12 @@ let sunionstore dstkey keys connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let sdiff keys connection =
+    (* SDIFF *)
+    match send_and_receive_command (Redis_util.aggregate_command "SDIFF" keys) connection with
+        Multibulk(x) -> x|
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let flushdb connection =
     (* FLUSHDB *)
