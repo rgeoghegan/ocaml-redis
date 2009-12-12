@@ -90,6 +90,12 @@ let smoke_test conn = begin
     assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sdiff ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] conn);
 
+    (* Multiple databases *)
+    Redis.select 1 conn;
+
+    Redis.select 0 conn;
+    assert ( Redis.move "rory" 1 conn );
+
     ignore (Redis.flushdb conn); 
     print_endline "Smoke test passed"
 end;;

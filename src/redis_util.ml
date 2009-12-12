@@ -3,6 +3,12 @@
 
     Utility and protocol specific functions *)
 
+
+let debug_string comment value  = begin
+    Printf.printf "%s %S\n" comment value;
+    flush stdout
+end;;
+
 let read_string in_chan =
     (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)
     let rec iter out_buffer =

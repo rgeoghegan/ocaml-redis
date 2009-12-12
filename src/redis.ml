@@ -334,6 +334,21 @@ let sdiffstore dstkey keys connection =
         _ -> failwith "Did not recognize what I got back";;
 
 (* Multiple databases handling commands *)
+let select index connection =
+    (* SELECT *)
+    handle_status
+        (send_and_receive_command
+            ("SELECT " ^
+                (string_of_int index))
+            connection);;
+
+let move key index connection =
+    (* MOVE *)
+    match send_and_receive_command ( Printf.sprintf "MOVE %s %d" key index ) connection with
+        Integer(1) -> true |
+        Integer(0) -> false |
+        _ -> failwith "Did not recognize what I got back";;
+
 let flushdb connection =
     (* FLUSHDB *)
-    (send_and_receive_command "FLUSHDB" connection) = Status("OK");;
+    handle_status (send_and_receive_command "FLUSHDB" connection);;
