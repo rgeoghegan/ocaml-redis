@@ -27,8 +27,8 @@ let test_string_of_bulk_data () =
     begin
         assert ( "rory" = (Redis_util.string_of_bulk_data (Redis_util.String("rory"))));
         try
-            (* Test failure when passing in None *)
-            ignore (Redis_util.string_of_bulk_data (Redis_util.None))
+            (* Test failure when passing in Nil *)
+            ignore (Redis_util.string_of_bulk_data (Redis_util.Nil))
         with Failure(_) -> ()
     end;;
 
@@ -57,7 +57,7 @@ let test_receive_answer () =
             );
             assert (
                 Redis_util.receive_answer connection
-                = Redis_util.Bulk(Redis_util.None)
+                = Redis_util.Bulk(Redis_util.Nil)
             );
             assert (
                 Redis_util.receive_answer connection
@@ -73,7 +73,7 @@ let test_receive_answer () =
             Script.WriteThisLine(":42"); (* Integer *)
             Script.WriteThisLine("$3"); (* Bulk *)
             Script.WriteThisLine("aaa");
-            Script.WriteThisLine("$-1"); (* None Bulk *)
+            Script.WriteThisLine("$-1"); (* Nil Bulk *)
             Script.WriteThisLine("*2"); (* Multibulk *)
             Script.WriteThisLine("$4");
             Script.WriteThisLine("rory");

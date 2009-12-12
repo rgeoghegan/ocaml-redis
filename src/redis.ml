@@ -106,7 +106,7 @@ let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
     match send_and_receive_command ("TYPE " ^ key) connection with
         Status("string") -> Redis_util.String("") |
-        Status("none") -> Redis_util.None |
+        Status("none") -> Redis_util.Nil |
         _ -> failwith "Did not recognize what I got back";;
     
 (* Commands operating on the key space *)
@@ -356,3 +356,38 @@ let flushdb connection =
 let flushall connection =
     (* FLUSHALL *)
     handle_status (send_and_receive_command "FLUSHALL" connection);;
+
+(* Sorting *)
+let sort key
+    ?pattern
+    ?(limit=`Unlimited)
+    ?get
+    ?(order=`Asc)
+    ?(alpha=`NonAlpha)
+        connection =
+    (* SORT *)
+    let command = 
+        let pattern = match pattern with
+            None -> "" |
+            Some x -> " BY " ^ x
+        in
+        let limit = match limit with
+            `Unlimited -> "" |
+            `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
+        in
+        let get = match get with
+            None -> "" |
+            Some x -> " GET " ^ x
+        in
+        let order = match order with
+            `Asc -> "" |
+            `Desc -> " DESC"
+        in
+        let alpha = match alpha with
+            `NonAlpha -> "" |
+            `Alpha -> " ALPHA"
+        in
+        "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
+    in match send_and_receive_command command connection with
+        Multibulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;

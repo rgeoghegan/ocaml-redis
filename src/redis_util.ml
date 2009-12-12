@@ -36,18 +36,18 @@ let send_text text (_, out_chan) = begin
         flush out_chan;
     end;;
 
-type bulk_data = None | String of string;;
+type bulk_data = Nil | String of string;;
 type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
 
 let string_of_bulk_data bd =
     match bd with
         String(x) -> x |
-        None -> failwith "Trying to extract string from None";;
+        Nil -> failwith "Trying to extract string from none";;
 
 let string_of_response r =
     let bulk_printer x =
         match x with
-            None -> "None"
+            Nil -> "Nil"
             | String(d) -> Printf.sprintf "String(%S)" d
     in
     let rec multi_bulk_list_to_string l =
@@ -68,7 +68,7 @@ let get_bulk_data (in_chan, _) =
     let size = int_of_string (read_string in_chan)
     in
     match size with 
-        -1 -> None
+        -1 -> Nil
         | 0 -> String("")
         | _ -> let out_buf = Buffer.create size
             in begin

@@ -192,7 +192,7 @@ let test_value_type () =
     let test_func connection = begin
         Redis.set "rory" "cool" connection;
         assert (Redis_util.String("") = Redis.value_type "rory" connection);
-        assert (Redis_util.None = Redis.value_type "tim" connection);
+        assert (Redis_util.Nil = Redis.value_type "tim" connection);
     end in
     Script.use_test_script
         [
