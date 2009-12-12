@@ -104,7 +104,10 @@ let smoke_test conn = begin
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));
     
+    Redis.save;
+    
     Redis.flushall conn;
+    (* Redis.shutdown conn; *)
     print_endline "Smoke test passed"
 end;;
 

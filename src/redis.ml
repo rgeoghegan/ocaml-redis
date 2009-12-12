@@ -391,3 +391,8 @@ let sort key
     in match send_and_receive_command command connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
+
+(* Persistence control commands *)
+let save connection =
+    (* SAVE *)
+    handle_status (send_and_receive_command "SAVE" connection);;
