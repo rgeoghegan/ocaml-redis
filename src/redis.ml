@@ -324,13 +324,13 @@ let sunionstore dstkey keys connection =
 let sdiff keys connection =
     (* SDIFF *)
     match send_and_receive_command (Redis_util.aggregate_command "SDIFF" keys) connection with
-        Multibulk(x) -> x|
+        Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sdiffstore dstkey keys connection =
     (* SDIFFSTORE *)
     match send_and_receive_command (Redis_util.aggregate_command "SDIFFSTORE" (dstkey :: keys)) connection with
-        Integer(x) -> x|
+        Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 (* Multiple databases handling commands *)
