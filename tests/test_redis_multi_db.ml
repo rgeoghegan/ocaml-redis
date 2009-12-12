@@ -1,7 +1,7 @@
 (* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
    Released under the BSD license. See the LICENSE.txt file for more info.
 
-   Tests for "Commands operating on sets" *)
+   Tests for "Commands operating on multiple db" *)
 open Script;;
 
 let test_select () =
