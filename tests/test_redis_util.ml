@@ -21,7 +21,7 @@ let test_send_text () =
     let test_func connection =
         Redis_util.send_text "foo" connection
     in
-    Script.use_test_script [Script.ReadThisLine("foo")] test_func;;
+    use_test_script [ReadThisLine("foo")] test_func;;
 
 let test_string_of_bulk_data () =
     begin
@@ -62,23 +62,28 @@ let test_receive_answer () =
             assert (
                 Redis_util.receive_answer connection
                 = Redis_util.Multibulk([Redis_util.String("rory"); Redis_util.String("tim")])
+            );
+            assert (
+                Redis_util.receive_answer connection
+                = Redis_util.Multibulk([])
             )
         end
     in
-    Script.use_test_script 
+    use_test_script 
         [
-            Script.WriteThisLine("+bar"); (* Status *)
-            Script.WriteThisLine("-baz"); (* Error *)
-            Script.WriteThisLine("!"); (* Undecipherable *)
-            Script.WriteThisLine(":42"); (* Integer *)
-            Script.WriteThisLine("$3"); (* Bulk *)
-            Script.WriteThisLine("aaa");
-            Script.WriteThisLine("$-1"); (* Nil Bulk *)
-            Script.WriteThisLine("*2"); (* Multibulk *)
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-            Script.WriteThisLine("$3");
-            Script.WriteThisLine("tim")
+            WriteThisLine("+bar"); (* Status *)
+            WriteThisLine("-baz"); (* Error *)
+            WriteThisLine("!"); (* Undecipherable *)
+            WriteThisLine(":42"); (* Integer *)
+            WriteThisLine("$3"); (* Bulk *)
+            WriteThisLine("aaa");
+            WriteThisLine("$-1"); (* Nil Bulk *)
+            WriteThisLine("*2"); (* Multibulk *)
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+            WriteThisLine("$3");
+            WriteThisLine("tim");
+            WriteThisLine("*-1"); (* Empty Multibulk *)
         ]
         test_func;;
 
@@ -103,20 +108,20 @@ let test_send_and_receive_command () =
             );
         end
     in
-    Script.use_test_script
+    use_test_script
         [
-            Script.ReadThisLine("foo");
-            Script.WriteThisLine("+bar");
+            ReadThisLine("foo");
+            WriteThisLine("+bar");
 
-            Script.ReadThisLine("foo");
-            Script.WriteThisLine("!"); (* Undecipherable *)
+            ReadThisLine("foo");
+            WriteThisLine("!"); (* Undecipherable *)
 
-            Script.ReadThisLine("foo");
-            Script.WriteThisLine(":42"); (* Integer reply *)
+            ReadThisLine("foo");
+            WriteThisLine(":42"); (* Integer reply *)
 
-            Script.ReadThisLine("foo");
-            Script.WriteThisLine("$3"); (* Bulk reply *)
-            Script.WriteThisLine("aaa")
+            ReadThisLine("foo");
+            WriteThisLine("$3"); (* Bulk reply *)
+            WriteThisLine("aaa")
         ]
         test_func;;
 

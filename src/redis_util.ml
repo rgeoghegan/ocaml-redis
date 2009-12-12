@@ -82,15 +82,17 @@ let get_multibulk_data size conn =
     let in_chan, out_chan = conn
     in
     let rec iter i data =
-        match i with
-            0 -> Multibulk(List.rev data)
-            | x -> match input_char in_chan with
-                '$' -> iter
-                    (i - 1)
-                    ((get_bulk_data conn) :: data)
-                | _ -> Undecipherable
+        if i == 0
+        then Multibulk(List.rev data)
+        else match input_char in_chan with
+            '$' -> iter
+                (i - 1)
+                ((get_bulk_data conn) :: data)
+            | _ -> Undecipherable
     in
-    iter size [];;
+    if size < 1
+    then Multibulk([])
+    else iter size [];;
 
 let receive_answer connection =
     (* Get answer back from redis and cast it to the right type *)
