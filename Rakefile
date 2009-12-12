@@ -58,7 +58,7 @@ end
 
 # Library
 
-external_cmxas = "Unix.cmxa Str.cmxa"
+external_cmxas = "Unix.cmxa Str.cmxa nums.cmxa"
 lib_objs = OcamlFileList.new("src/redis*.ml")
 lib_objs.target_dest_source.each do |target, dest, src|
     file target => ["build", src] do

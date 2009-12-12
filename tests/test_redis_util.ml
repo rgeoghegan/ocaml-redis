@@ -52,6 +52,13 @@ let test_receive_answer () =
                 = Redis_util.Integer(42)
             );
             assert (
+                match Redis_util.receive_answer connection with
+                    Redis_util.BigInteger(x) ->
+                        Big_int.eq_big_int x 
+                            (Big_int.big_int_of_string "100020003000")
+                    | _ -> false
+            );
+            assert (
                 Redis_util.receive_answer connection
                 = Redis_util.Bulk(Redis_util.String("aaa"))
             );
@@ -75,6 +82,7 @@ let test_receive_answer () =
             WriteThisLine("-baz"); (* Error *)
             WriteThisLine("!"); (* Undecipherable *)
             WriteThisLine(":42"); (* Integer *)
+            WriteThisLine(":100020003000"); (* BigInteger *)
             WriteThisLine("$3"); (* Bulk *)
             WriteThisLine("aaa");
             WriteThisLine("$-1"); (* Nil Bulk *)

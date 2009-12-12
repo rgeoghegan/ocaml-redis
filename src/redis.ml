@@ -396,3 +396,14 @@ let sort key
 let save connection =
     (* SAVE *)
     handle_status (send_and_receive_command "SAVE" connection);;
+
+let bgsave connection =
+    (* BGSAVE *)
+    handle_status (send_and_receive_command "BGSAVE" connection);;
+
+let lastsave connection =
+    (* LASTSAVE *)
+    match send_and_receive_command "LASTSAVE" connection with
+        Integer(x) -> Big_int.big_int_of_int x |
+        BigInteger(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;

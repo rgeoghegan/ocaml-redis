@@ -37,7 +37,7 @@ let send_text text (_, out_chan) = begin
     end;;
 
 type bulk_data = Nil | String of string;;
-type response = Status of string | Undecipherable | Integer of int | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
+type response = Status of string | Undecipherable | Integer of int | BigInteger of Big_int.big_int | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
 
 let string_of_bulk_data bd =
     match bd with
@@ -59,6 +59,7 @@ let string_of_response r =
         Status(x) -> Printf.sprintf "Status(%S)" x |
         Undecipherable -> "Undecipherable" |
         Integer(x) -> Printf.sprintf "Integer(%d)" x |
+        BigInteger(x) -> Printf.sprintf "BigInteger(%s)" (Big_int.string_of_big_int x) |
         Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
         Multibulk(x) -> match x with
             [] -> Printf.sprintf "Multibulk([])" |
@@ -94,13 +95,20 @@ let get_multibulk_data size conn =
     then Multibulk([])
     else iter size [];;
 
+let parse_integer_response response =
+    (* Expecting an integer response, will return the right type depending on the size *)
+    try
+        Integer(int_of_string response)
+    with Failure "int_of_string" ->
+        BigInteger(Big_int.big_int_of_string response);;
+
 let receive_answer connection =
     (* Get answer back from redis and cast it to the right type *)
     let in_chan, _ = connection
     in
     match (input_char in_chan) with
         '+' -> Status(read_string in_chan)
-        | ':' -> Integer(int_of_string (read_string in_chan))
+        | ':' -> parse_integer_response (read_string in_chan)
         | '$' -> Bulk(
                 get_bulk_data connection
             )

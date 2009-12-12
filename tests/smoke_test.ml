@@ -100,11 +100,15 @@ let smoke_test conn = begin
     Redis.lpush "rory" "2" conn;
     Redis.lpush "rory" "11" conn;
 
+    (* Sort *)
     assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));
     
-    Redis.save;
+    (* Persistence *)
+    Redis.save conn;
+    Redis.bgsave conn;
+    assert ( Big_int.zero_big_int < Redis.lastsave conn);
     
     Redis.flushall conn;
     (* Redis.shutdown conn; *)
