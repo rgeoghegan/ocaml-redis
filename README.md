@@ -10,11 +10,11 @@ It currently only implements the commands listed in the following subsection of 
 * Commands operating on lists
 * Commands operating on sets (except SINTERSTORE)
 * Multiple databases handling commands
+* Sorting
 
 These sections are still to be completed:
 
 * Connection handling
-* Sorting
 * Persistence control commands
 * Remote server control commands
 

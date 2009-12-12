@@ -95,6 +95,14 @@ let smoke_test conn = begin
 
     Redis.select 0 conn;
     assert ( Redis.move "rory" 1 conn );
+
+    Redis.lpush "rory" "1" conn;
+    Redis.lpush "rory" "2" conn;
+    Redis.lpush "rory" "11" conn;
+
+    assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
+        Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
+    )));
     
     Redis.flushall conn;
     print_endline "Smoke test passed"
