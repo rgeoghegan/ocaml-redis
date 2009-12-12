@@ -4,7 +4,7 @@
    Simple smoke test to be run on local server. *)
 
 let smoke_test conn = begin
-    ignore (Redis.flushdb conn); 
+    Redis.flushall conn; 
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
     assert ( Redis_util.String("cool") = Redis.get "rory" conn);
@@ -86,7 +86,7 @@ let smoke_test conn = begin
 
     assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sunionstore "bob" ["rory"; "tim"] conn );
-    Redis.srem "tim" "even cooler" conn;
+    ignore ( Redis.srem "tim" "even cooler" conn );
     assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sdiff ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] conn);
 
@@ -95,8 +95,8 @@ let smoke_test conn = begin
 
     Redis.select 0 conn;
     assert ( Redis.move "rory" 1 conn );
-
-    ignore (Redis.flushdb conn); 
+    
+    Redis.flushall conn;
     print_endline "Smoke test passed"
 end;;
 

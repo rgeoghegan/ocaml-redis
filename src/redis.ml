@@ -352,3 +352,7 @@ let move key index connection =
 let flushdb connection =
     (* FLUSHDB *)
     handle_status (send_and_receive_command "FLUSHDB" connection);;
+
+let flushall connection =
+    (* FLUSHALL *)
+    handle_status (send_and_receive_command "FLUSHALL" connection);;

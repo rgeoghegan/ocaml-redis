@@ -43,3 +43,14 @@ let test_flushdb () =
             Script.WriteThisLine("+OK")
         ]
         test_func;;
+
+let test_flushall () =
+    let test_func connection =
+        Redis.flushall connection;
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("FLUSHALL");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;
