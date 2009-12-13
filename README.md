@@ -11,11 +11,11 @@ It currently only implements the commands listed in the following subsection of 
 * Commands operating on sets (except SINTERSTORE)
 * Multiple databases handling commands
 * Sorting
+* Persistence control commands
 
 These sections are still to be completed:
 
 * Connection handling
-* Persistence control commands
 * Remote server control commands
 
 Testing

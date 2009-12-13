@@ -3,7 +3,7 @@
 
    Simple smoke test to be run on local server. *)
 
-let smoke_test conn = begin
+let smoke_test_with_quit conn = begin
     Redis.flushall conn; 
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
@@ -111,11 +111,18 @@ let smoke_test conn = begin
     assert ( Big_int.zero_big_int < Redis.lastsave conn);
     
     Redis.flushall conn;
-    Redis.shutdown conn;
+    Redis.quit conn;
     print_endline "Smoke test passed"
 end;;
 
+let smoke_test_with_shutdown conn = begin
+    Redis.shutdown conn
+end
+
 let _ =
-    let default_connection = Redis.create_connection "127.0.0.1" 6379
+    let default_connection () = Redis.create_connection "127.0.0.1" 6379
     in
-    smoke_test default_connection;;
+    begin
+        smoke_test_with_quit (default_connection ());
+        smoke_test_with_shutdown (default_connection ())
+    end;;

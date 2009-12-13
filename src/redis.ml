@@ -5,10 +5,6 @@
 open Redis_util
 
 (* Connection handling *)
-let ping connection =
-    (* PING *)
-    (send_and_receive_command "PING" connection) = Status("PONG");;
-
 let create_connection addr port =
     (* From a string of the address, and a port as an int, gets an input and output file discriptor *)
     let server = Unix.inet_addr_of_string addr
@@ -16,6 +12,16 @@ let create_connection addr port =
     Unix.open_connection(
         Unix.ADDR_INET(server, port)
     )
+
+let ping connection =
+    (* PING *)
+    match send_and_receive_command "PING" connection with
+        Status("PONG") -> true |
+        _ -> failwith "Did not recognize what I got back";;
+
+let quit connection =
+    (* QUIT *)
+    send_text "QUIT" connection;;
 
 (* Individual commands *)
 
@@ -416,4 +422,3 @@ let shutdown connection =
             Status(x) -> failwith x | 
             _ -> failwith "Did not recognize what I got back"
     with End_of_file -> ();;
-    
