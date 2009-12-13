@@ -407,3 +407,13 @@ let lastsave connection =
         Integer(x) -> Big_int.big_int_of_int x |
         BigInteger(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
+
+let shutdown connection =
+    (* SHUTDOWN *)
+    send_text "SHUTDOWN" connection;
+    try
+        match receive_answer connection with
+            Status(x) -> failwith x | 
+            _ -> failwith "Did not recognize what I got back"
+    with End_of_file -> ();;
+    

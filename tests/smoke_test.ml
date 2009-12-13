@@ -111,7 +111,7 @@ let smoke_test conn = begin
     assert ( Big_int.zero_big_int < Redis.lastsave conn);
     
     Redis.flushall conn;
-    (* Redis.shutdown conn; *)
+    Redis.shutdown conn;
     print_endline "Smoke test passed"
 end;;
 

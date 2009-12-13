@@ -38,5 +38,11 @@ let test_lastsave () =
         ]
         test_func;;
 
-
-
+let test_shutdown () =
+    let test_func connection =
+        Redis.shutdown connection
+    in
+    use_test_script
+        [
+            ReadThisLine("SHUTDOWN");
+        ];;
