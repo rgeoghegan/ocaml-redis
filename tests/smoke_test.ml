@@ -4,6 +4,7 @@
    Simple smoke test to be run on local server. *)
 
 let smoke_test_with_quit conn = begin
+    Redis.auth "qwerty" conn;
     Redis.flushall conn; 
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
@@ -116,6 +117,7 @@ let smoke_test_with_quit conn = begin
 end;;
 
 let smoke_test_with_shutdown conn = begin
+    Redis.auth "qwerty" conn;
     Redis.shutdown conn
 end
 

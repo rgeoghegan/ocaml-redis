@@ -4,7 +4,6 @@
    Main library file. *)
 open Redis_util
 
-(* Connection handling *)
 let create_connection addr port =
     (* From a string of the address, and a port as an int, gets an input and output file discriptor *)
     let server = Unix.inet_addr_of_string addr
@@ -13,6 +12,9 @@ let create_connection addr port =
         Unix.ADDR_INET(server, port)
     )
 
+(* Individual commands *)
+
+(* Connection handling *)
 let ping connection =
     (* PING *)
     match send_and_receive_command "PING" connection with
@@ -23,7 +25,9 @@ let quit connection =
     (* QUIT *)
     send_text "QUIT" connection;;
 
-(* Individual commands *)
+let auth password connection =
+    (* AUTH *)
+    handle_status (send_and_receive_command ("AUTH " ^ password) connection);;
 
 (* Commands operating on string values *)
 let set key value connection =

@@ -25,3 +25,14 @@ let test_quit () =
             Script.ReadThisLine("QUIT");
         ]
         test_func;;
+
+let test_auth () =
+    let test_func connection =
+        Redis.auth "qwerty" connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("AUTH qwerty");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;
