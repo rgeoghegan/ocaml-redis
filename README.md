@@ -12,10 +12,10 @@ It currently only implements the commands listed in the following subsection of 
 * Multiple databases handling commands
 * Sorting
 * Persistence control commands
+* Connection handling
 
 These sections are still to be completed:
 
-* Connection handling
 * Remote server control commands
 
 Testing
@@ -25,6 +25,6 @@ To run all the unit tests, execute:
 
     rake test
 
-To run a simple smoke test on a redis server *you don't mind clobbering* running on your localhost, execute:
+To run a simple smoke test on a redis server *you don't mind completely wiping* running on your localhost, execute:
 
     rake smoke_test
