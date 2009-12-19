@@ -36,6 +36,7 @@ let send_text text (_, out_chan) = begin
         flush out_chan;
     end;;
 
+type redis_value_type = RedisString | RedisNil | RedisList | RedisSet;;
 type bulk_data = Nil | String of string;;
 type response = Status of string | Undecipherable | Integer of int | BigInteger of Big_int.big_int | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
 
@@ -64,6 +65,13 @@ let string_of_response r =
         Multibulk(x) -> match x with
             [] -> Printf.sprintf "Multibulk([])" |
             h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t);;
+
+let string_of_redis_value_type vt =
+    match vt with
+        RedisNil -> "Nil" |
+        RedisString -> "String" |
+        RedisList -> "List" |
+        RedisSet -> "Set";;
 
 let get_bulk_data (in_chan, _) =
     let size = int_of_string (read_string in_chan)

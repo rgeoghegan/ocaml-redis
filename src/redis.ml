@@ -115,8 +115,10 @@ let del_one key connection =
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
     match send_and_receive_command ("TYPE " ^ key) connection with
-        Status("string") -> Redis_util.String("") |
-        Status("none") -> Redis_util.Nil |
+        Status("string") -> RedisString |
+        Status("set") -> RedisSet |
+        Status("list") -> RedisList |
+        Status("none") -> RedisNil |
         _ -> failwith "Did not recognize what I got back";;
     
 (* Commands operating on the key space *)

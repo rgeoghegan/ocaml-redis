@@ -14,10 +14,6 @@ It currently only implements the commands listed in the following subsection of 
 * Persistence control commands
 * Connection handling
 
-These sections are still to be completed:
-
-* Remote server control commands
-
 Testing
 -------
 
@@ -28,3 +24,10 @@ To run all the unit tests, execute:
 To run a simple smoke test on a redis server *you don't mind completely wiping* running on your localhost, execute:
 
     rake smoke_test
+
+Todo
+----
+
+The following sections or part of sections are currently unimplemented:
+
+* Remote server control commands
