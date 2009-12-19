@@ -29,11 +29,18 @@ let read_string in_chan =
     in
     iter (Buffer.create 100);;
 
-let send_text text (_, out_chan) = begin
-    (* Send the given text out to the connection *)
+let send_text_straight text (_, out_chan) =
+    (* Send the given text out to the connection without flushing *)
+    begin
         output_string out_chan text;
-        output_string out_chan "\r\n";
-        flush out_chan;
+        output_string out_chan "\r\n"
+    end;;
+
+let send_text text (in_chan, out_chan) =
+    (* Send the given text out to the connection *)
+    begin
+        send_text_straight text (in_chan, out_chan);
+        flush out_chan
     end;;
 
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet;;
@@ -61,6 +68,7 @@ let string_of_response r =
         Undecipherable -> "Undecipherable" |
         Integer(x) -> Printf.sprintf "Integer(%d)" x |
         BigInteger(x) -> Printf.sprintf "BigInteger(%s)" (Big_int.string_of_big_int x) |
+        Error(x) -> Printf.sprintf "Error(%S)" x |
         Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
         Multibulk(x) -> match x with
             [] -> Printf.sprintf "Multibulk([])" |
@@ -135,6 +143,7 @@ let send_and_receive_command command connection =
     end;;
 
 let aggregate_command command tokens = 
+    (* Given a list of tokens, joins them with command *)
     let joiner buf new_item = begin
             Buffer.add_char buf ' ';
             Buffer.add_string buf new_item
@@ -150,7 +159,29 @@ let aggregate_command command tokens =
                     Buffer.contents out_buffer
                 end
 
+let send_multibulk_command tokens connection =
+    (* Will send a given list of tokens to send in multibulk. *)
+    let token_length = (string_of_int (List.length tokens))
+    in
+    let rec send_in_tokens tokens_left =
+        match tokens_left with
+            [] -> () |
+            h :: t -> begin
+                send_text_straight ("$" ^ (string_of_int (String.length h))) connection;
+                send_text_straight h connection;
+                send_in_tokens t
+            end
+    in
+    let _, out_chan = connection
+    in
+        begin
+            send_text_straight ("*" ^ token_length) connection;
+            send_in_tokens tokens;
+            flush out_chan
+        end;;
+
 let handle_status status =
+    (* For status replies, does error checking and display *)
     match status with
         Status("OK") -> () |
         Status(x) -> failwith ("Received status(" ^ x ^ ")") |

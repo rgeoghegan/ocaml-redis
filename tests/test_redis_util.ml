@@ -4,6 +4,7 @@
    Test redis_util.ml *)
 
 open Script
+open Redis_util
 
 let test_read_string () =
     let test_pipe_read, test_pipe_write = piped_channel()
@@ -12,23 +13,23 @@ let test_read_string () =
         output_string test_pipe_write "test string\r\n";
         flush test_pipe_write;
         assert (
-            Redis_util.read_string test_pipe_read
+            read_string test_pipe_read
             = "test string"
         )
     end;;
 
 let test_send_text () =
     let test_func connection =
-        Redis_util.send_text "foo" connection
+        send_text "foo" connection
     in
     use_test_script [ReadThisLine("foo")] test_func;;
 
 let test_string_of_bulk_data () =
     begin
-        assert ( "rory" = (Redis_util.string_of_bulk_data (Redis_util.String("rory"))));
+        assert ( "rory" = (string_of_bulk_data (String("rory"))));
         try
             (* Test failure when passing in Nil *)
-            ignore (Redis_util.string_of_bulk_data (Redis_util.Nil))
+            ignore (string_of_bulk_data (Nil))
         with Failure(_) -> ()
     end;;
 
@@ -36,43 +37,43 @@ let test_receive_answer () =
     let test_func connection =
         begin
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Status("bar")
+                receive_answer connection
+                = Status("bar")
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Error("baz")
+                receive_answer connection
+                = Error("baz")
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Undecipherable
+                receive_answer connection
+                = Undecipherable
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Integer(42)
+                receive_answer connection
+                = Integer(42)
             );
             assert (
-                match Redis_util.receive_answer connection with
-                    Redis_util.BigInteger(x) ->
+                match receive_answer connection with
+                    BigInteger(x) ->
                         Big_int.eq_big_int x 
                             (Big_int.big_int_of_string "100020003000")
                     | _ -> false
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Bulk(Redis_util.String("aaa"))
+                receive_answer connection
+                = Bulk(String("aaa"))
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Bulk(Redis_util.Nil)
+                receive_answer connection
+                = Bulk(Nil)
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Multibulk([Redis_util.String("rory"); Redis_util.String("tim")])
+                receive_answer connection
+                = Multibulk([String("rory"); String("tim")])
             );
             assert (
-                Redis_util.receive_answer connection
-                = Redis_util.Multibulk([])
+                receive_answer connection
+                = Multibulk([])
             )
         end
     in
@@ -99,20 +100,20 @@ let test_send_and_receive_command () =
     let test_func connection =
         begin
             assert (
-                Redis_util.send_and_receive_command "foo" connection
-                = Redis_util.Status("bar")
+                send_and_receive_command "foo" connection
+                = Status("bar")
             );
             assert (
-                Redis_util.send_and_receive_command "foo" connection
-                = Redis_util.Undecipherable
+                send_and_receive_command "foo" connection
+                = Undecipherable
             );
             assert (
-                Redis_util.send_and_receive_command "foo" connection
-                = Redis_util.Integer(42)
+                send_and_receive_command "foo" connection
+                = Integer(42)
             );
             assert (
-                Redis_util.send_and_receive_command "foo" connection
-                = Redis_util.Bulk(Redis_util.String("aaa"))
+                send_and_receive_command "foo" connection
+                = Bulk(String("aaa"))
             );
         end
     in
@@ -133,3 +134,24 @@ let test_send_and_receive_command () =
         ]
         test_func;;
 
+let test_aggregate_command  () =
+    assert (
+        "rory is cool" =
+        (aggregate_command "rory" ["is"; "cool"])
+    );;
+
+let test_send_multibulk_command () =
+    let test_func connection =
+        send_multibulk_command ["rory"; "is"; "cool"] connection
+    in
+    use_test_script
+        [
+            ReadThisLine("*3");
+            ReadThisLine("$4");
+            ReadThisLine("rory");
+            ReadThisLine("$2");
+            ReadThisLine("is");
+            ReadThisLine("$4");
+            ReadThisLine("cool");
+        ]
+        test_func;;

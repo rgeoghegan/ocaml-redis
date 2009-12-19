@@ -8,7 +8,6 @@ It currently only implements the commands listed in the following subsection of 
 * Commands operating on string values
 * Commands operating on the key space
 * Commands operating on lists
-* Commands operating on sets (except SINTERSTORE)
 * Multiple databases handling commands
 * Sorting
 * Persistence control commands
@@ -21,7 +20,7 @@ To run all the unit tests, execute:
 
     rake test
 
-To run a simple smoke test on a redis server *you don't mind completely wiping* running on your localhost, execute:
+To run a simple smoke test on a redis server *you do not mind completely wiping* running on your localhost, execute:
 
     rake smoke_test
 
@@ -31,3 +30,11 @@ Todo
 The following sections or part of sections are currently unimplemented:
 
 * Remote server control commands
+* Commands operating on string values
+ * MSET
+ * MSETNX
+* Commands operating on sets
+ * SINTERSTORE
+* Commands operating on lists
+ * RPOPLPUSH
+* Commands operating on sorted sets

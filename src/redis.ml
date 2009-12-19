@@ -2,7 +2,7 @@
    Released under the BSD license. See the LICENSE.txt file for more info.
 
    Main library file. *)
-open Redis_util
+open Redis_util;;
 
 let create_connection addr port =
     (* From a string of the address, and a port as an int, gets an input and output file discriptor *)
@@ -33,7 +33,7 @@ let auth password connection =
 let set key value connection =
     (* SET *)
     begin
-        send_text (Printf.sprintf "SET %s %d" key (String.length value)) connection;
+        send_text_straight (Printf.sprintf "SET %s %d" key (String.length value)) connection;
         send_text value connection;
         match receive_answer connection with
             Status("OK") -> () |
@@ -49,7 +49,7 @@ let get key connection =
 
 let getset key new_value connection =
     (* GETSET *)
-    send_text (Printf.sprintf "GETSET %s %d" key (String.length new_value)) connection;
+    send_text_straight (Printf.sprintf "GETSET %s %d" key (String.length new_value)) connection;
     send_text new_value connection;
     match receive_answer connection with
         Bulk(x) -> x |
@@ -64,7 +64,7 @@ let mget keys connection =
 let setnx key value connection =
     (* SETNX *)
     begin
-        send_text (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
+        send_text_straight (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
         send_text value connection;
         match receive_answer connection with
             Integer(0) -> false |
@@ -172,7 +172,7 @@ let ttl key connection =
 let rpush key value connection =
     (* RPUSH *)
     begin
-        send_text (Printf.sprintf "RPUSH %s %d" key (String.length value)) connection;
+        send_text_straight (Printf.sprintf "RPUSH %s %d" key (String.length value)) connection;
         send_text value connection;
         match receive_answer connection with
             Status("OK") -> () |
@@ -183,7 +183,7 @@ let rpush key value connection =
 let lpush key value connection =
     (* RPUSH *)
     begin
-        send_text (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
+        send_text_straight (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
         send_text value connection;
         match receive_answer connection with
             Status("OK") -> () |
@@ -218,7 +218,7 @@ let lindex key index connection =
 let lset key index value connection =
     (* LSET *)
     begin
-        send_text (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
+        send_text_straight (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
         send_text value connection;
         Redis_util.handle_status (receive_answer connection)
     end;;
@@ -226,7 +226,7 @@ let lset key index value connection =
 let lrem key count value connection =
     (* LREM *)
     begin
-        send_text (Printf.sprintf "LREM %s %d %d" key count (String.length value)) connection;
+        send_text_straight (Printf.sprintf "LREM %s %d %d" key count (String.length value)) connection;
         send_text value connection;
         match receive_answer connection with
             Integer(x) -> x |
@@ -249,7 +249,7 @@ let rpop key connection =
 let sadd key member connection =
     (* SADD *)
     begin
-        send_text (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
+        send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
         send_text member connection;
         match receive_answer connection with
             Integer(1) -> true |
@@ -260,7 +260,7 @@ let sadd key member connection =
 let srem key member connection =
     (* SREM *)
     begin
-        send_text (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
+        send_text_straight (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
         send_text member connection;
         match receive_answer connection with
             Integer(1) -> true |
@@ -277,7 +277,7 @@ let spop key connection =
 let smove srckey destkey member connection =
     (* SMOVE *)
     begin
-        send_text (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
+        send_text_straight (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
         send_text member connection;
         match receive_answer connection with
             Integer(1) -> true |
@@ -294,7 +294,7 @@ let scard key connection =
 let sismember key member connection =
     (* SISMEMBER *)
     begin
-        send_text (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
+        send_text_straight (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
         send_text member connection;
         match receive_answer connection with
             Integer(1) -> true |
