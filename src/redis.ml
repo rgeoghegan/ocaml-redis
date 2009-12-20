@@ -400,7 +400,7 @@ let save connection =
 
 let bgsave connection =
     (* BGSAVE *)
-    handle_status (send_and_receive_command "BGSAVE" connection);;
+    handle_special_status "Background saving started" (send_and_receive_command "BGSAVE" connection);;
 
 let lastsave connection =
     (* LASTSAVE *)

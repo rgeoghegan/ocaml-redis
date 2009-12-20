@@ -23,7 +23,7 @@ let test_bgsave () =
     use_test_script
         [
             ReadThisLine("BGSAVE");
-            WriteThisLine("+OK");
+            WriteThisLine("+Background saving started");
         ]
         test_func;;
 
