@@ -30,9 +30,6 @@ Todo
 The following sections or part of sections are currently unimplemented:
 
 * Remote server control commands
-* Commands operating on string values
- * MSET
- * MSETNX
 * Commands operating on sets
  * SINTERSTORE
 * Commands operating on lists
