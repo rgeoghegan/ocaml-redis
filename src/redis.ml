@@ -358,6 +358,13 @@ let flushall connection =
     (* FLUSHALL *)
     handle_status (send_and_receive_command "FLUSHALL" connection);;
 
+(* Commands operating on sorted sets *)
+let zadd key score member connection =
+    (* ZADD *)
+    send_text (Printf.sprintf "ZADD %s %d %d" key score (String.length member)) connection;
+    send_text member connection ;
+    handle_integer (receive_answer connection);;
+
 (* Sorting *)
 let sort key
     ?pattern

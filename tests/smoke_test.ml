@@ -103,6 +103,9 @@ let smoke_test_with_quit conn = begin
     Redis.lpush "rory" "2" conn;
     Redis.lpush "rory" "11" conn;
 
+    (* Sorted sets *)
+    assert (Redis.zadd "coolest" 42 "rory" conn);
+
     (* Sort *)
     assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
