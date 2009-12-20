@@ -57,7 +57,7 @@ let getset key new_value connection =
 
 let mget keys connection = 
     (* MGET *)
-    match send_and_receive_command (Redis_util.aggregate_command "MGET" keys) connection with
+    match send_and_receive_command (aggregate_command "MGET" keys) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -76,7 +76,7 @@ let mset key_value_pairs connection =
             (key, value) :: tail -> flatten tail (key :: value :: result) |
             [] -> result
     in
-    Redis_util.handle_status (Redis_util.send_multibulk_command ( "MSET" :: (flatten key_value_pairs [])) connection)
+    handle_status (send_multibulk_command ( "MSET" :: (flatten key_value_pairs [])) connection)
 
 let msetnx key_value_pairs connection =
     (* MSET *)
@@ -85,7 +85,7 @@ let msetnx key_value_pairs connection =
             (key, value) :: tail -> flatten tail (key :: value :: result) |
             [] -> result
     in
-    Redis_util.handle_integer (Redis_util.send_multibulk_command ( "MSETNX" :: (flatten key_value_pairs [])) connection)
+    handle_integer (send_multibulk_command ( "MSETNX" :: (flatten key_value_pairs [])) connection)
 
 let incr key connection =
     (* INCR *)
@@ -117,7 +117,7 @@ let exists key connection =
 
 let del keys connection =
     (* DEL *)
-    match send_and_receive_command (Redis_util.aggregate_command "DEL" keys) connection with
+    match send_and_receive_command (aggregate_command "DEL" keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -227,7 +227,7 @@ let lset key index value connection =
     begin
         send_text_straight (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
         send_text value connection;
-        Redis_util.handle_status (receive_answer connection)
+        handle_status (receive_answer connection)
     end;;
 
 let lrem key count value connection =
@@ -307,34 +307,33 @@ let sinter keys connection =
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
-(*
 let sinterstore dstkey keys connection =
     (* SINTERSTORE *)
-    Redis_util.handle_status (
-        send_and_receive_command (aggregate_command "SINTERSTORE" (dstkey :: keys)) connection
-    );; *)
+    match (send_and_receive_command (aggregate_command "SINTERSTORE" (dstkey :: keys)) connection) with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
 
 let sunion keys connection =
     (* SUNION *)
-    match send_and_receive_command (Redis_util.aggregate_command "SUNION" keys) connection with
+    match send_and_receive_command (aggregate_command "SUNION" keys) connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sunionstore dstkey keys connection =
     (* SUNIONSTORE *)
-    match send_and_receive_command (Redis_util.aggregate_command "SUNIONSTORE" (dstkey :: keys)) connection with
+    match send_and_receive_command (aggregate_command "SUNIONSTORE" (dstkey :: keys)) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sdiff keys connection =
     (* SDIFF *)
-    match send_and_receive_command (Redis_util.aggregate_command "SDIFF" keys) connection with
+    match send_and_receive_command (aggregate_command "SDIFF" keys) connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sdiffstore dstkey keys connection =
     (* SDIFFSTORE *)
-    match send_and_receive_command (Redis_util.aggregate_command "SDIFFSTORE" (dstkey :: keys)) connection with
+    match send_and_receive_command (aggregate_command "SDIFFSTORE" (dstkey :: keys)) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

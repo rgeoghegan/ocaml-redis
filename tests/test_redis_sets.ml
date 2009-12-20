@@ -140,11 +140,11 @@ let test_sinter () =
         ]
         test_func;;
 
-(* let test_sinterstore () =
+let test_sinterstore () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
         ignore (Redis.sadd "tim" "cool" connection);
-        Redis.sinterstore "bob" ["rory"; "tim"] connection
+        assert (1 == Redis.sinterstore "bob" ["rory"; "tim"] connection)
     in
     Script.use_test_script
         [
@@ -155,9 +155,9 @@ let test_sinter () =
             Script.ReadThisLine("cool");
             Script.WriteThisLine(":1");
             Script.ReadThisLine("SINTERSTORE bob rory tim");
-            Script.WriteThisLine("+OK")
+            Script.WriteThisLine(":1")
         ]
-        test_func;;*)
+        test_func;;
 
 let test_sunion () =
     let test_func connection =
