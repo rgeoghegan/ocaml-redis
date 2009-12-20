@@ -76,7 +76,16 @@ let mset key_value_pairs connection =
             (key, value) :: tail -> flatten tail (key :: value :: result) |
             [] -> result
     in
-    Redis_util.send_multibulk_command ( "MSET" :: (flatten key_value_pairs [])) connection;;
+    Redis_util.handle_status (Redis_util.send_multibulk_command ( "MSET" :: (flatten key_value_pairs [])) connection)
+
+let msetnx key_value_pairs connection =
+    (* MSET *)
+    let rec flatten list_of_pairs result =
+        match list_of_pairs with
+            (key, value) :: tail -> flatten tail (key :: value :: result) |
+            [] -> result
+    in
+    Redis_util.handle_integer (Redis_util.send_multibulk_command ( "MSETNX" :: (flatten key_value_pairs [])) connection)
 
 let incr key connection =
     (* INCR *)

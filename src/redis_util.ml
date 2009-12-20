@@ -177,7 +177,8 @@ let send_multibulk_command tokens connection =
         begin
             send_text_straight ("*" ^ token_length) connection;
             send_in_tokens tokens;
-            flush out_chan
+            flush out_chan;
+            receive_answer connection
         end;;
 
 let handle_status reply =

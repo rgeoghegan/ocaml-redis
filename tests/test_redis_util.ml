@@ -142,7 +142,7 @@ let test_aggregate_command  () =
 
 let test_send_multibulk_command () =
     let test_func connection =
-        send_multibulk_command ["rory"; "is"; "cool"] connection
+        assert(Redis_util.Status("OK") = send_multibulk_command ["rory"; "is"; "cool"] connection)
     in
     use_test_script
         [
@@ -153,6 +153,7 @@ let test_send_multibulk_command () =
             ReadThisLine("is");
             ReadThisLine("$4");
             ReadThisLine("cool");
+            WriteThisLine("+OK");
         ]
         test_func;;
 
@@ -174,7 +175,7 @@ let test_handle_status () =
 let test_handle_integer () =
     assert (not (handle_integer (Integer(0))));
     assert (handle_integer (Integer(1)));
-    try handle_integer (Undecipherable);
+    try ignore (handle_integer (Undecipherable));
             failwith("Failed test")
         with Failure(x) ->
             assert(x = "Did not recognize what I got back")
