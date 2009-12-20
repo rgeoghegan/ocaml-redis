@@ -115,6 +115,12 @@ let smoke_test_with_quit conn = begin
             Redis_util.string_of_bulk_data
             (Redis.zrange "coolest" 0 1 conn));
 
+    assert (
+        ["tim"; "rory"]
+        = List.map
+            Redis_util.string_of_bulk_data
+            (Redis.zrevrange "coolest" 0 1 conn));
+
     (* Sort *)
     assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn

@@ -377,6 +377,12 @@ let zrange key start stop connection =
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
+let zrevrange key start stop connection =
+    (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
+    match send_and_receive_command (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection with
+        Multibulk(l) -> l |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 let sort key
     ?pattern

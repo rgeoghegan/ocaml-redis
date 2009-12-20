@@ -52,3 +52,29 @@ let test_zrange () =
             Script.WriteThisLine("cool");
         ]
         test_func;;
+
+let test_zrange () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42 "cool" connection);
+        ignore (Redis.zadd "rory" 13 "strong" connection);
+        assert(
+            [ Redis_util.String("cool"); Redis_util.String("strong")]
+            = Redis.zrevrange "rory" 0 1 connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZADD rory 42 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("ZADD rory 13 6");
+            Script.ReadThisLine("strong");
+            Script.WriteThisLine(":1");
+
+            Script.ReadThisLine("ZREVRANGE rory 0 1");
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.WriteThisLine("$6");
+            Script.WriteThisLine("strong");
+        ]
+        test_func;;
