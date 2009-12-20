@@ -162,7 +162,6 @@ let test_handle_status () =
     try handle_status (Status("rory is cool"));
             failwith("Failed test")
         with Failure(x) ->
-            print_endline x;
             assert(x = "Received status(rory is cool)");
     try handle_status (Error("rory is not cool"));
             failwith("Failed test")
