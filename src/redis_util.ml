@@ -181,13 +181,15 @@ let send_multibulk_command tokens connection =
             receive_answer connection
         end;;
 
-let handle_status reply =
+let handle_special_status special_status reply =
     (* For status replies, does error checking and display *)
     match reply with
-        Status("OK") -> () |
+        Status(x) when x = special_status -> () |
         Status(x) -> failwith ("Received status(" ^ x ^ ")") |
         Error(x) -> failwith ("Received error: " ^ x) |
         _ -> failwith "Did not recognize what I got back";;
+
+let handle_status = handle_special_status "OK";;
 
 let handle_integer reply =
     (* For integer replies, does error checking and casting to boolean *)
