@@ -371,6 +371,12 @@ let zrem key member connection =
     send_text member connection;
     handle_integer (receive_answer connection);;
 
+let zrange key start stop connection =
+    (* ZRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
+    match send_and_receive_command (Printf.sprintf "ZRANGE %s %d %d" key start stop) connection with
+        Multibulk(l) -> l |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 let sort key
     ?pattern

@@ -58,13 +58,19 @@ let use_test_script script test_function =
                 (test_function (input_chan_read, output_chan_write));
                 let next_line = input_line input_chan_read
                 in
-                if not ((next_line) = "That's all folks!\r")
-                    then failwith (Printf.sprintf "Script did not finish properly (got %S)" next_line)
-                    else exit 0
+                begin
+                    close_in input_chan_read;
+                    close_out output_chan_write;
+                    if not ((next_line) = "That's all folks!\r")
+                        then failwith (Printf.sprintf "Script did not finish properly (got %S)" next_line)
+                        else exit 0
+                end
             end |
         x -> (* Parent process *)
             begin 
                 execute_each_line input_chan_write output_chan_read script;
+                close_in output_chan_read;
+                close_out output_chan_write;
                 match Unix.wait() with
                     (_, Unix.WEXITED(0)) -> () |
                     (_, _) -> exit 1
