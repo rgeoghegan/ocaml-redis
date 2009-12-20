@@ -79,6 +79,26 @@ let test_setnx () =
         ]
         test_func;;
 
+let test_mset () =
+    let test_func connection =
+        Redis.mset [("rory", "cool"); ("tim", "not cool")] connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("*5");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("MSET");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("tim");
+            Script.ReadThisLine("$8");
+            Script.ReadThisLine("not cool");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("cool");
+        ]
+        test_func;;
+
 let test_incr () =
     let test_func connection =
         begin

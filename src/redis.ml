@@ -71,6 +71,15 @@ let setnx key value connection =
             _ -> true
     end;;
 
+let mset key_value_pairs connection =
+    (* MSET *)
+    let rec flatten list_of_pairs result =
+        match list_of_pairs with
+            (key, value) :: tail -> flatten tail (key :: value :: result) |
+            [] -> result
+    in
+    Redis_util.send_multibulk_command ( "MSET" :: (flatten key_value_pairs [])) connection;;
+
 let incr key connection =
     (* INCR *)
     match send_and_receive_command (Printf.sprintf "INCR %s" key) connection with

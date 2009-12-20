@@ -39,10 +39,12 @@ let test_lastsave () =
         test_func;;
 
 let test_shutdown () =
-    let test_func connection =
-        Redis.shutdown connection
+    let function_read, tester_write = Script.piped_channel ()
     in
-    use_test_script
-        [
-            ReadThisLine("SHUTDOWN");
-        ];;
+    let tester_read, function_write = Script.piped_channel ()
+    in
+    begin
+        close_out tester_write;
+        Redis.shutdown (function_read, function_write);
+        assert ("SHUTDOWN\r" = input_line tester_read)
+    end;;
