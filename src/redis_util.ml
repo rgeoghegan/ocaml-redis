@@ -180,10 +180,17 @@ let send_multibulk_command tokens connection =
             flush out_chan
         end;;
 
-let handle_status status =
+let handle_status reply =
     (* For status replies, does error checking and display *)
-    match status with
+    match reply with
         Status("OK") -> () |
         Status(x) -> failwith ("Received status(" ^ x ^ ")") |
         Error(x) -> failwith ("Received error: " ^ x) |
+        _ -> failwith "Did not recognize what I got back";;
+
+let handle_integer reply =
+    (* For integer replies, does error checking and casting to boolean *)
+    match reply with
+        Integer(0) -> false |
+        Integer(1) -> true |
         _ -> failwith "Did not recognize what I got back";;

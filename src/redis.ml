@@ -66,9 +66,7 @@ let setnx key value connection =
     begin
         send_text_straight (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
         send_text value connection;
-        match receive_answer connection with
-            Integer(0) -> false |
-            _ -> true
+        handle_integer (receive_answer connection)
     end;;
 
 let mset key_value_pairs connection =
@@ -106,7 +104,7 @@ let decrby key value connection =
 
 let exists key connection =
     (* EXISTS *)
-    (send_and_receive_command ("EXISTS " ^ key) connection) = Integer(1);;
+    handle_integer (send_and_receive_command ("EXISTS " ^ key) connection)
 
 let del keys connection =
     (* DEL *)
@@ -116,10 +114,7 @@ let del keys connection =
 
 let del_one key connection =
     (* Exactly like "del", except you do not need to provide a list, just one key. Not in spec *)
-    match send_and_receive_command ("DEL " ^ key) connection with
-        Integer(1) -> true |
-        Integer(0) -> false |
-        _ -> failwith "Did not recognize what I got back";;
+    handle_integer (send_and_receive_command ("DEL " ^ key) connection);;
 
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
@@ -153,10 +148,7 @@ let rename oldkey newkey connection =
 
 let renamenx oldkey newkey connection =
     (* RENAMENX *)
-    match send_and_receive_command (Printf.sprintf "RENAMENX %s %s" oldkey newkey) connection with
-        Integer(0) -> false |
-        Integer(1) -> true |
-        _ -> failwith "Did not recognize what I got back";;
+    handle_integer (send_and_receive_command (Printf.sprintf "RENAMENX %s %s" oldkey newkey) connection);;
 
 let dbsize connection =
     (* DBSIZE *)
@@ -166,10 +158,7 @@ let dbsize connection =
 
 let expire key seconds connection =
     (* EXPIRE *)
-    match send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection with
-        Integer(0) -> false |
-        Integer(1) -> true | 
-        _ -> failwith "Did not recognize what I got back";;
+    handle_integer (send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection);;
 
 let ttl key connection =
     (* TTL *)
@@ -257,24 +246,16 @@ let rpop key connection =
 (* Commands operating on sets *)
 let sadd key member connection =
     (* SADD *)
-    begin
-        send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
-        send_text member connection;
-        match receive_answer connection with
-            Integer(1) -> true |
-            Integer(0) -> false |
-            _ -> failwith "Did not recognize what I got back"
-    end;;
+    send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
+    send_text member connection;
+    handle_integer (receive_answer connection)
 
 let srem key member connection =
     (* SREM *)
     begin
         send_text_straight (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
         send_text member connection;
-        match receive_answer connection with
-            Integer(1) -> true |
-            Integer(0) -> false |
-            _ -> failwith "Did not recognize what I got back"
+        handle_integer (receive_answer connection)
     end;;
 
 let spop key connection =
@@ -288,10 +269,7 @@ let smove srckey destkey member connection =
     begin
         send_text_straight (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
         send_text member connection;
-        match receive_answer connection with
-            Integer(1) -> true |
-            Integer(0) -> false |
-            _ -> failwith "Did not recognize what I got back"
+        handle_integer (receive_answer connection)
     end;;
 
 let scard key connection =
@@ -305,10 +283,7 @@ let sismember key member connection =
     begin
         send_text_straight (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
         send_text member connection;
-        match receive_answer connection with
-            Integer(1) -> true |
-            Integer(0) -> false |
-            _ -> failwith "Did not recognize what I got back"
+        handle_integer (receive_answer connection)
     end;;
 
 let smembers key connection =
@@ -365,10 +340,7 @@ let select index connection =
 
 let move key index connection =
     (* MOVE *)
-    match send_and_receive_command ( Printf.sprintf "MOVE %s %d" key index ) connection with
-        Integer(1) -> true |
-        Integer(0) -> false |
-        _ -> failwith "Did not recognize what I got back";;
+    handle_integer (send_and_receive_command ( Printf.sprintf "MOVE %s %d" key index ) connection)
 
 let flushdb connection =
     (* FLUSHDB *)

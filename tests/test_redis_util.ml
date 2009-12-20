@@ -155,3 +155,26 @@ let test_send_multibulk_command () =
             ReadThisLine("cool");
         ]
         test_func;;
+
+let test_handle_status () =
+    handle_status (Status("OK"));
+    try handle_status (Status("rory is cool"));
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Received status(rory is cool)");
+    try handle_status (Error("rory is not cool"));
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Received error: rory is not cool");
+    try handle_status (Undecipherable);
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Did not recognize what I got back")
+
+let test_handle_integer () =
+    assert (not (handle_integer (Integer(0))));
+    assert (handle_integer (Integer(1)));
+    try handle_integer (Undecipherable);
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Did not recognize what I got back")
