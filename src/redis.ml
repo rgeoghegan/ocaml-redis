@@ -362,7 +362,13 @@ let flushall connection =
 let zadd key score member connection =
     (* ZADD *)
     send_text (Printf.sprintf "ZADD %s %d %d" key score (String.length member)) connection;
-    send_text member connection ;
+    send_text member connection;
+    handle_integer (receive_answer connection);;
+
+let zrem key member connection =
+    (* ZREM *)
+    send_text (Printf.sprintf "ZREM %s %d" key (String.length member)) connection;
+    send_text member connection;
     handle_integer (receive_answer connection);;
 
 (* Sorting *)

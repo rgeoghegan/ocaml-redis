@@ -14,3 +14,15 @@ let test_zadd () =
             Script.WriteThisLine(":1");
         ]
         test_func;;
+
+let test_zrem () =
+    let test_func connection =
+        assert (not (Redis.zrem "rory" "cool" connection))
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZREM rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":0")
+        ]
+        test_func;;
