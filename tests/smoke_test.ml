@@ -6,6 +6,7 @@
 let smoke_test_with_quit conn = begin
     Redis.auth "qwerty" conn;
     Redis.flushall conn; 
+
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
     assert ( Redis_util.String("cool") = Redis.get "rory" conn);
@@ -121,6 +122,13 @@ let smoke_test_with_quit conn = begin
             Redis_util.string_of_bulk_data
             (Redis.zrevrange "coolest" 0 1 conn));
 
+    assert (
+        "rory"
+        = Redis_util.string_of_bulk_data
+            (List.hd
+                (Redis.zrangebyscore
+                    "coolest" 0 100 ~limit:(`Limit(0,1)) conn)));
+
     (* Sort *)
     assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
@@ -129,8 +137,9 @@ let smoke_test_with_quit conn = begin
     (* Persistence *)
     Redis.save conn;
     Redis.bgsave conn;
+
     assert ( Big_int.zero_big_int < Redis.lastsave conn);
-    
+
     Redis.flushall conn;
     Redis.quit conn;
     print_endline "Smoke test passed"
@@ -138,7 +147,7 @@ end;;
 
 let smoke_test_with_shutdown conn = begin
     Redis.auth "qwerty" conn;
-    Redis.shutdown conn
+   Redis.shutdown conn
 end
 
 let _ =

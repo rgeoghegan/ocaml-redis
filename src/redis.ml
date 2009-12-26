@@ -383,6 +383,19 @@ let zrevrange key start stop connection =
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
+let zrangebyscore key start stop ?(limit=`Unlimited) connection =
+    (* ZRANGEBYSCORE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
+    let command =
+        let limit = match limit with
+            `Unlimited -> "" |
+            `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
+        in
+        Printf.sprintf "ZRANGEBYSCORE %s %d %d%s" key start stop limit
+    in
+    match (send_and_receive_command command connection) with
+        Multibulk(m) -> m |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 let sort key
     ?pattern
