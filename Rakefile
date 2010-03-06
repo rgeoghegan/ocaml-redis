@@ -5,10 +5,13 @@ desc "Compile the library"
 task :library => ["build/redis.cmxa"]
 
 desc "Create the binary used for testing"
-task :test_binary => "build/test"
+task :test_binaries # "build/test/test_everything_else"] do
 
 desc "Run unit tests"
-task :test
+task :test => [:test_binaries] do
+    sh "./build/tests/test_redis_util"
+    #sh "./build/test/test_everything_else"
+end
 
 desc "Run smoke test"
 task :smoke_test => ["build/smoke_test"] do
@@ -51,8 +54,8 @@ class OcamlFile < String
     def cmi prefix="build"
         with_prefix_and_extension prefix, "cmi"
     end
-    def ml
-        to_s
+    def ml prefix="src"
+        with_prefix_and_extension prefix, "ml"
     end
     def dest prefix="build"
         pathmap("#{prefix}/%n") # remove ext
@@ -66,10 +69,9 @@ end
 # Library
 
 redis_util = OcamlFile.new("src/redis_util.ml")
-external_libs = ["Unix.cmxa", "Str.cmxa", "nums.cmxa"]
+external_libs = ["Unix.cmxa", "Str.cmxa", "nums.cmxa"].join(" ")
 lib_objs = FileList.new("src/redis*.ml").map{|f| OcamlFile.new(f)}
 
-redis_util_cmx = "build/redis_util.cmx"
 lib_objs.each do |lib|
     file lib.cmx => [lib.ml, lib.cmi, "build"] do
         compile lib.ml, lib.dest
@@ -91,7 +93,22 @@ end
 
 # Test files
 
-#directory "build/test_includes"
+script = OcamlFile.new("tests/script.ml")
+directory "build/tests"
+
+# redis_utils is a bit funny because we need to test more methods than the default mli files gives us access to
+test_objects = "build/tests/test_objects"
+directory test_objects
+test_redis_util = OcamlFile.new("tests/test_redis_util.ml")
+file test_redis_util.dest("build/tests") => [script.cmx("build/tests"), test_objects, test_redis_util] do
+    cp redis_util, redis_util.ml(test_objects)
+    compile redis_util.ml(test_objects), redis_util.dest(test_objects)
+    sh "ruby tests/create_test.rb #{test_redis_util} > build/tests/run_test_redis_util.ml"
+    sh "ocamlopt -c -o #{test_redis_util.dest("build/tests")} -I build/tests -I #{test_objects} #{test_redis_util}"
+    sh "ocamlopt -o #{test_redis_util.dest("build/tests")} -I build/tests #{external_libs} #{script.cmx("build/tests")} #{redis_util.cmx(test_objects)} #{test_redis_util.cmx("build/tests")} build/tests/run_test_redis_util.ml"
+end
+multitask :test_binaries => "build/tests/test_redis_util"
+
 #lib_objs.zip(lib_objs.to_mli("build/test_includes"), lib_objs.to_cmi("build/test_includes")) do |ml, mli, cmi|
 #    file mli => [ml, "build/test_includes"] do
 #        sh "exec ocamlopt -I build -i #{ml} > #{mli}"
@@ -123,9 +140,9 @@ end
 #    multitask :all_test_binaries => cmx
 #end
 #
-#file "build/script.cmx" => [:library, "build", "tests/script.ml"] do
-#    sh "ocamlopt -I build -c -o build/script tests/script.ml"
-#end
+file script.cmx("build/tests") => ["build/tests", "tests/script.ml"] do
+    sh "ocamlopt -c -o #{script.dest("build/tests")} #{script}"
+end
 
 # Miscelanious
 
