@@ -14,8 +14,8 @@ task :test => [:test_binaries] do
 end
 
 desc "Run smoke test"
-task :smoke_test => ["build/smoke_test"] do
-    sh "./build/smoke_test"
+task :smoke_test => ["build/tests/smoke_test"] do
+    sh "./build/tests/smoke_test"
 end
 
 desc "Delete droppings"
@@ -127,42 +127,16 @@ file all_other_tests => :individual_test_objects do
     sh "ruby tests/create_test.rb #{test_files.join(" ")} > #{all_other_tests}"
 end
 
-#lib_objs.zip(lib_objs.to_mli("build/test_includes"), lib_objs.to_cmi("build/test_includes")) do |ml, mli, cmi|
-#    file mli => [ml, "build/test_includes"] do
-#        sh "exec ocamlopt -I build -i #{ml} > #{mli}"
-#    end
-#    file cmi => [mli, "build/test_includes"] do
-#        compile mli,cmi
-#    end
-#    multitask :test_headers => cmi
-#end
-#    
-#test_files = OcamlFileList.new("tests/test*.ml")
-#file "build/test" => [:library, "build/all_test.ml", "build/script.cmx", :all_test_binaries] do
-#    sh "ocamlopt -w X -I build/test_includes -o build/test #{external_libs.to_cmxa("")} build/redis.cmxa build/script.cmx #{test_files.to_cmx} build/all_test.ml"
-#end
-#
-#file "build/all_test.ml" => (["tests/create_test.rb"] + test_files.to_cmx) do
-#    sh "ruby tests/create_test.rb #{test_files} > build/all_test.ml"
-#end
-#
-#file "build/smoke_test" => [:library, "tests/smoke_test.ml"] do
-#    compile "tests/smoke_test.ml", "build/smoke_test"
-#    sh "ocamlopt -I build -o build/smoke_test #{external_libs.to_cmxa("")} build/redis.cmxa build/smoke_test.cmx"
-#end
-#
-#test_files.zip(test_files.to_cmx, test_files.to_dest) do |ml, cmx, dest|
-#    file cmx => ["build", "build/script.cmx", :library, :test_headers, ml] do
-#        sh "ocamlopt -w X -c -I build/test_includes -I build -o #{dest} #{ml}"
-#    end
-#    multitask :all_test_binaries => cmx
-#end
-#
+# Smoke test
+file "build/tests/smoke_test" => [:library, "tests/smoke_test.ml", "build/tests"] do
+    sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} build/redis.cmxa tests/smoke_test.ml"
+end
+
 file script.cmx("build/tests") => ["build/tests", "tests/script.ml"] do
     sh "ocamlopt -c -o #{script.dest("build/tests")} #{script}"
 end
 
-# Miscelanious
+# Miscellaneous
 
 file "build/redis_ocaml_toplevel" => :lib do
     sh "ocamlmktop -o build/redis_ocaml_toplevel #{external_libs.to_cma("")} lib/redis.cmxa"
