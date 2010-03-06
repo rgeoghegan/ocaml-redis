@@ -2,7 +2,7 @@
 # Released under the BSD license. See the LICENSE.txt file for more info.
 
 desc "Compile the library"
-task :library => ["lib/Redis.cmxa"]
+task :library => ["build/redis.cmxa"]
 
 desc "Create the binary used for testing"
 task :test_binary => "build/test"
@@ -32,7 +32,6 @@ desc "Create an ocaml top level that uses Redis"
 task :toplevel => "build/redis_ocaml_toplevel"
 
 directory "build"
-directory "lib"
 
 # Utility code
 
@@ -91,9 +90,9 @@ lib_objs.zip(lib_objs.to_dest, lib_objs.to_cmx, lib_objs.to_mli, lib_objs.to_cmi
     multitask :lib_obj_files => cmx
 end
 
-file "lib/Redis.cmxa" => ["lib", :lib_obj_files] do
+file "build/redis.cmxa" => [:lib_obj_files] do
     objs = lib_objs.to_cmx.reject{|obj| obj.match(/redis_util.cmx$/)}
-    sh "ocamlopt -w X -a -o lib/Redis.cmxa build/redis_util.cmx #{objs}"
+    sh "ocamlopt -w X -a -o build/redis.cmxa build/redis_util.cmx #{objs}"
 end
 
 # Test files
@@ -111,7 +110,7 @@ end
     
 test_files = OcamlFileList.new("tests/test*.ml")
 file "build/test" => [:library, "build/all_test.ml", "build/script.cmx", :all_test_binaries] do
-    sh "ocamlopt -w X -I build/test_includes -o build/test #{external_libs.to_cmxa("")} lib/Redis.cmxa build/script.cmx #{test_files.to_cmx} build/all_test.ml"
+    sh "ocamlopt -w X -I build/test_includes -o build/test #{external_libs.to_cmxa("")} build/redis.cmxa build/script.cmx #{test_files.to_cmx} build/all_test.ml"
 end
 
 file "build/all_test.ml" => (["tests/create_test.rb"] + test_files.to_cmx) do
@@ -120,7 +119,7 @@ end
 
 file "build/smoke_test" => [:library, "tests/smoke_test.ml"] do
     compile "tests/smoke_test.ml", "build/smoke_test"
-    sh "ocamlopt -I build -o build/smoke_test #{external_libs.to_cmxa("")} lib/Redis.cmxa build/smoke_test.cmx"
+    sh "ocamlopt -I build -o build/smoke_test #{external_libs.to_cmxa("")} build/redis.cmxa build/smoke_test.cmx"
 end
 
 test_files.zip(test_files.to_cmx, test_files.to_dest) do |ml, cmx, dest|
