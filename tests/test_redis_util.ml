@@ -56,7 +56,7 @@ let test_receive_answer () =
                 match receive_answer connection with
                     BigInteger(x) ->
                         Big_int.eq_big_int x 
-                            (Big_int.big_int_of_string "100020003000")
+                            (Big_int.big_int_of_string "18446744073709551616")
                     | _ -> false
             );
             assert (
@@ -83,7 +83,7 @@ let test_receive_answer () =
             WriteThisLine("-baz"); (* Error *)
             WriteThisLine("!"); (* Undecipherable *)
             WriteThisLine(":42"); (* Integer *)
-            WriteThisLine(":100020003000"); (* BigInteger *)
+            WriteThisLine(":18446744073709551616"); (* BigInteger *)
             WriteThisLine("$3"); (* Bulk *)
             WriteThisLine("aaa");
             WriteThisLine("$-1"); (* Nil Bulk *)

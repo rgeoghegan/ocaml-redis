@@ -100,7 +100,7 @@ directory "build/tests"
 test_objects = "build/tests/test_objects"
 directory test_objects
 test_redis_util = OcamlFile.new("tests/test_redis_util.ml")
-file test_redis_util.dest("build/tests") => [script.cmx("build/tests"), test_objects, test_redis_util] do
+file test_redis_util.dest("build/tests") => [script.cmx("build/tests"), test_objects, test_redis_util, redis_util] do
     cp redis_util, redis_util.ml(test_objects)
     compile redis_util.ml(test_objects), redis_util.dest(test_objects)
     sh "ruby tests/create_test.rb #{test_redis_util} > build/tests/run_test_redis_util.ml"
