@@ -5,12 +5,12 @@ desc "Compile the library"
 task :library => ["build/redis.cmxa"]
 
 desc "Create the binary used for testing"
-task :test_binaries # "build/test/test_everything_else"] do
+task :test_binaries
 
 desc "Run unit tests"
 task :test => [:test_binaries] do
     sh "./build/tests/test_redis_util"
-    #sh "./build/test/test_everything_else"
+    sh "./build/tests/all_other_tests"
 end
 
 desc "Run smoke test"
@@ -108,6 +108,24 @@ file test_redis_util.dest("build/tests") => [script.cmx("build/tests"), test_obj
     sh "ocamlopt -o #{test_redis_util.dest("build/tests")} -I build/tests #{external_libs} #{script.cmx("build/tests")} #{redis_util.cmx(test_objects)} #{test_redis_util.cmx("build/tests")} build/tests/run_test_redis_util.ml"
 end
 multitask :test_binaries => "build/tests/test_redis_util"
+
+# Now for all other tests
+all_other_tests = OcamlFile.new("build/tests/all_other_tests.ml")
+test_files = FileList["tests/test_*.ml"].exclude(/test_redis_util.ml$/).map{|f| OcamlFile.new(f)}
+test_files.each do |test_file|
+    file test_file.cmx("build/tests") => [test_file, script.cmx("build/tests"), :library] do
+        sh "ocamlopt -w X -c -I build -I build/tests -o #{test_file.cmx("build/tests")} #{test_file}"
+    end
+    multitask :individual_test_objects => test_file.cmx("build/tests")
+end
+
+multitask :test_binaries => all_other_tests.dest("build/tests")
+file all_other_tests.dest("build/tests") => all_other_tests do
+    sh "ocamlopt -o #{all_other_tests.dest("build/tests")} -I build/tests -I build #{external_libs} #{script.cmx("build/tests")} build/redis.cmxa #{test_files.map{|f| f.cmx("build/tests")}.join(" ")} #{all_other_tests}"
+end
+file all_other_tests => :individual_test_objects do
+    sh "ruby tests/create_test.rb #{test_files.join(" ")} > #{all_other_tests}"
+end
 
 #lib_objs.zip(lib_objs.to_mli("build/test_includes"), lib_objs.to_cmi("build/test_includes")) do |ml, mli, cmi|
 #    file mli => [ml, "build/test_includes"] do
