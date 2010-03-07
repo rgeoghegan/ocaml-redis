@@ -80,6 +80,7 @@ val zrangebyscore :
 val zincrby : string -> float -> string -> in_channel * out_channel -> float
 val zcard : string -> in_channel * out_channel -> int
 val zscore : string -> string -> in_channel * out_channel -> float
+val zremrangebyscore : string -> float -> float -> in_channel * out_channel -> int
 val sort :
   string ->
   ?pattern:string ->

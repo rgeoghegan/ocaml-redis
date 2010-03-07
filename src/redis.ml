@@ -426,6 +426,12 @@ let zscore key member connection =
     send_text member connection;
     handle_float (receive_answer connection);;
 
+let zremrangebyscore key min max connection =
+    (* ZREMRANGEBYSCORE *)
+    match send_and_receive_command (Printf.sprintf "ZREMRANGEBYSCORE %s %f %f" key min max) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 let sort key
     ?pattern

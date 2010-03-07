@@ -158,4 +158,20 @@ let test_zscore () =
             Script.WriteThisLine("42")
         ]
         test_func;;
+
+let test_zremrangebyscore () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42 "cool" connection);
+        assert (1 = Redis.zremrangebyscore "rory" 30.0 50.0 connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZADD rory 42 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("ZREMRANGEBYSCORE rory 30.000000 50.000000");
+            Script.WriteThisLine(":1");
+        ]
+        test_func;;
+        
     
