@@ -141,4 +141,21 @@ let test_zcard () =
             Script.WriteThisLine(":0")
         ]
         test_func;;
+
+let test_zscore () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42 "cool" connection);
+        assert (42.0 = Redis.zscore "rory" "cool" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZADD rory 42 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("ZSCORE rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("42")
+        ]
+        test_func;;
     

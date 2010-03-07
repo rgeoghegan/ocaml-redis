@@ -420,6 +420,12 @@ let zcard key connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let zscore key member connection =
+    (* ZSCORE *)
+    send_text (Printf.sprintf "ZSCORE %s %d" key (String.length member)) connection;
+    send_text member connection;
+    handle_float (receive_answer connection);;
+
 (* Sorting *)
 let sort key
     ?pattern

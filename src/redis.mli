@@ -79,6 +79,7 @@ val zrangebyscore :
   in_channel * out_channel -> Redis_util.bulk_data list
 val zincrby : string -> float -> string -> in_channel * out_channel -> float
 val zcard : string -> in_channel * out_channel -> int
+val zscore : string -> string -> in_channel * out_channel -> float
 val sort :
   string ->
   ?pattern:string ->

@@ -145,6 +145,8 @@ let smoke_test_with_quit conn = begin
 
     assert (2 = Redis.zcard "coolest" conn);
 
+    assert (2.0 = Redis.zscore "coolest" "rory" conn);
+
     (* Sort *)
     assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
