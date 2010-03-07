@@ -48,8 +48,6 @@ Todo
 ----
 
  * Implement all missing keywords from 1.2.4:
-  * Commands operating on sorted sets (zsets)
-   * All zset operations should use float scores
   * Persistence control commands
    * bgrewriteaof
   * Remote server control commands (all)

@@ -63,7 +63,7 @@ val select : int -> in_channel * out_channel -> unit
 val move : string -> int -> in_channel * out_channel -> bool
 val flushdb : in_channel * out_channel -> unit
 val flushall : in_channel * out_channel -> unit
-val zadd : string -> int -> string -> in_channel * out_channel -> bool
+val zadd : string -> float -> string -> in_channel * out_channel -> bool
 val zrem : string -> string -> in_channel * out_channel -> bool
 val zrange :
   string ->
@@ -73,8 +73,8 @@ val zrevrange :
   int -> int -> in_channel * out_channel -> Redis_util.bulk_data list
 val zrangebyscore :
   string ->
-  int ->
-  int ->
+  float ->
+  float ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
   in_channel * out_channel -> Redis_util.bulk_data list
 val zincrby : string -> float -> string -> in_channel * out_channel -> float

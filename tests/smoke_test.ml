@@ -115,11 +115,11 @@ let smoke_test_with_quit conn = begin
     Redis.lpush "rory" "11" conn;
 
     (* Sorted sets *)
-    assert (Redis.zadd "coolest" 42 "rory" conn);
+    assert (Redis.zadd "coolest" 42.0 "rory" conn);
     assert (Redis.zrem "coolest" "rory" conn);
 
-    ignore (Redis.zadd "coolest" 1 "rory" conn);
-    ignore (Redis.zadd "coolest" 99 "tim" conn);
+    ignore (Redis.zadd "coolest" 1.0 "rory" conn);
+    ignore (Redis.zadd "coolest" 99.0 "tim" conn);
     assert (
         ["rory"; "tim"]
         = List.map
@@ -137,7 +137,7 @@ let smoke_test_with_quit conn = begin
         = Redis_util.string_of_bulk_data
             (List.hd
                 (Redis.zrangebyscore
-                    "coolest" 0 100 ~limit:(`Limit(0,1)) conn)));
+                    "coolest" 0.0 100.0 ~limit:(`Limit(0,1)) conn)));
 
     assert (
         2.0

@@ -373,7 +373,7 @@ let flushall connection =
 (* Commands operating on sorted sets *)
 let zadd key score member connection =
     (* ZADD *)
-    send_text (Printf.sprintf "ZADD %s %d %d" key score (String.length member)) connection;
+    send_text (Printf.sprintf "ZADD %s %f %d" key score (String.length member)) connection;
     send_text member connection;
     handle_integer (receive_answer connection);;
 
@@ -402,7 +402,7 @@ let zrangebyscore key start stop ?(limit=`Unlimited) connection =
             `Unlimited -> "" |
             `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
         in
-        Printf.sprintf "ZRANGEBYSCORE %s %d %d%s" key start stop limit
+        Printf.sprintf "ZRANGEBYSCORE %s %f %f%s" key start stop limit
     in
     match (send_and_receive_command command connection) with
         Multibulk(m) -> m |
