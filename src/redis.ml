@@ -343,6 +343,12 @@ let sdiffstore dstkey keys connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let srandmember key connection =
+    (* SRANDMEMBER *)
+    match send_and_receive_command ("SRANDMEMBER " ^ key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Multiple databases handling commands *)
 let select index connection =
     (* SELECT *)

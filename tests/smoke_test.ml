@@ -98,6 +98,12 @@ let smoke_test_with_quit conn = begin
     assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sdiff ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] conn);
 
+    ignore (Redis.del_one "rory" conn);
+    ignore (Redis.del_one "tim" conn);
+    ignore (Redis.sadd "rory" "cool" conn);
+    assert ( "cool" = Redis_util.string_of_bulk_data (Redis.srandmember "rory" conn));
+    assert (Redis_util.Nil = Redis.srandmember "non_existent_key" conn);
+
     (* Multiple databases *)
     Redis.select 1 conn;
 

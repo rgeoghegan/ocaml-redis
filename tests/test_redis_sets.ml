@@ -230,3 +230,19 @@ let test_sdiffstore () =
             Script.WriteThisLine(":1");
         ]
         test_func;;
+
+let test_srandmember () =
+    let test_func connection =
+        ignore (Redis.sadd "cool" "rory" connection);
+        assert ( Redis_util.String("rory") = (Redis.srandmember "cool" connection))
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SADD cool 4");
+            Script.ReadThisLine("rory");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SRANDMEMBER cool");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+        ]
+        test_func;;

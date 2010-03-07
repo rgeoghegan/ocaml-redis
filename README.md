@@ -10,19 +10,6 @@ It currently only implements the commands listed in the following subsection of 
  * Commands operating on string values
  * Commands operating on lists
  * Commands operating on sets
-  * sadd
-  * srem
-  * spop
-  * smove
-  * scard
-  * sismember
-  * sinter
-  * sinterstore
-  * sunion
-  * sunionstore
-  * sdiff
-  * sdiffstore
-  * smembers
  * Commands operating on sorted sets (zsets)
   * zadd
   * zrem
@@ -38,8 +25,6 @@ It currently only implements the commands listed in the following subsection of 
 
 ### Missing:
 
- * Commands operating on sets
-  * srandmember
  * Commands operating on sorted sets (zsets)
   * zincrby
   * zcard
@@ -73,10 +58,6 @@ Todo
 ----
 
  * Implement all missing keywords from 1.2.4:
-  * Commands operating on lists
-   * rpoplpush
-  * Commands operating on sets
-   * srandmember
   * Commands operating on sorted sets (zsets)
    * zincrby
    * zcard

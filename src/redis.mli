@@ -58,6 +58,7 @@ val sunionstore : string -> string list -> in_channel * out_channel -> int
 val sdiff :
   string list -> in_channel * out_channel -> Redis_util.bulk_data list
 val sdiffstore : string -> string list -> in_channel * out_channel -> int
+val srandmember : string -> in_channel * out_channel -> Redis_util.bulk_data
 val select : int -> in_channel * out_channel -> unit
 val move : string -> int -> in_channel * out_channel -> bool
 val flushdb : in_channel * out_channel -> unit
