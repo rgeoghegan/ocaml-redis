@@ -130,4 +130,15 @@ let test_zincrby () =
             Script.WriteThisLine("43")
         ]
         test_func;;
+
+let test_zcard () =
+    let test_func connection =
+        assert (0 = Redis.zcard "rory" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZCARD rory");
+            Script.WriteThisLine(":0")
+        ]
+        test_func;;
     

@@ -414,6 +414,12 @@ let zincrby key increment member connection =
     send_text member connection;
     handle_float (receive_answer connection);;
 
+let zcard key connection =
+    (* ZCARD *)
+    match (send_and_receive_command ("ZCARD " ^ key) connection) with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 let sort key
     ?pattern

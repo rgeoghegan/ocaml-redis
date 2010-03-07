@@ -17,6 +17,7 @@ It currently only implements the commands listed in the following subsection of 
   * zrevrange
   * zrangebyscore
   * zincrby
+  * zcard
  * Sorting
  * Persistence control commands
   * save
@@ -27,7 +28,6 @@ It currently only implements the commands listed in the following subsection of 
 ### Missing:
 
  * Commands operating on sorted sets (zsets)
-  * zcard
   * zscore
   * zremrangebyscore
  * Persistence control commands
