@@ -171,3 +171,19 @@ let test_rpop () =
             Script.WriteThisLine("cool");
         ]
         test_func;;
+
+let test_rpoplpush () =
+    let test_func connection =
+        Redis.lpush "cool" "rory" connection;
+        assert (Redis_util.String("rory") = (Redis.rpoplpush "cool" "not_cool" connection))
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH cool 4");
+            Script.ReadThisLine("rory");
+            Script.WriteThisLine("+OK");
+            Script.ReadThisLine("RPOPLPUSH cool not_cool");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+        ]
+        test_func;;

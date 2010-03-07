@@ -252,6 +252,12 @@ let rpop key connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let rpoplpush src_key dest_key connection =
+    (* RPOPLPUSH *)
+    match send_and_receive_command ("RPOPLPUSH " ^ src_key ^ " " ^ dest_key) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Commands operating on sets *)
 let sadd key member connection =
     (* SADD *)

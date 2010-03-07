@@ -40,6 +40,7 @@ val lset : string -> int -> string -> in_channel * out_channel -> unit
 val lrem : string -> int -> string -> in_channel * out_channel -> int
 val lpop : string -> in_channel * out_channel -> Redis_util.bulk_data
 val rpop : string -> in_channel * out_channel -> Redis_util.bulk_data
+val rpoplpush : string -> string -> in_channel * out_channel -> Redis_util.bulk_data
 val sadd : string -> string -> in_channel * out_channel -> bool
 val srem : string -> string -> in_channel * out_channel -> bool
 val spop : string -> in_channel * out_channel -> Redis_util.bulk_data
