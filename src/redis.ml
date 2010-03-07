@@ -408,6 +408,12 @@ let zrangebyscore key start stop ?(limit=`Unlimited) connection =
         Multibulk(m) -> m |
         _ -> failwith "Did not recognize what I got back";;
 
+let zincrby key increment member connection =
+    (* ZINCRBY *)
+    send_text (Printf.sprintf "ZINCRBY %s %f %d" key increment (String.length member)) connection;
+    send_text member connection;
+    handle_float (receive_answer connection);;
+
 (* Sorting *)
 let sort key
     ?pattern

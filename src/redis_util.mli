@@ -20,3 +20,4 @@ val send_multibulk_command :
 val handle_special_status : string -> response -> unit
 val handle_status : response -> unit
 val handle_integer : response -> bool
+val handle_float : response -> float

@@ -139,6 +139,10 @@ let smoke_test_with_quit conn = begin
                 (Redis.zrangebyscore
                     "coolest" 0 100 ~limit:(`Limit(0,1)) conn)));
 
+    assert (
+        2.0
+        = Redis.zincrby "coolest" 1.0 "rory" conn);
+
     (* Sort *)
     assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn

@@ -178,4 +178,15 @@ let test_handle_integer () =
     try ignore (handle_integer (Undecipherable));
             failwith("Failed test")
         with Failure(x) ->
-            assert(x = "Did not recognize what I got back")
+            assert(x = "Did not recognize what I got back");;
+
+let test_handle_float () =
+    assert (1.0 = (handle_float (Bulk(String("1.0")))));
+    (try ignore (handle_float (Bulk(String("rory"))));
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "\"rory\" is not a floating point number"));
+    (try ignore (handle_float (Integer(4)));
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Did not recognize what I got back"));;

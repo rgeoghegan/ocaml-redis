@@ -197,3 +197,13 @@ let handle_integer reply =
         Integer(0) -> false |
         Integer(1) -> true |
         _ -> failwith "Did not recognize what I got back";;
+
+let handle_float reply =
+    (* For bulk replies that should be floating point numbers, does error checking and casts to float *)
+    match reply with
+        (Bulk(String(x))) ->
+            (try
+                float_of_string x 
+            with Failure "float_of_string" ->
+                failwith (Printf.sprintf "%S is not a floating point number" x) )|
+        Bulk(Nil) | _ -> failwith "Did not recognize what I got back";;

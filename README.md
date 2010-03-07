@@ -16,6 +16,7 @@ It currently only implements the commands listed in the following subsection of 
   * zrange
   * zrevrange
   * zrangebyscore
+  * zincrby
  * Sorting
  * Persistence control commands
   * save
@@ -26,7 +27,6 @@ It currently only implements the commands listed in the following subsection of 
 ### Missing:
 
  * Commands operating on sorted sets (zsets)
-  * zincrby
   * zcard
   * zscore
   * zremrangebyscore
@@ -59,10 +59,10 @@ Todo
 
  * Implement all missing keywords from 1.2.4:
   * Commands operating on sorted sets (zsets)
-   * zincrby
    * zcard
    * zscore
    * zremrangebyscore
+   * All zset operations should use float scores
   * Persistence control commands
    * bgrewriteaof
   * Remote server control commands (all)

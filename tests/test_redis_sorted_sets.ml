@@ -113,3 +113,21 @@ let test_zrangebyscore () =
             Script.WriteThisLine("strong");
         ]
         test_func;;
+
+let test_zincrby () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42 "cool" connection);
+        assert (43.0 = Redis.zincrby "rory" 1.0 "cool" connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZADD rory 42 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("ZINCRBY rory 1.000000 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("43")
+        ]
+        test_func;;
+    
