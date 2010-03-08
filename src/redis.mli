@@ -91,5 +91,6 @@ val sort :
   in_channel * out_channel -> Redis_util.bulk_data list
 val save : in_channel * out_channel -> unit
 val bgsave : in_channel * out_channel -> unit
+val bgrewriteaof : in_channel * out_channel -> unit
 val lastsave : in_channel * out_channel -> Big_int.big_int
 val shutdown : in_channel * out_channel -> unit

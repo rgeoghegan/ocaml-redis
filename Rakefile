@@ -25,7 +25,7 @@ end
 
 desc "Start a Redis Server"
 task :start_redis do
-    sh "redis-server var/run/redis.conf"
+    sh "redis-server etc/redis.conf"
 end
 
 desc "Create an ocaml top level that uses Redis"

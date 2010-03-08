@@ -48,3 +48,14 @@ let test_shutdown () =
         Redis.shutdown (function_read, function_write);
         assert ("SHUTDOWN\r" = input_line tester_read)
     end;;
+
+let test_bgrewriteaof () =
+    let test_func connection =
+        assert ( () = Redis.bgrewriteaof connection )
+    in
+    use_test_script
+        [
+            ReadThisLine("BGREWRITEAOF");
+            WriteThisLine("+Background append only file rewriting started")
+        ]
+        test_func;;

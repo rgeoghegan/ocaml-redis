@@ -491,3 +491,9 @@ let shutdown connection =
             Status(x) -> failwith x | 
             _ -> failwith "Did not recognize what I got back"
     with End_of_file -> ();;
+
+let bgrewriteaof connection =
+    (* BGREWRITEAOF *)
+    handle_special_status
+        "Background append only file rewriting started"
+        (send_and_receive_command "BGREWRITEAOF" connection);;
