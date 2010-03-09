@@ -29,7 +29,7 @@ let test_bgsave () =
 
 let test_lastsave () =
     let test_func connection =
-        assert ( Big_int.eq_big_int (Big_int.big_int_of_int 42) (Redis.lastsave connection) )
+        assert ( 42.0 = Redis.lastsave connection )
     in
     use_test_script
         [

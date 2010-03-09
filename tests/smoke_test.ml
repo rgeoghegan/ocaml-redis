@@ -158,7 +158,7 @@ let smoke_test_with_quit conn = begin
     Redis.save conn;
     Redis.bgsave conn;
 
-    assert ( Big_int.zero_big_int < Redis.lastsave conn);
+    assert ( 0.0 < Redis.lastsave conn);
     Redis.bgrewriteaof conn;
 
     Redis.flushall conn;

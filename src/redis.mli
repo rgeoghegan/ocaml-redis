@@ -92,5 +92,5 @@ val sort :
 val save : in_channel * out_channel -> unit
 val bgsave : in_channel * out_channel -> unit
 val bgrewriteaof : in_channel * out_channel -> unit
-val lastsave : in_channel * out_channel -> Big_int.big_int
+val lastsave : in_channel * out_channel -> float
 val shutdown : in_channel * out_channel -> unit

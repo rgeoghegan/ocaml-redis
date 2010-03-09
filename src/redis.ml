@@ -479,8 +479,8 @@ let bgsave connection =
 let lastsave connection =
     (* LASTSAVE *)
     match send_and_receive_command "LASTSAVE" connection with
-        Integer(x) -> Big_int.big_int_of_int x |
-        BigInteger(x) -> x |
+        Integer(x) -> float_of_int x |
+        LargeInteger(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let shutdown connection =

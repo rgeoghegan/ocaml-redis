@@ -69,7 +69,7 @@ end
 # Library
 
 redis_util = OcamlFile.new("src/redis_util.ml")
-external_libs = ["Unix.cmxa", "Str.cmxa", "nums.cmxa"].join(" ")
+external_libs = ["Unix.cmxa", "Str.cmxa"].join(" ")
 lib_objs = FileList.new("src/redis*.ml").map{|f| OcamlFile.new(f)}
 
 lib_objs.each do |lib|

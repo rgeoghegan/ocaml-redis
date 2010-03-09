@@ -13,15 +13,9 @@ It currently only implements the commands listed in the following subsection of 
  * Commands operating on sorted sets (zsets)
  * Sorting
  * Persistence control commands
-  * save
-  * bgsave
-  * lastsave
-  * shutdown
 
 ### Missing:
 
- * Persistence control commands
-  * bgrewriteaof
  * Remote server control commands (all)
 
 Building
@@ -48,13 +42,10 @@ Todo
 ----
 
  * Implement all missing keywords from 1.2.4:
-  * Persistence control commands
-   * bgrewriteaof
   * Remote server control commands (all)
 
  * Refactors:
   * Seperate sets into different code file but same module
-  * Remove Big_int and use floats instead (espcially since Bit_int is not needed on 64bit machines)
   * Create type for connection
   * Create 'send_and_receive_command_safely' which checks for statuses
   * Compile smoke_test module to avoid stray .cmx file

@@ -53,11 +53,8 @@ let test_receive_answer () =
                 = Integer(42)
             );
             assert (
-                match receive_answer connection with
-                    BigInteger(x) ->
-                        Big_int.eq_big_int x 
-                            (Big_int.big_int_of_string "18446744073709551616")
-                    | _ -> false
+                receive_answer connection
+                = LargeInteger(18446744073709551616.0)
             );
             assert (
                 receive_answer connection
@@ -83,7 +80,7 @@ let test_receive_answer () =
             WriteThisLine("-baz"); (* Error *)
             WriteThisLine("!"); (* Undecipherable *)
             WriteThisLine(":42"); (* Integer *)
-            WriteThisLine(":18446744073709551616"); (* BigInteger *)
+            WriteThisLine(":18446744073709551616"); (* LargeInteger *)
             WriteThisLine("$3"); (* Bulk *)
             WriteThisLine("aaa");
             WriteThisLine("$-1"); (* Nil Bulk *)

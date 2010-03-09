@@ -7,7 +7,7 @@ type response =
     Status of string
   | Undecipherable
   | Integer of int
-  | BigInteger of Big_int.big_int
+  | LargeInteger of float
   | Bulk of bulk_data
   | Multibulk of bulk_data list
   | Error of string

@@ -45,7 +45,7 @@ let send_text text (in_chan, out_chan) =
 
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet;;
 type bulk_data = Nil | String of string;;
-type response = Status of string | Undecipherable | Integer of int | BigInteger of Big_int.big_int | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
+type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of bulk_data list | Error of string;;
 
 let string_of_bulk_data bd =
     match bd with
@@ -67,7 +67,7 @@ let string_of_response r =
         Status(x) -> Printf.sprintf "Status(%S)" x |
         Undecipherable -> "Undecipherable" |
         Integer(x) -> Printf.sprintf "Integer(%d)" x |
-        BigInteger(x) -> Printf.sprintf "BigInteger(%s)" (Big_int.string_of_big_int x) |
+        LargeInteger(x) -> Printf.sprintf "LargeInteger(%f)" x |
         Error(x) -> Printf.sprintf "Error(%S)" x |
         Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
         Multibulk(x) -> match x with
@@ -116,7 +116,7 @@ let parse_integer_response response =
     try
         Integer(int_of_string response)
     with Failure "int_of_string" ->
-        BigInteger(Big_int.big_int_of_string response);;
+        LargeInteger(float_of_string response);;
 
 let receive_answer connection =
     (* Get answer back from redis and cast it to the right type *)
