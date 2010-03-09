@@ -48,4 +48,3 @@ Todo
   * Seperate sets into different code file but same module
   * Create type for connection
   * Create 'send_and_receive_command_safely' which checks for statuses
-  * Compile smoke_test module to avoid stray .cmx file

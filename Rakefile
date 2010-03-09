@@ -128,8 +128,12 @@ file all_other_tests => :individual_test_objects do
 end
 
 # Smoke test
-file "build/tests/smoke_test" => [:library, "tests/smoke_test.ml", "build/tests"] do
+file "build/tests/smoke_test" => [:library, "build/tests/smoke_test.cmx", "build/tests"] do
     sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} build/redis.cmxa tests/smoke_test.ml"
+end
+
+file "build/tests/smoke_test.cmx" => ["tests/smoke_test.ml", "build/tests"] do
+    compile "tests/smoke_test.ml", "build/tests/smoke_test"
 end
 
 file script.cmx("build/tests") => ["build/tests", "tests/script.ml"] do
