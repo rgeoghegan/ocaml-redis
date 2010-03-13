@@ -126,7 +126,7 @@ end
 
 # Smoke test
 file "build/tests/smoke_test" => [:library, "build/tests/smoke_test.cmx", "build/tests"] do
-    sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} build/redis.cmxa tests/smoke_test.ml"
+    sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} build/redis.cmxa build/tests/smoke_test.cmx"
 end
 
 file "build/tests/smoke_test.cmx" => ["tests/smoke_test.ml", "build/tests"] do
