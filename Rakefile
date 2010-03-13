@@ -28,9 +28,6 @@ task :start_redis do
     sh "redis-server etc/redis.conf"
 end
 
-desc "Create an ocaml top level that uses Redis"
-task :toplevel => "build/redis_ocaml_toplevel"
-
 directory "build"
 
 # Utility code
@@ -69,7 +66,7 @@ end
 # Library
 
 redis_util = OcamlFile.new("src/redis_util.ml")
-external_libs = ["Unix.cmxa", "Str.cmxa"].join(" ")
+external_libs = ["unix.cmxa", "str.cmxa"].join(" ")
 lib_objs = FileList.new("src/redis*.ml").map{|f| OcamlFile.new(f)}
 
 lib_objs.each do |lib|
@@ -138,10 +135,4 @@ end
 
 file script.cmx("build/tests") => ["build/tests", "tests/script.ml"] do
     sh "ocamlopt -c -o #{script.dest("build/tests")} #{script}"
-end
-
-# Miscellaneous
-
-file "build/redis_ocaml_toplevel" => :lib do
-    sh "ocamlmktop -o build/redis_ocaml_toplevel #{external_libs.to_cma("")} lib/redis.cmxa"
 end
