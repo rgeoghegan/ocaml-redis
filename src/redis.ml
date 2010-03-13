@@ -497,3 +497,43 @@ let bgrewriteaof connection =
     handle_special_status
         "Background append only file rewriting started"
         (send_and_receive_command "BGREWRITEAOF" connection);;
+
+(* Remote server control commands *)
+
+module Info =
+    struct
+        type t = {fields: string list; values: (string, string) Hashtbl.t;}
+        let tokenizer text = 
+            let line_spliter line =
+                let colon_index = String.index line ':' in
+                let key = String.sub line 0 colon_index in
+                let value = String.sub line (colon_index + 1) ((String.length line) - 1 -colon_index) in
+                    (key, value)
+            in
+                List.map line_spliter
+                    (Str.split (Str.regexp "\r\n") text)
+        let create text =
+            let values = Hashtbl.create 10
+            in
+            let loader (key, value) = begin
+                    Hashtbl.add values key value;
+                    key
+                end
+            in
+            let fields = List.map loader (tokenizer text)
+            in
+                {fields=fields; values=values}
+        let get info field =
+            Hashtbl.find info.values field
+        let get_fields info =
+            info.fields
+    end;;
+        
+let info connection =
+    match send_and_receive_command "INFO" connection with
+        Bulk(x) -> Info.create (string_of_bulk_data x)
+              (*  data_iterator []
+                        (List.map line_spliter
+                            (Str.split (Str.regexp "(\r\n)")
+                                (string_of_bulk_data x)))*)
+        | _ -> failwith "Did not recognize what I got back";;

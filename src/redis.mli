@@ -94,3 +94,13 @@ val bgsave : in_channel * out_channel -> unit
 val bgrewriteaof : in_channel * out_channel -> unit
 val lastsave : in_channel * out_channel -> float
 val shutdown : in_channel * out_channel -> unit
+
+module Info :
+    sig
+        type t = {fields: string list; values: (string, string) Hashtbl.t;}
+        val create : string -> t
+        val get : t -> string -> string
+        val get_fields : t -> string list
+    end
+(*type info_type = {field_names: string list; values: (string, string) Hashtbl.t}*)
+val info : in_channel * out_channel -> Info.t

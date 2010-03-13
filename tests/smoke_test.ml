@@ -154,6 +154,12 @@ let smoke_test_with_quit conn = begin
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));
     
+    (* Remote server control commands *)
+    assert ( "master" = Redis.Info.get
+        (Redis.info conn)
+        "role"
+    );
+    
     (* Persistence *)
     Redis.save conn;
     Redis.bgsave conn;

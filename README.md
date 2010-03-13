@@ -13,10 +13,14 @@ It currently only implements the commands listed in the following subsection of 
  * Commands operating on sorted sets (zsets)
  * Sorting
  * Persistence control commands
+ * Remote server control commands
+  * INFO
 
 ### Missing:
 
- * Remote server control commands (all)
+ * Remote server control commands
+  * MONITOR
+  * SLAVEOF
 
 Building
 --------
@@ -42,7 +46,9 @@ Todo
 ----
 
  * Implement all missing keywords from 1.2.4:
-  * Remote server control commands (all)
+  * Remote server control commands
+   * MONITOR
+   * SLAVEOF
 
  * Refactors:
   * Seperate sets into different code file but same module
