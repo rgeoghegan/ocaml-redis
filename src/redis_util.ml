@@ -3,45 +3,76 @@
 
     Utility and protocol specific functions *)
 
+module Connection =
+    struct
+        type t = in_channel * out_channel
+        let create addr port =
+            let server = Unix.inet_addr_of_string addr
+            in
+            let in_c, out_c = Unix.open_connection(
+                Unix.ADDR_INET(server, port)
+            )
+            in
+                (in_c, out_c)
+
+        let read_string (in_chan, _) =
+            (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)
+            let rec iter out_buffer =
+                match input_char in_chan with
+                    '\r' -> (
+                        match input_char in_chan with
+                            '\n' -> Buffer.contents out_buffer |
+                            x -> begin
+                                Buffer.add_char out_buffer '\r';
+                                Buffer.add_char out_buffer x;
+                                iter out_buffer
+                            end 
+                    ) |
+                    x -> begin
+                        Buffer.add_char out_buffer x;
+                        iter out_buffer
+                    end
+            in
+            iter (Buffer.create 100)
+
+        let read_fixed_string length (in_chan, _) =
+            (* Read length caracters from in channel and output them as string *)
+            let out_buf = Buffer.create length
+            in begin
+                Buffer.add_channel out_buf in_chan length;
+                Buffer.contents out_buf
+            end;;
+
+        let send_text_straight text (_, out_chan) =
+            (* Send the given text out to the connection without flushing *)
+            begin
+                output_string out_chan text;
+                output_string out_chan "\r\n"
+            end
+
+        let send_text text connection =
+            (* Send the given text out to the connection *)
+            let (_, out_chan) = connection
+            in
+            begin
+                send_text_straight text connection;
+                flush out_chan
+            end
+        
+        let get_one_char (in_chan, out_chan) =
+            (* Retrieve one character from the connection *)
+            input_char in_chan
+
+        let flush_connection (in_chan, out_chan) =
+            (* Manually flushes out the outgoing channel *)
+            flush out_chan
+    end;;
 
 let debug_string comment value  = begin
     Printf.printf "%s %S\n" comment value;
     flush stdout
 end;;
 
-let read_string in_chan =
-    (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)
-    let rec iter out_buffer =
-        match input_char in_chan with
-            '\r' -> (
-                match input_char in_chan with
-                    '\n' -> Buffer.contents out_buffer |
-                    x -> begin
-                        Buffer.add_char out_buffer '\r';
-                        Buffer.add_char out_buffer x;
-                        iter out_buffer
-                    end 
-            ) |
-            x -> begin
-                Buffer.add_char out_buffer x;
-                iter out_buffer
-            end
-    in
-    iter (Buffer.create 100);;
-
-let send_text_straight text (_, out_chan) =
-    (* Send the given text out to the connection without flushing *)
-    begin
-        output_string out_chan text;
-        output_string out_chan "\r\n"
-    end;;
-
-let send_text text (in_chan, out_chan) =
-    (* Send the given text out to the connection *)
-    begin
-        send_text_straight text (in_chan, out_chan);
-        flush out_chan
-    end;;
 
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet;;
 type bulk_data = Nil | String of string;;
@@ -81,19 +112,13 @@ let string_of_redis_value_type vt =
         RedisList -> "List" |
         RedisSet -> "Set";;
 
-let get_bulk_data (in_chan, _) =
-    let size = int_of_string (read_string in_chan)
+let get_bulk_data connection =
+    let length = int_of_string (Connection.read_string connection)
     in
-    match size with 
+    match length with 
         -1 -> Nil
         | 0 -> String("")
-        | _ -> let out_buf = Buffer.create size
-            in begin
-                Buffer.add_channel out_buf in_chan size;
-                ignore (input_char in_chan); (* Remove \r\n *)
-                ignore (input_char in_chan);
-                String(Buffer.contents out_buf)
-            end;;
+        | _ -> String(Connection.read_fixed_string length connection);;
 
 let get_multibulk_data size conn =
     let in_chan, out_chan = conn
@@ -120,25 +145,23 @@ let parse_integer_response response =
 
 let receive_answer connection =
     (* Get answer back from redis and cast it to the right type *)
-    let in_chan, _ = connection
-    in
-    match (input_char in_chan) with
-        '+' -> Status(read_string in_chan)
-        | ':' -> parse_integer_response (read_string in_chan)
+    match (Connection.get_one_char connection) with
+        '+' -> Status(Connection.read_string connection)
+        | ':' -> parse_integer_response (Connection.read_string connection)
         | '$' -> Bulk(
                 get_bulk_data connection
             )
-        | '*' -> get_multibulk_data (int_of_string (read_string in_chan)) connection
-        | '-' -> Error(read_string in_chan)
+        | '*' -> get_multibulk_data (int_of_string (Connection.read_string connection)) connection
+        | '-' -> Error(Connection.read_string connection)
         | _ -> begin
-            ignore (input_line in_chan);
+            ignore (Connection.read_string connection);
             Undecipherable
         end;;
 
 let send_and_receive_command command connection =
     (* Send command, and receive the result casted to the right type *)
     begin
-        send_text command connection;
+        Connection.send_text command connection;
         receive_answer connection
     end;;
 
@@ -167,19 +190,17 @@ let send_multibulk_command tokens connection =
         match tokens_left with
             [] -> () |
             h :: t -> begin
-                send_text_straight ("$" ^ (string_of_int (String.length h))) connection;
-                send_text_straight h connection;
+                Connection.send_text_straight ("$" ^ (string_of_int (String.length h))) connection;
+                Connection.send_text_straight h connection;
                 send_in_tokens t
             end
     in
-    let _, out_chan = connection
-    in
-        begin
-            send_text_straight ("*" ^ token_length) connection;
-            send_in_tokens tokens;
-            flush out_chan;
-            receive_answer connection
-        end;;
+    begin
+        Connection.send_text_straight ("*" ^ token_length) connection;
+        send_in_tokens tokens;
+        Connection.flush_connection connection;
+        receive_answer connection
+    end;;
 
 let handle_special_status special_status reply =
     (* For status replies, does error checking and display *)

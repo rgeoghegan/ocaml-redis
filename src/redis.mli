@@ -1,86 +1,86 @@
-val create_connection : string -> int -> in_channel * out_channel
-val ping : in_channel * out_channel -> bool
-val quit : 'a * out_channel -> unit
-val auth : string -> in_channel * out_channel -> unit
-val set : string -> string -> in_channel * out_channel -> unit
-val get : string -> in_channel * out_channel -> Redis_util.bulk_data
+val create_connection : string -> int -> Redis_util.Connection.t
+val ping : Redis_util.Connection.t -> bool
+val quit : Redis_util.Connection.t -> unit
+val auth : string -> Redis_util.Connection.t -> unit
+val set : string -> string -> Redis_util.Connection.t -> unit
+val get : string -> Redis_util.Connection.t -> Redis_util.bulk_data
 val getset :
-  string -> string -> in_channel * out_channel -> Redis_util.bulk_data
+  string -> string -> Redis_util.Connection.t -> Redis_util.bulk_data
 val mget :
-  string list -> in_channel * out_channel -> Redis_util.bulk_data list
-val setnx : string -> string -> in_channel * out_channel -> bool
-val mset : (string * string) list -> in_channel * out_channel -> unit
-val msetnx : (string * string) list -> in_channel * out_channel -> bool
-val incr : string -> in_channel * out_channel -> int
-val incrby : string -> int -> in_channel * out_channel -> int
-val decr : string -> in_channel * out_channel -> int
-val decrby : string -> int -> in_channel * out_channel -> int
-val exists : string -> in_channel * out_channel -> bool
-val del : string list -> in_channel * out_channel -> int
-val del_one : string -> in_channel * out_channel -> bool
+  string list -> Redis_util.Connection.t -> Redis_util.bulk_data list
+val setnx : string -> string -> Redis_util.Connection.t -> bool
+val mset : (string * string) list -> Redis_util.Connection.t -> unit
+val msetnx : (string * string) list -> Redis_util.Connection.t -> bool
+val incr : string -> Redis_util.Connection.t -> int
+val incrby : string -> int -> Redis_util.Connection.t -> int
+val decr : string -> Redis_util.Connection.t -> int
+val decrby : string -> int -> Redis_util.Connection.t -> int
+val exists : string -> Redis_util.Connection.t -> bool
+val del : string list -> Redis_util.Connection.t -> int
+val del_one : string -> Redis_util.Connection.t -> bool
 val value_type :
-  string -> in_channel * out_channel -> Redis_util.redis_value_type
-val keys : string -> in_channel * out_channel -> string list
-val randomkey : in_channel * out_channel -> string
-val rename : string -> string -> in_channel * out_channel -> unit
-val renamenx : string -> string -> in_channel * out_channel -> bool
-val dbsize : in_channel * out_channel -> int
-val expire : string -> int -> in_channel * out_channel -> bool
-val ttl : string -> in_channel * out_channel -> int
-val rpush : string -> string -> in_channel * out_channel -> unit
-val lpush : string -> string -> in_channel * out_channel -> unit
-val llen : string -> in_channel * out_channel -> int
+  string -> Redis_util.Connection.t -> Redis_util.redis_value_type
+val keys : string -> Redis_util.Connection.t -> string list
+val randomkey : Redis_util.Connection.t -> string
+val rename : string -> string -> Redis_util.Connection.t -> unit
+val renamenx : string -> string -> Redis_util.Connection.t -> bool
+val dbsize : Redis_util.Connection.t -> int
+val expire : string -> int -> Redis_util.Connection.t -> bool
+val ttl : string -> Redis_util.Connection.t -> int
+val rpush : string -> string -> Redis_util.Connection.t -> unit
+val lpush : string -> string -> Redis_util.Connection.t -> unit
+val llen : string -> Redis_util.Connection.t -> int
 val lrange :
   string ->
-  int -> int -> in_channel * out_channel -> Redis_util.bulk_data list
-val ltrim : string -> int -> int -> in_channel * out_channel -> unit
+  int -> int -> Redis_util.Connection.t -> Redis_util.bulk_data list
+val ltrim : string -> int -> int -> Redis_util.Connection.t -> unit
 val lindex :
-  string -> int -> in_channel * out_channel -> Redis_util.bulk_data
-val lset : string -> int -> string -> in_channel * out_channel -> unit
-val lrem : string -> int -> string -> in_channel * out_channel -> int
-val lpop : string -> in_channel * out_channel -> Redis_util.bulk_data
-val rpop : string -> in_channel * out_channel -> Redis_util.bulk_data
-val rpoplpush : string -> string -> in_channel * out_channel -> Redis_util.bulk_data
-val sadd : string -> string -> in_channel * out_channel -> bool
-val srem : string -> string -> in_channel * out_channel -> bool
-val spop : string -> in_channel * out_channel -> Redis_util.bulk_data
-val smove : string -> string -> string -> in_channel * out_channel -> bool
-val scard : string -> in_channel * out_channel -> int
-val sismember : string -> string -> in_channel * out_channel -> bool
+  string -> int -> Redis_util.Connection.t -> Redis_util.bulk_data
+val lset : string -> int -> string -> Redis_util.Connection.t -> unit
+val lrem : string -> int -> string -> Redis_util.Connection.t -> int
+val lpop : string -> Redis_util.Connection.t -> Redis_util.bulk_data
+val rpop : string -> Redis_util.Connection.t -> Redis_util.bulk_data
+val rpoplpush : string -> string -> Redis_util.Connection.t -> Redis_util.bulk_data
+val sadd : string -> string -> Redis_util.Connection.t -> bool
+val srem : string -> string -> Redis_util.Connection.t -> bool
+val spop : string -> Redis_util.Connection.t -> Redis_util.bulk_data
+val smove : string -> string -> string -> Redis_util.Connection.t -> bool
+val scard : string -> Redis_util.Connection.t -> int
+val sismember : string -> string -> Redis_util.Connection.t -> bool
 val smembers :
-  string -> in_channel * out_channel -> Redis_util.bulk_data list
+  string -> Redis_util.Connection.t -> Redis_util.bulk_data list
 val sinter :
-  string list -> in_channel * out_channel -> Redis_util.bulk_data list
-val sinterstore : string -> string list -> in_channel * out_channel -> int
+  string list -> Redis_util.Connection.t -> Redis_util.bulk_data list
+val sinterstore : string -> string list -> Redis_util.Connection.t -> int
 val sunion :
-  string list -> in_channel * out_channel -> Redis_util.bulk_data list
-val sunionstore : string -> string list -> in_channel * out_channel -> int
+  string list -> Redis_util.Connection.t -> Redis_util.bulk_data list
+val sunionstore : string -> string list -> Redis_util.Connection.t -> int
 val sdiff :
-  string list -> in_channel * out_channel -> Redis_util.bulk_data list
-val sdiffstore : string -> string list -> in_channel * out_channel -> int
-val srandmember : string -> in_channel * out_channel -> Redis_util.bulk_data
-val select : int -> in_channel * out_channel -> unit
-val move : string -> int -> in_channel * out_channel -> bool
-val flushdb : in_channel * out_channel -> unit
-val flushall : in_channel * out_channel -> unit
-val zadd : string -> float -> string -> in_channel * out_channel -> bool
-val zrem : string -> string -> in_channel * out_channel -> bool
+  string list -> Redis_util.Connection.t -> Redis_util.bulk_data list
+val sdiffstore : string -> string list -> Redis_util.Connection.t -> int
+val srandmember : string -> Redis_util.Connection.t -> Redis_util.bulk_data
+val select : int -> Redis_util.Connection.t -> unit
+val move : string -> int -> Redis_util.Connection.t -> bool
+val flushdb : Redis_util.Connection.t -> unit
+val flushall : Redis_util.Connection.t -> unit
+val zadd : string -> float -> string -> Redis_util.Connection.t -> bool
+val zrem : string -> string -> Redis_util.Connection.t -> bool
 val zrange :
   string ->
-  int -> int -> in_channel * out_channel -> Redis_util.bulk_data list
+  int -> int -> Redis_util.Connection.t -> Redis_util.bulk_data list
 val zrevrange :
   string ->
-  int -> int -> in_channel * out_channel -> Redis_util.bulk_data list
+  int -> int -> Redis_util.Connection.t -> Redis_util.bulk_data list
 val zrangebyscore :
   string ->
   float ->
   float ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
-  in_channel * out_channel -> Redis_util.bulk_data list
-val zincrby : string -> float -> string -> in_channel * out_channel -> float
-val zcard : string -> in_channel * out_channel -> int
-val zscore : string -> string -> in_channel * out_channel -> float
-val zremrangebyscore : string -> float -> float -> in_channel * out_channel -> int
+  Redis_util.Connection.t -> Redis_util.bulk_data list
+val zincrby : string -> float -> string -> Redis_util.Connection.t -> float
+val zcard : string -> Redis_util.Connection.t -> int
+val zscore : string -> string -> Redis_util.Connection.t -> float
+val zremrangebyscore : string -> float -> float -> Redis_util.Connection.t -> int
 val sort :
   string ->
   ?pattern:string ->
@@ -88,12 +88,12 @@ val sort :
   ?get:string ->
   ?order:[< `Asc | `Desc > `Asc ] ->
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
-  in_channel * out_channel -> Redis_util.bulk_data list
-val save : in_channel * out_channel -> unit
-val bgsave : in_channel * out_channel -> unit
-val bgrewriteaof : in_channel * out_channel -> unit
-val lastsave : in_channel * out_channel -> float
-val shutdown : in_channel * out_channel -> unit
+  Redis_util.Connection.t -> Redis_util.bulk_data list
+val save : Redis_util.Connection.t -> unit
+val bgsave : Redis_util.Connection.t -> unit
+val bgrewriteaof : Redis_util.Connection.t -> unit
+val lastsave : Redis_util.Connection.t -> float
+val shutdown : Redis_util.Connection.t -> unit
 
 module Info :
     sig
@@ -102,5 +102,4 @@ module Info :
         val get : t -> string -> string
         val get_fields : t -> string list
     end
-(*type info_type = {field_names: string list; values: (string, string) Hashtbl.t}*)
-val info : in_channel * out_channel -> Info.t
+val info : Redis_util.Connection.t -> Info.t

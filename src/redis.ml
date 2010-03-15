@@ -6,11 +6,7 @@ open Redis_util;;
 
 let create_connection addr port =
     (* From a string of the address, and a port as an int, gets an input and output file discriptor *)
-    let server = Unix.inet_addr_of_string addr
-    in
-    Unix.open_connection(
-        Unix.ADDR_INET(server, port)
-    )
+    Redis_util.Connection.create addr port;;
 
 (* Individual commands *)
 
@@ -23,7 +19,7 @@ let ping connection =
 
 let quit connection =
     (* QUIT *)
-    send_text "QUIT" connection;;
+    Connection.send_text "QUIT" connection;;
 
 let auth password connection =
     (* AUTH *)
@@ -33,8 +29,8 @@ let auth password connection =
 let set key value connection =
     (* SET *)
     begin
-        send_text_straight (Printf.sprintf "SET %s %d" key (String.length value)) connection;
-        send_text value connection;
+        Connection.send_text_straight (Printf.sprintf "SET %s %d" key (String.length value)) connection;
+        Connection.send_text value connection;
         match receive_answer connection with
             Status("OK") -> () |
             Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
@@ -49,8 +45,8 @@ let get key connection =
 
 let getset key new_value connection =
     (* GETSET *)
-    send_text_straight (Printf.sprintf "GETSET %s %d" key (String.length new_value)) connection;
-    send_text new_value connection;
+    Connection.send_text_straight (Printf.sprintf "GETSET %s %d" key (String.length new_value)) connection;
+    Connection.send_text new_value connection;
     match receive_answer connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
@@ -64,8 +60,8 @@ let mget keys connection =
 let setnx key value connection =
     (* SETNX *)
     begin
-        send_text_straight (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
-        send_text value connection;
+        Connection.send_text_straight (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
+        Connection.send_text value connection;
         handle_integer (receive_answer connection)
     end;;
 
@@ -179,8 +175,8 @@ let ttl key connection =
 let rpush key value connection =
     (* RPUSH *)
     begin
-        send_text_straight (Printf.sprintf "RPUSH %s %d" key (String.length value)) connection;
-        send_text value connection;
+        Connection.send_text_straight (Printf.sprintf "RPUSH %s %d" key (String.length value)) connection;
+        Connection.send_text value connection;
         match receive_answer connection with
             Status("OK") -> () |
             Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
@@ -190,8 +186,8 @@ let rpush key value connection =
 let lpush key value connection =
     (* RPUSH *)
     begin
-        send_text_straight (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
-        send_text value connection;
+        Connection.send_text_straight (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
+        Connection.send_text value connection;
         match receive_answer connection with
             Status("OK") -> () |
             Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
@@ -225,16 +221,16 @@ let lindex key index connection =
 let lset key index value connection =
     (* LSET *)
     begin
-        send_text_straight (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
-        send_text value connection;
+        Connection.send_text_straight (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
+        Connection.send_text value connection;
         handle_status (receive_answer connection)
     end;;
 
 let lrem key count value connection =
     (* LREM *)
     begin
-        send_text_straight (Printf.sprintf "LREM %s %d %d" key count (String.length value)) connection;
-        send_text value connection;
+        Connection.send_text_straight (Printf.sprintf "LREM %s %d %d" key count (String.length value)) connection;
+        Connection.send_text value connection;
         match receive_answer connection with
             Integer(x) -> x |
             _ -> failwith "Did not recognize what I got back"
@@ -261,15 +257,15 @@ let rpoplpush src_key dest_key connection =
 (* Commands operating on sets *)
 let sadd key member connection =
     (* SADD *)
-    send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
-    send_text member connection;
+    Connection.send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
+    Connection.send_text member connection;
     handle_integer (receive_answer connection)
 
 let srem key member connection =
     (* SREM *)
     begin
-        send_text_straight (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
-        send_text member connection;
+        Connection.send_text_straight (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
+        Connection.send_text member connection;
         handle_integer (receive_answer connection)
     end;;
 
@@ -282,8 +278,8 @@ let spop key connection =
 let smove srckey destkey member connection =
     (* SMOVE *)
     begin
-        send_text_straight (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
-        send_text member connection;
+        Connection.send_text_straight (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
+        Connection.send_text member connection;
         handle_integer (receive_answer connection)
     end;;
 
@@ -296,8 +292,8 @@ let scard key connection =
 let sismember key member connection =
     (* SISMEMBER *)
     begin
-        send_text_straight (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
-        send_text member connection;
+        Connection.send_text_straight (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
+        Connection.send_text member connection;
         handle_integer (receive_answer connection)
     end;;
 
@@ -373,14 +369,14 @@ let flushall connection =
 (* Commands operating on sorted sets *)
 let zadd key score member connection =
     (* ZADD *)
-    send_text (Printf.sprintf "ZADD %s %f %d" key score (String.length member)) connection;
-    send_text member connection;
+    Connection.send_text (Printf.sprintf "ZADD %s %f %d" key score (String.length member)) connection;
+    Connection.send_text member connection;
     handle_integer (receive_answer connection);;
 
 let zrem key member connection =
     (* ZREM *)
-    send_text (Printf.sprintf "ZREM %s %d" key (String.length member)) connection;
-    send_text member connection;
+    Connection.send_text (Printf.sprintf "ZREM %s %d" key (String.length member)) connection;
+    Connection.send_text member connection;
     handle_integer (receive_answer connection);;
 
 let zrange key start stop connection =
@@ -410,8 +406,8 @@ let zrangebyscore key start stop ?(limit=`Unlimited) connection =
 
 let zincrby key increment member connection =
     (* ZINCRBY *)
-    send_text (Printf.sprintf "ZINCRBY %s %f %d" key increment (String.length member)) connection;
-    send_text member connection;
+    Connection.send_text (Printf.sprintf "ZINCRBY %s %f %d" key increment (String.length member)) connection;
+    Connection.send_text member connection;
     handle_float (receive_answer connection);;
 
 let zcard key connection =
@@ -422,8 +418,8 @@ let zcard key connection =
 
 let zscore key member connection =
     (* ZSCORE *)
-    send_text (Printf.sprintf "ZSCORE %s %d" key (String.length member)) connection;
-    send_text member connection;
+    Connection.send_text (Printf.sprintf "ZSCORE %s %d" key (String.length member)) connection;
+    Connection.send_text member connection;
     handle_float (receive_answer connection);;
 
 let zremrangebyscore key min max connection =
@@ -485,7 +481,7 @@ let lastsave connection =
 
 let shutdown connection =
     (* SHUTDOWN *)
-    send_text "SHUTDOWN" connection;
+    Connection.send_text "SHUTDOWN" connection;
     try
         match receive_answer connection with
             Status(x) -> failwith x | 
