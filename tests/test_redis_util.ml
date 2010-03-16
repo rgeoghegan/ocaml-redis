@@ -6,21 +6,39 @@
 open Script
 open Redis_util
 
-let test_read_string () =
+let test_connection_read_string () =
     let test_pipe_read, test_pipe_write = piped_channel()
     in
     begin
         output_string test_pipe_write "test string\r\n";
         flush test_pipe_write;
         assert (
-            read_string test_pipe_read
+            Connection.read_string (test_pipe_read, test_pipe_write)
             = "test string"
+        );
+        output_string test_pipe_write "test string\rmore test string\neven more test string\r\n";
+        flush test_pipe_write;
+        assert (
+            Connection.read_string (test_pipe_read, test_pipe_write)
+            = "test string\rmore test string\neven more test string"
+        )
+    end;;
+
+let test_connection_read_fixed_string () =
+    let test_pipe_read, test_pipe_write = piped_channel()
+    in
+    begin
+        output_string test_pipe_write "test string\r\na bit more";
+        flush test_pipe_write;
+        assert (
+            Connection.read_fixed_string 10 (test_pipe_read, test_pipe_write)
+            = "test strin"
         )
     end;;
 
 let test_send_text () =
     let test_func connection =
-        send_text "foo" connection
+        Connection.send_text "foo" connection
     in
     use_test_script [ReadThisLine("foo")] test_func;;
 
@@ -60,6 +78,11 @@ let test_receive_answer () =
                 receive_answer connection
                 = Bulk(String("aaa"))
             );
+            assert(
+                receive_answer connection
+                = Bulk(String("I contain\r\na line split"))
+            );
+            let _ = print_endline "rory 2" in
             assert (
                 receive_answer connection
                 = Bulk(Nil)
@@ -83,6 +106,8 @@ let test_receive_answer () =
             WriteThisLine(":18446744073709551616"); (* LargeInteger *)
             WriteThisLine("$3"); (* Bulk *)
             WriteThisLine("aaa");
+            WriteThisLine("$23");
+            WriteThisLine("I contain\r\na line split");
             WriteThisLine("$-1"); (* Nil Bulk *)
             WriteThisLine("*2"); (* Multibulk *)
             WriteThisLine("$4");

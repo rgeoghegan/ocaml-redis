@@ -118,7 +118,13 @@ let get_bulk_data connection =
     match length with 
         -1 -> Nil
         | 0 -> String("")
-        | _ -> String(Connection.read_fixed_string length connection);;
+        | _ ->
+            let out_str = String(Connection.read_fixed_string length connection)
+            in
+            begin
+                List.map (fun x -> assert(x == Connection.get_one_char connection)) ['\r'; '\n'];
+                out_str
+            end;;
 
 let get_multibulk_data size conn =
     let in_chan, out_chan = conn
