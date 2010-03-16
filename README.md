@@ -45,12 +45,12 @@ To run a simple smoke test on a redis server *you do not mind completely wiping*
 Todo
 ----
 
+ * Refactors:
+  * Give defaults to create_connection
+  * Create 'send_and_receive_command_safely' which checks for statuses
+  * Bring in Redis_util into the main module
+
  * Implement all missing keywords from 1.2.4:
   * Remote server control commands
    * MONITOR
    * SLAVEOF
-
- * Refactors:
-  * Seperate sets into different code file but same module
-  * Create type for connection
-  * Create 'send_and_receive_command_safely' which checks for statuses
