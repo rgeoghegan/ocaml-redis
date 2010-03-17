@@ -46,7 +46,6 @@ Todo
 ----
 
  * Refactors:
-  * Create 'send_and_receive_command_safely' which checks for statuses
   * Bring in Redis_util into the main module
 
  * Implement all missing keywords from 1.2.4:

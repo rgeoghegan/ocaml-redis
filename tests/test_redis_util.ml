@@ -82,7 +82,6 @@ let test_receive_answer () =
                 receive_answer connection
                 = Bulk(String("I contain\r\na line split"))
             );
-            let _ = print_endline "rory 2" in
             assert (
                 receive_answer connection
                 = Bulk(Nil)
@@ -153,6 +152,29 @@ let test_send_and_receive_command () =
             ReadThisLine("foo");
             WriteThisLine("$3"); (* Bulk reply *)
             WriteThisLine("aaa")
+        ]
+        test_func;;
+
+let test_send_and_receive_command_safely () =
+    let test_func connection = 
+        begin
+            assert (
+                send_and_receive_command_safely "foo" connection
+                = Status("bar")
+            );
+            try send_and_receive_command_safely "foo" connection;
+                assert(false) (* Should never reach this point *)
+            with Failure(x) ->
+                assert(x = "Some error")
+        end
+    in
+    use_test_script
+        [
+            ReadThisLine("foo");
+            WriteThisLine("+bar");
+
+            ReadThisLine("foo");
+            WriteThisLine("-Some error")
         ]
         test_func;;
 

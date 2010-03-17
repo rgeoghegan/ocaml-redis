@@ -6,14 +6,14 @@ open Redis_util;;
 
 let create_connection ?addr:(addr="127.0.0.1") ?port:(port=6379) () =
     (* From a string of the address, and a port as an int, gets an input and output file discriptor *)
-    Redis_util.Connection.create addr port;;
+    Connection.create addr port;;
 
 (* Individual commands *)
 
 (* Connection handling *)
 let ping connection =
     (* PING *)
-    match send_and_receive_command "PING" connection with
+    match send_and_receive_command_safely "PING" connection with
         Status("PONG") -> true |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -39,7 +39,7 @@ let set key value connection =
 
 let get key connection =
     (* GET *)
-    match send_and_receive_command ("GET " ^ key) connection with
+    match send_and_receive_command_safely ("GET " ^ key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -53,7 +53,7 @@ let getset key new_value connection =
 
 let mget keys connection = 
     (* MGET *)
-    match send_and_receive_command (aggregate_command "MGET" keys) connection with
+    match send_and_receive_command_safely (aggregate_command "MGET" keys) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -85,25 +85,25 @@ let msetnx key_value_pairs connection =
 
 let incr key connection =
     (* INCR *)
-    match send_and_receive_command (Printf.sprintf "INCR %s" key) connection with
+    match send_and_receive_command_safely (Printf.sprintf "INCR %s" key) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let incrby key value connection =
     (* INCR *)
-    match send_and_receive_command (Printf.sprintf "INCRBY %s %d" key value) connection with
+    match send_and_receive_command_safely (Printf.sprintf "INCRBY %s %d" key value) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let decr key connection =
     (* DECR *)
-    match send_and_receive_command (Printf.sprintf "DECR %s" key) connection with
+    match send_and_receive_command_safely (Printf.sprintf "DECR %s" key) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let decrby key value connection =
     (* DECR *)
-    match send_and_receive_command (Printf.sprintf "DECRBY %s %d" key value) connection with
+    match send_and_receive_command_safely (Printf.sprintf "DECRBY %s %d" key value) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -113,7 +113,7 @@ let exists key connection =
 
 let del keys connection =
     (* DEL *)
-    match send_and_receive_command (aggregate_command "DEL" keys) connection with
+    match send_and_receive_command_safely (aggregate_command "DEL" keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -123,7 +123,7 @@ let del_one key connection =
 
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
-    match send_and_receive_command ("TYPE " ^ key) connection with
+    match send_and_receive_command_safely ("TYPE " ^ key) connection with
         Status("string") -> RedisString |
         Status("set") -> RedisSet |
         Status("list") -> RedisList |
@@ -134,22 +134,19 @@ let value_type key connection =
 
 let keys pattern connection =
     (* KEYS *)
-    match send_and_receive_command ("KEYS " ^ pattern) connection with
+    match send_and_receive_command_safely ("KEYS " ^ pattern) connection with
         Bulk(String(x)) -> Str.split (Str.regexp " +") x |
         _ -> failwith "Did not recognize what I got back";;
 
 let randomkey connection =
     (* RANDOMKEY *)
-    match send_and_receive_command "RANDOMKEY" connection with
+    match send_and_receive_command_safely "RANDOMKEY" connection with
         Status(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
         
 let rename oldkey newkey connection =
     (* RENAME *)
-    match send_and_receive_command (Printf.sprintf "RENAME %s %s" oldkey newkey) connection with
-        Status("OK") -> () |
-        Status(x) -> failwith (Printf.sprintf "Received status(%s) when renaming %s to %s" x oldkey newkey) |
-        _ -> failwith "Did not recognize what I got back"
+    handle_status (send_and_receive_command (Printf.sprintf "RENAME %s %s" oldkey newkey) connection);;
 
 let renamenx oldkey newkey connection =
     (* RENAMENX *)
@@ -157,7 +154,7 @@ let renamenx oldkey newkey connection =
 
 let dbsize connection =
     (* DBSIZE *)
-    match send_and_receive_command  "DBSIZE" connection with
+    match send_and_receive_command_safely  "DBSIZE" connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -167,7 +164,7 @@ let expire key seconds connection =
 
 let ttl key connection =
     (* TTL *)
-    match send_and_receive_command ("TTL " ^ key) connection with
+    match send_and_receive_command_safely ("TTL " ^ key) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -196,25 +193,25 @@ let lpush key value connection =
 
 let llen key connection =
     (* LLEN *)
-    match send_and_receive_command ("LLEN " ^ key) connection with
+    match send_and_receive_command_safely ("LLEN " ^ key) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let lrange key start stop connection =
     (* LRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command (Printf.sprintf "LRANGE %s %d %d" key start stop) connection with
+    match send_and_receive_command_safely (Printf.sprintf "LRANGE %s %d %d" key start stop) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
 let ltrim key start stop connection =
     (* LTRIM, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command (Printf.sprintf "LTRIM %s %d %d" key start stop) connection with
+    match send_and_receive_command_safely (Printf.sprintf "LTRIM %s %d %d" key start stop) connection with
         Status("OK") -> () |
         _ -> failwith "Did not recognize what I got back";;
 
 let lindex key index connection =
     (* GET *)
-    match send_and_receive_command (Printf.sprintf "LINDEX %s %d" key index) connection with
+    match send_and_receive_command_safely (Printf.sprintf "LINDEX %s %d" key index) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -238,19 +235,19 @@ let lrem key count value connection =
 
 let lpop key connection =
     (* LPOP *)
-    match send_and_receive_command ("LPOP " ^ key) connection with
+    match send_and_receive_command_safely ("LPOP " ^ key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let rpop key connection =
     (* RPOP *)
-    match send_and_receive_command ("RPOP " ^ key) connection with
+    match send_and_receive_command_safely ("RPOP " ^ key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let rpoplpush src_key dest_key connection =
     (* RPOPLPUSH *)
-    match send_and_receive_command ("RPOPLPUSH " ^ src_key ^ " " ^ dest_key) connection with
+    match send_and_receive_command_safely ("RPOPLPUSH " ^ src_key ^ " " ^ dest_key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -271,7 +268,7 @@ let srem key member connection =
 
 let spop key connection =
     (* SPOP *)
-    match send_and_receive_command ("SPOP " ^ key) connection with
+    match send_and_receive_command_safely ("SPOP " ^ key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -285,7 +282,7 @@ let smove srckey destkey member connection =
 
 let scard key connection =
     (* SCARD *)
-    match send_and_receive_command ("SCARD " ^ key) connection with
+    match send_and_receive_command_safely ("SCARD " ^ key) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -299,49 +296,49 @@ let sismember key member connection =
 
 let smembers key connection =
     (* SMEMBERS *)
-    match send_and_receive_command ("SMEMBERS " ^ key) connection with
+    match send_and_receive_command_safely ("SMEMBERS " ^ key) connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sinter keys connection =
     (* SINTER *)
-    match send_and_receive_command (aggregate_command "SINTER" keys) connection with
+    match send_and_receive_command_safely (aggregate_command "SINTER" keys) connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sinterstore dstkey keys connection =
     (* SINTERSTORE *)
-    match (send_and_receive_command (aggregate_command "SINTERSTORE" (dstkey :: keys)) connection) with
+    match send_and_receive_command_safely (aggregate_command "SINTERSTORE" (dstkey :: keys)) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sunion keys connection =
     (* SUNION *)
-    match send_and_receive_command (aggregate_command "SUNION" keys) connection with
+    match send_and_receive_command_safely (aggregate_command "SUNION" keys) connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sunionstore dstkey keys connection =
     (* SUNIONSTORE *)
-    match send_and_receive_command (aggregate_command "SUNIONSTORE" (dstkey :: keys)) connection with
+    match send_and_receive_command_safely (aggregate_command "SUNIONSTORE" (dstkey :: keys)) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sdiff keys connection =
     (* SDIFF *)
-    match send_and_receive_command (aggregate_command "SDIFF" keys) connection with
+    match send_and_receive_command_safely (aggregate_command "SDIFF" keys) connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let sdiffstore dstkey keys connection =
     (* SDIFFSTORE *)
-    match send_and_receive_command (aggregate_command "SDIFFSTORE" (dstkey :: keys)) connection with
+    match send_and_receive_command_safely (aggregate_command "SDIFFSTORE" (dstkey :: keys)) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let srandmember key connection =
     (* SRANDMEMBER *)
-    match send_and_receive_command ("SRANDMEMBER " ^ key) connection with
+    match send_and_receive_command_safely ("SRANDMEMBER " ^ key) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -381,13 +378,13 @@ let zrem key member connection =
 
 let zrange key start stop connection =
     (* ZRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command (Printf.sprintf "ZRANGE %s %d %d" key start stop) connection with
+    match send_and_receive_command_safely (Printf.sprintf "ZRANGE %s %d %d" key start stop) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
 let zrevrange key start stop connection =
     (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection with
+    match send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection with
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -400,7 +397,7 @@ let zrangebyscore key start stop ?(limit=`Unlimited) connection =
         in
         Printf.sprintf "ZRANGEBYSCORE %s %f %f%s" key start stop limit
     in
-    match (send_and_receive_command command connection) with
+    match (send_and_receive_command_safely command connection) with
         Multibulk(m) -> m |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -412,7 +409,7 @@ let zincrby key increment member connection =
 
 let zcard key connection =
     (* ZCARD *)
-    match (send_and_receive_command ("ZCARD " ^ key) connection) with
+    match (send_and_receive_command_safely ("ZCARD " ^ key) connection) with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -424,7 +421,7 @@ let zscore key member connection =
 
 let zremrangebyscore key min max connection =
     (* ZREMRANGEBYSCORE *)
-    match send_and_receive_command (Printf.sprintf "ZREMRANGEBYSCORE %s %f %f" key min max) connection with
+    match send_and_receive_command_safely (Printf.sprintf "ZREMRANGEBYSCORE %s %f %f" key min max) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -459,7 +456,7 @@ let sort key
             `Alpha -> " ALPHA"
         in
         "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
-    in match send_and_receive_command command connection with
+    in match send_and_receive_command_safely command connection with
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
@@ -474,7 +471,7 @@ let bgsave connection =
 
 let lastsave connection =
     (* LASTSAVE *)
-    match send_and_receive_command "LASTSAVE" connection with
+    match send_and_receive_command_safely "LASTSAVE" connection with
         Integer(x) -> float_of_int x |
         LargeInteger(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
@@ -526,10 +523,6 @@ module Info =
     end;;
         
 let info connection =
-    match send_and_receive_command "INFO" connection with
-        Bulk(x) -> Info.create (string_of_bulk_data x)
-              (*  data_iterator []
-                        (List.map line_spliter
-                            (Str.split (Str.regexp "(\r\n)")
-                                (string_of_bulk_data x)))*)
-        | _ -> failwith "Did not recognize what I got back";;
+    match send_and_receive_command_safely "INFO" connection with
+        Bulk(x) -> Info.create (string_of_bulk_data x) |
+        _ -> failwith "Did not recognize what I got back";;

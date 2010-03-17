@@ -24,6 +24,7 @@ type response =
 val string_of_response : response -> string
 val receive_answer : Connection.t -> response
 val send_and_receive_command : string -> Connection.t -> response
+val send_and_receive_command_safely : string -> Connection.t -> response
 val aggregate_command : string -> string list -> string
 val send_multibulk_command :
   string list -> Connection.t -> response

@@ -171,6 +171,12 @@ let send_and_receive_command command connection =
         receive_answer connection
     end;;
 
+let send_and_receive_command_safely command connection =
+    (* Will send the command, much like send_and_receive_command, but will catch and failwith any errors *)
+    match send_and_receive_command command connection with
+        Error(x) -> failwith x |
+        y -> y;;
+
 let aggregate_command command tokens = 
     (* Given a list of tokens, joins them with command *)
     let joiner buf new_item = begin
@@ -223,14 +229,16 @@ let handle_integer reply =
     match reply with
         Integer(0) -> false |
         Integer(1) -> true |
+        Error(x) -> failwith x |
         _ -> failwith "Did not recognize what I got back";;
 
 let handle_float reply =
     (* For bulk replies that should be floating point numbers, does error checking and casts to float *)
     match reply with
-        (Bulk(String(x))) ->
+        Bulk(String(x)) ->
             (try
                 float_of_string x 
             with Failure "float_of_string" ->
-                failwith (Printf.sprintf "%S is not a floating point number" x) )|
+                failwith (Printf.sprintf "%S is not a floating point number" x) ) |
+        Error(x) -> failwith x |
         Bulk(Nil) | _ -> failwith "Did not recognize what I got back";;
