@@ -48,6 +48,8 @@ Todo
  * Refactors:
   * Bring in Redis_util into the main module
 
+ * Docs:
+
  * Implement all missing keywords from 1.2.4:
   * Remote server control commands
    * MONITOR
