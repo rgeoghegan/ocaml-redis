@@ -178,7 +178,7 @@ let smoke_test_with_shutdown conn = begin
 end
 
 let _ =
-    let default_connection () = Redis.create_connection "127.0.0.1" 6379
+    let default_connection () = Redis.create_connection ()
     in
     begin
         smoke_test_with_quit (default_connection ());

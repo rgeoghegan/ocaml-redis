@@ -46,7 +46,6 @@ Todo
 ----
 
  * Refactors:
-  * Give defaults to create_connection
   * Create 'send_and_receive_command_safely' which checks for statuses
   * Bring in Redis_util into the main module
 

@@ -1,4 +1,4 @@
-val create_connection : string -> int -> Redis_util.Connection.t
+val create_connection : ?addr:string -> ?port:int -> unit -> Redis_util.Connection.t
 val ping : Redis_util.Connection.t -> bool
 val quit : Redis_util.Connection.t -> unit
 val auth : string -> Redis_util.Connection.t -> unit

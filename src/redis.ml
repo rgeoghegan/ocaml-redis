@@ -4,7 +4,7 @@
    Main library file. *)
 open Redis_util;;
 
-let create_connection addr port =
+let create_connection ?addr:(addr="127.0.0.1") ?port:(port=6379) () =
     (* From a string of the address, and a port as an int, gets an input and output file discriptor *)
     Redis_util.Connection.create addr port;;
 
