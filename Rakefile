@@ -2,7 +2,7 @@
 # Released under the BSD license. See the LICENSE.txt file for more info.
 
 desc "Compile the library"
-task :library => ["build/redis.cmxa"]
+task :library => ["build/redis.cmx", "build/redis.cmi", "build/redis.o"]
 
 desc "Create the binary used for testing"
 task :test_binaries
@@ -65,27 +65,14 @@ end
 
 # Library
 
-redis_util = OcamlFile.new("src/redis_util.ml")
 external_libs = ["unix.cmxa", "str.cmxa"].join(" ")
-lib_objs = FileList.new("src/redis*.ml").map{|f| OcamlFile.new(f)}
+source = OcamlFile.new("src/redis.ml")
 
-lib_objs.each do |lib|
-    file lib.cmx => [lib.ml, lib.cmi, "build"] do
-        compile lib.ml, lib.dest
-    end
-    file lib.cmi => [lib.mli, "build"] do
-        compile lib.mli, lib.cmi
-    end
-    multitask :lib_obj_files => lib.cmx
+file source.cmx => [source.ml, source.cmi, "build"] do
+    compile source.ml, source.dest
 end
-lib_objs.reject{|l| l == redis_util}.each do |lib|
-    file lib.cmx => redis_util.cmx
-    file lib.cmi => redis_util.cmi
-end
-
-file "build/redis.cmxa" => [:lib_obj_files] do
-    objs = lib_objs.reject{|l| l == redis_util}.map{|l| l.cmx}
-    sh "ocamlopt -w X -a -I build -o build/redis.cmxa build/redis_util.cmx #{objs.join(" ")}"
+file source.cmi => [source.mli, "build"] do
+    compile source.mli, source.cmi
 end
 
 # Test files
@@ -93,16 +80,16 @@ end
 script = OcamlFile.new("tests/script.ml")
 directory "build/tests"
 
-# redis_utils is a bit funny because we need to test more methods than the default mli files gives us access to
+# Redis_utils is a bit funny because we need to test more functions than the default mli files gives us access to
 test_objects = "build/tests/test_objects"
 directory test_objects
 test_redis_util = OcamlFile.new("tests/test_redis_util.ml")
-file test_redis_util.dest("build/tests") => [script.cmx("build/tests"), test_objects, test_redis_util, redis_util] do
-    cp redis_util, redis_util.ml(test_objects)
-    compile redis_util.ml(test_objects), redis_util.dest(test_objects)
+file test_redis_util.dest("build/tests") => [script.cmx("build/tests"), test_objects, test_redis_util, source] do
+    cp source, source.ml(test_objects)
+    compile source.ml(test_objects), source.dest(test_objects)
     sh "ruby tests/create_test.rb #{test_redis_util} > build/tests/run_test_redis_util.ml"
     sh "ocamlopt -c -o #{test_redis_util.dest("build/tests")} -I build/tests -I #{test_objects} #{test_redis_util}"
-    sh "ocamlopt -o #{test_redis_util.dest("build/tests")} -I build/tests #{external_libs} #{script.cmx("build/tests")} #{redis_util.cmx(test_objects)} #{test_redis_util.cmx("build/tests")} build/tests/run_test_redis_util.ml"
+    sh "ocamlopt -o #{test_redis_util.dest("build/tests")} -I build/tests #{external_libs} #{script.cmx("build/tests")} #{source.cmx(test_objects)} #{test_redis_util.cmx("build/tests")} build/tests/run_test_redis_util.ml"
 end
 multitask :test_binaries => "build/tests/test_redis_util"
 
@@ -118,7 +105,7 @@ end
 
 multitask :test_binaries => all_other_tests.dest("build/tests")
 file all_other_tests.dest("build/tests") => all_other_tests do
-    sh "ocamlopt -o #{all_other_tests.dest("build/tests")} -I build/tests -I build #{external_libs} #{script.cmx("build/tests")} build/redis.cmxa #{test_files.map{|f| f.cmx("build/tests")}.join(" ")} #{all_other_tests}"
+    sh "ocamlopt -o #{all_other_tests.dest("build/tests")} -I build/tests -I build #{external_libs} #{script.cmx("build/tests")} #{source.cmx} #{test_files.map{|f| f.cmx("build/tests")}.join(" ")} #{all_other_tests}"
 end
 file all_other_tests => :individual_test_objects do
     sh "ruby tests/create_test.rb #{test_files.join(" ")} > #{all_other_tests}"
@@ -126,7 +113,7 @@ end
 
 # Smoke test
 file "build/tests/smoke_test" => [:library, "build/tests/smoke_test.cmx", "build/tests"] do
-    sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} build/redis.cmxa build/tests/smoke_test.cmx"
+    sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} #{source.cmx} build/tests/smoke_test.cmx"
 end
 
 file "build/tests/smoke_test.cmx" => ["tests/smoke_test.ml", "build/tests"] do

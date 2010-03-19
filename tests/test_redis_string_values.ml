@@ -18,7 +18,7 @@ let test_set () =
 let test_get () =
     let test_func connection = 
         assert (
-            (Redis.get "key" connection) = Redis_util.String("aaa")
+            (Redis.get "key" connection) = Redis.String("aaa")
         )
     in
     Script.use_test_script
@@ -32,7 +32,7 @@ let test_get () =
 let test_getset () =
     let test_func connection =
         assert (
-            (Redis.getset "key" "now" connection) = Redis_util.String("previous")
+            (Redis.getset "key" "now" connection) = Redis.String("previous")
         )
     in
     Script.use_test_script
@@ -47,7 +47,7 @@ let test_getset () =
 let test_mget () =
     let test_func conn =
         assert (
-            (Redis.mget ["rory"; "tim"] conn) = [Redis_util.String("cool"); Redis_util.String("not cool")]
+            (Redis.mget ["rory"; "tim"] conn) = [Redis.String("cool"); Redis.String("not cool")]
         )
     in
     Script.use_test_script
@@ -233,8 +233,8 @@ let test_del () =
 let test_value_type () =
     let test_func connection = begin
         Redis.set "rory" "cool" connection;
-        assert (Redis_util.RedisString = Redis.value_type "rory" connection);
-        assert (Redis_util.RedisNil = Redis.value_type "tim" connection);
+        assert (Redis.RedisString = Redis.value_type "rory" connection);
+        assert (Redis.RedisNil = Redis.value_type "tim" connection);
     end in
     Script.use_test_script
         [

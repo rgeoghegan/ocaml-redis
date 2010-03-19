@@ -1,10 +1,11 @@
 (* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
    Released under the BSD license. See the LICENSE.txt file for more info.
 
-   Test redis_util.ml *)
+   Test utility functions in redis.ml *)
 
 open Script
-open Redis_util
+open Redis.Redis_util
+open Redis
 
 let test_connection_read_string () =
     let test_pipe_read, test_pipe_write = piped_channel()
@@ -31,14 +32,14 @@ let test_connection_read_fixed_string () =
         output_string test_pipe_write "test string\r\na bit more";
         flush test_pipe_write;
         assert (
-            Connection.read_fixed_string 10 (test_pipe_read, test_pipe_write)
+            Redis.Connection.read_fixed_string 10 (test_pipe_read, test_pipe_write)
             = "test strin"
         )
     end;;
 
 let test_send_text () =
     let test_func connection =
-        Connection.send_text "foo" connection
+        Redis.Connection.send_text "foo" connection
     in
     use_test_script [ReadThisLine("foo")] test_func;;
 
@@ -162,7 +163,7 @@ let test_send_and_receive_command_safely () =
                 send_and_receive_command_safely "foo" connection
                 = Status("bar")
             );
-            try send_and_receive_command_safely "foo" connection;
+            try ignore (send_and_receive_command_safely "foo" connection);
                 assert(false) (* Should never reach this point *)
             with Failure(x) ->
                 assert(x = "Some error")
@@ -186,7 +187,7 @@ let test_aggregate_command  () =
 
 let test_send_multibulk_command () =
     let test_func connection =
-        assert(Redis_util.Status("OK") = send_multibulk_command ["rory"; "is"; "cool"] connection)
+        assert(Status("OK") = send_multibulk_command ["rory"; "is"; "cool"] connection)
     in
     use_test_script
         [

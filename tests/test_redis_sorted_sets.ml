@@ -32,7 +32,7 @@ let test_zrange () =
         ignore (Redis.zadd "rory" 42.0 "cool" connection);
         ignore (Redis.zadd "rory" 13.0 "strong" connection);
         assert(
-            [ Redis_util.String("strong"); Redis_util.String("cool")]
+            [ Redis.String("strong"); Redis.String("cool")]
             = Redis.zrange "rory" 0 1 connection)
     in
     Script.use_test_script
@@ -58,7 +58,7 @@ let test_zrevrange () =
         ignore (Redis.zadd "rory" 42.0 "cool" connection);
         ignore (Redis.zadd "rory" 13.0 "strong" connection);
         assert(
-            [ Redis_util.String("cool"); Redis_util.String("strong")]
+            [ Redis.String("cool"); Redis.String("strong")]
             = Redis.zrevrange "rory" 0 1 connection)
     in
     Script.use_test_script
@@ -84,10 +84,10 @@ let test_zrangebyscore () =
         ignore (Redis.zadd "rory" 42.0 "cool" connection);
         ignore (Redis.zadd "rory" 13.0 "strong" connection);
         assert(
-            [ Redis_util.String("cool"); Redis_util.String("strong")]
+            [ Redis.String("cool"); Redis.String("strong")]
             = Redis.zrangebyscore "rory" 0.0 100.0 connection);
         assert(
-            [ Redis_util.String("strong")]
+            [ Redis.String("strong")]
             = Redis.zrangebyscore "rory" 0.0 100.0 ~limit:(`Limit(1,1)) connection
         )
     in

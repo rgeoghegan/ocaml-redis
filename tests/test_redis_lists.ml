@@ -46,7 +46,7 @@ let test_llen () =
     let test_func connection =
         Redis.rpush "rory" "cool" connection;
         Redis.rpush "rory" "still cool" connection;
-        assert ( [Redis_util.String("cool"); Redis_util.String("still cool")] = (Redis.lrange "rory" 0 1 connection))
+        assert ( [Redis.String("cool"); Redis.String("still cool")] = (Redis.lrange "rory" 0 1 connection))
     in
     Script.use_test_script
         [
@@ -88,7 +88,7 @@ let test_ltrim () =
     let test_func connection =
         Redis.rpush "rory" "cool" connection;
         Redis.rpush "rory" "still cool" connection;
-        assert( Redis_util.String("cool") = (Redis.lindex "rory" 0 connection))
+        assert( Redis.String("cool") = (Redis.lindex "rory" 0 connection))
     in
     Script.use_test_script
         [
@@ -143,7 +143,7 @@ let test_lrem () =
 let test_lpop () =
     let test_func connection =
         Redis.lpush "rory" "cool" connection;
-        assert (Redis_util.String("cool") = Redis.lpop "rory" connection)
+        assert (Redis.String("cool") = Redis.lpop "rory" connection)
     in
     Script.use_test_script
         [
@@ -159,7 +159,7 @@ let test_lpop () =
 let test_rpop () =
     let test_func connection =
         Redis.lpush "rory" "cool" connection;
-        assert (Redis_util.String("cool") = Redis.rpop "rory" connection)
+        assert (Redis.String("cool") = Redis.rpop "rory" connection)
     in
     Script.use_test_script
         [
@@ -175,7 +175,7 @@ let test_rpop () =
 let test_rpoplpush () =
     let test_func connection =
         Redis.lpush "cool" "rory" connection;
-        assert (Redis_util.String("rory") = (Redis.rpoplpush "cool" "not_cool" connection))
+        assert (Redis.String("rory") = (Redis.rpoplpush "cool" "not_cool" connection))
     in
     Script.use_test_script
         [

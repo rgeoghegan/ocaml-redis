@@ -45,10 +45,10 @@ To run a simple smoke test on a redis server *you do not mind completely wiping*
 Todo
 ----
 
+ * Docs
+ * Move away from Rake and use Ocaml Make
  * Refactors:
-  * Bring in Redis_util into the main module
-
- * Docs:
+  * Move string_of_... functions to Redis instead of Redis_util
 
  * Implement all missing keywords from 1.2.4:
   * Remote server control commands

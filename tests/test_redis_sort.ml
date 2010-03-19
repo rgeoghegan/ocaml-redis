@@ -7,7 +7,7 @@ open Script;;
 let test_default () =
     let test_func connection =
         Redis.lpush "rory" "1" connection;
-        assert( [Redis_util.String("1")] = Redis.sort "rory" connection )
+        assert( [Redis.String("1")] = Redis.sort "rory" connection )
     in
     use_test_script
         [

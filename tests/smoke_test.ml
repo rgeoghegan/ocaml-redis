@@ -9,11 +9,11 @@ let smoke_test_with_quit conn = begin
 
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
-    assert ( Redis_util.String("cool") = Redis.get "rory" conn);
-    assert ( Redis_util.String("cool") = Redis.getset "rory" "not cool" conn);
-    assert ( [Redis_util.String("not cool"); Redis_util.Nil] = Redis.mget ["rory"; "tim"] conn);
+    assert ( "cool" = Redis.Redis_util.string_of_bulk_data (Redis.get "rory" conn));
+    assert ( "cool" = Redis.Redis_util.string_of_bulk_data (Redis.getset "rory" "not cool" conn));
+    assert ( [Redis.String("not cool"); Redis.Nil] = Redis.mget ["rory"; "tim"] conn);
     assert ( false = Redis.setnx "rory" "uncool" conn);
-    assert ( Redis_util.String("not cool") = Redis.get "rory" conn);
+    assert ( "not cool" = Redis.Redis_util.string_of_bulk_data (Redis.get "rory" conn));
 
     Redis.mset [("rory", "cool"); ("tim", "not cool")] conn;
     assert (not (Redis.msetnx [("rory", "not cool"); ("tim", "cool")] conn));
@@ -26,8 +26,8 @@ let smoke_test_with_quit conn = begin
     assert ( 2 = Redis.del ["rory"; "tim"] conn);
 
     Redis.set "rory" "cool" conn;
-    assert ( Redis_util.RedisNil = (Redis.value_type "tim" conn));
-    assert ( Redis_util.RedisString = (Redis.value_type "rory" conn));
+    assert ( Redis.RedisNil = (Redis.value_type "tim" conn));
+    assert ( Redis.RedisString = (Redis.value_type "rory" conn));
 
     assert ( ["rory"] = Redis.keys "*" conn);
     assert ( "rory" = Redis.randomkey conn);
@@ -48,10 +48,10 @@ let smoke_test_with_quit conn = begin
     Redis.rpush "rory" "cool" conn;
     Redis.lpush "rory" "even cooler" conn;
     assert ( 2 == (Redis.llen "rory" conn));
-    assert ( [Redis_util.String("even cooler"); Redis_util.String("cool")] = (Redis.lrange "rory" 0 1 conn));
+    assert ( [Redis.String("even cooler"); Redis.String("cool")] = (Redis.lrange "rory" 0 1 conn));
 
     Redis.ltrim "rory" 0 0 conn;
-    assert ( (Redis_util.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler");
+    assert ( (Redis.Redis_util.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler");
     Redis.lset "rory" 0 "just cool" conn;
     Redis.rpush "rory" "cool" conn;
     assert ( 1 = Redis.lrem "rory" 0 "cool" conn);
@@ -59,12 +59,12 @@ let smoke_test_with_quit conn = begin
     Redis.rpush "rory" "cool" conn;
     Redis.rpush "rory" "even cooler" conn;
 
-    assert ( (Redis_util.string_of_bulk_data (Redis.lpop "rory" conn)) = "just cool");
-    assert ( (Redis_util.string_of_bulk_data (Redis.rpop "rory" conn)) = "even cooler");
+    assert ( (Redis.Redis_util.string_of_bulk_data (Redis.lpop "rory" conn)) = "just cool");
+    assert ( (Redis.Redis_util.string_of_bulk_data (Redis.rpop "rory" conn)) = "even cooler");
 
     Redis.rpush "cool" "rory" conn;
     Redis.rpush "cool" "tim" conn;
-    assert ( (Redis_util.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
+    assert ( (Redis.Redis_util.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
 
     (* Set operations *)
     ignore (Redis.del_one "tim" conn);
@@ -73,7 +73,7 @@ let smoke_test_with_quit conn = begin
 
     assert ( Redis.srem "tim" "smells" conn);
     
-    assert ( "not cool" = Redis_util.string_of_bulk_data (Redis.spop "tim" conn) );
+    assert ( "not cool" = Redis.Redis_util.string_of_bulk_data (Redis.spop "tim" conn) );
 
     ignore ( Redis.del_one "rory" conn);
     assert ( Redis.sadd "rory" "cool" conn);
@@ -85,24 +85,24 @@ let smoke_test_with_quit conn = begin
     assert ( Redis.sismember "rory" "cool" conn );
 
     ignore ( Redis.srem "rory" "cool" conn );
-    assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
+    assert ( "even cooler" = Redis.Redis_util.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
 
     ignore (Redis.sadd "tim" "even cooler" conn);
-    assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sinter ["rory"; "tim"] conn)) );
+    assert ( "even cooler" = Redis.Redis_util.string_of_bulk_data (List.hd (Redis.sinter ["rory"; "tim"] conn)) );
     
     assert ( 1 = Redis.sinterstore "bob" ["rory"; "tim"] conn );
 
-    assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
+    assert ( "even cooler" = Redis.Redis_util.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sunionstore "bob" ["rory"; "tim"] conn );
     ignore ( Redis.srem "tim" "even cooler" conn );
-    assert ( "even cooler" = Redis_util.string_of_bulk_data (List.hd (Redis.sdiff ["rory"; "tim"] conn)) );
+    assert ( "even cooler" = Redis.Redis_util.string_of_bulk_data (List.hd (Redis.sdiff ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] conn);
 
     ignore (Redis.del_one "rory" conn);
     ignore (Redis.del_one "tim" conn);
     ignore (Redis.sadd "rory" "cool" conn);
-    assert ( "cool" = Redis_util.string_of_bulk_data (Redis.srandmember "rory" conn));
-    assert (Redis_util.Nil = Redis.srandmember "non_existent_key" conn);
+    assert ( "cool" = Redis.Redis_util.string_of_bulk_data (Redis.srandmember "rory" conn));
+    assert (Redis.Nil = Redis.srandmember "non_existent_key" conn);
 
     (* Multiple databases *)
     Redis.select 1 conn;
@@ -123,18 +123,18 @@ let smoke_test_with_quit conn = begin
     assert (
         ["rory"; "tim"]
         = List.map
-            Redis_util.string_of_bulk_data
+            Redis.Redis_util.string_of_bulk_data
             (Redis.zrange "coolest" 0 1 conn));
 
     assert (
         ["tim"; "rory"]
         = List.map
-            Redis_util.string_of_bulk_data
+            Redis.Redis_util.string_of_bulk_data
             (Redis.zrevrange "coolest" 0 1 conn));
 
     assert (
         "rory"
-        = Redis_util.string_of_bulk_data
+        = Redis.Redis_util.string_of_bulk_data
             (List.hd
                 (Redis.zrangebyscore
                     "coolest" 0.0 100.0 ~limit:(`Limit(0,1)) conn)));
@@ -150,7 +150,7 @@ let smoke_test_with_quit conn = begin
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
     (* Sort *)
-    assert ( "2" = Redis_util.string_of_bulk_data (List.hd (
+    assert ( "2" = Redis.Redis_util.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));
     

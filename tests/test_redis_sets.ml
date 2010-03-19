@@ -34,7 +34,7 @@ let test_rem () =
 let test_rem () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
-        assert (Redis_util.String("cool") = Redis.spop "rory" connection)
+        assert (Redis.String("cool") = Redis.spop "rory" connection)
     in
     Script.use_test_script
         [
@@ -105,7 +105,7 @@ let test_scard () =
 let test_smembers () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
-        assert ( [Redis_util.String("cool")] = Redis.smembers "rory" connection )
+        assert ( [Redis.String("cool")] = Redis.smembers "rory" connection )
     in
     Script.use_test_script
         [
@@ -123,7 +123,7 @@ let test_sinter () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
         ignore (Redis.sadd "tim" "cool" connection);
-        assert ( [Redis_util.String("cool")] = Redis.sinter ["rory"; "tim"] connection )
+        assert ( [Redis.String("cool")] = Redis.sinter ["rory"; "tim"] connection )
     in
     Script.use_test_script
         [
@@ -163,7 +163,7 @@ let test_sunion () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
         ignore (Redis.sadd "tim" "cool" connection);
-        assert ([Redis_util.String("cool")] = Redis.sunion ["rory"; "tim"] connection)
+        assert ([Redis.String("cool")] = Redis.sunion ["rory"; "tim"] connection)
     in
     Script.use_test_script
         [
@@ -202,7 +202,7 @@ let test_sunionstore () =
 let test_sdiff () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
-        assert ( [Redis_util.String("cool")] = Redis.sdiff ["rory"; "tim"] connection )
+        assert ( [Redis.String("cool")] = Redis.sdiff ["rory"; "tim"] connection )
     in
     Script.use_test_script
         [
@@ -234,7 +234,7 @@ let test_sdiffstore () =
 let test_srandmember () =
     let test_func connection =
         ignore (Redis.sadd "cool" "rory" connection);
-        assert ( Redis_util.String("rory") = (Redis.srandmember "cool" connection))
+        assert ( Redis.String("rory") = (Redis.srandmember "cool" connection))
     in
     Script.use_test_script
         [
