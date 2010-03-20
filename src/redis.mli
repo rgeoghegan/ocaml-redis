@@ -262,24 +262,61 @@ val smembers :
 (** [srandmember k c] returns a random member from the set at the key [k] on connection [c], as per the [SRANDMEMBER] redis keyword. *)
 val srandmember : string -> Connection.t -> bulk_data
 
+(** {3:sorted_sets_cmd Commands operating on sorted sets (zsets)} *)
+
+(** [zadd k s m c] adds member [m] with score [s] to the sorted set at key [k] on connection [c], as per the [ZADD] redis keyword.
+    @return [true] if a new element was added, [false] otherwise.
+*)
 val zadd : string -> float -> string -> Connection.t -> bool
+
+(** [zrem k m c] removed member [m] from the sorted set at key [k] on connection [c], as per the [ZREM] redis keyword.
+    @return [false] if the member was not part of the set, [true] otherwise.
+*)
 val zrem : string -> string -> Connection.t -> bool
+
+(** [zincrby k i m c] increment member [m] of set at key [k] by increment [i] on connection [c], as per the [ZINCRBY] redis keyword. *)
+val zincrby : string -> float -> string -> Connection.t -> float
+
+(** [zrange k s e c] returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZRANGE] redis keyword. *)
 val zrange :
   string ->
   int -> int -> Connection.t -> bulk_data list
+
+(** [zrevrange k s e c] returns a {i reversed ordered} list of members of the sorted set at key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZREVRANGE] redis keyword. *)
 val zrevrange :
   string ->
   int -> int -> Connection.t -> bulk_data list
+
+(** [zrangebyscore k min max limit c] returns a list of all the members in sorted set at the key [k] with scores between [min] and [max], inclusively, on connection [c], as per the [ZRANGEBYSCORE] redis keyword.
+    @param limit Pass in [`Limit(offset, limit)] to limit the number of returned values by [limit] offset by [offset].
+*)
 val zrangebyscore :
   string ->
   float ->
   float ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
   Connection.t -> bulk_data list
-val zincrby : string -> float -> string -> Connection.t -> float
+
+(** [zcard k c] returns the number of members in the sorted set at the key [k] on connection [c], as per the [ZCARD] redis keyword. *)
 val zcard : string -> Connection.t -> int
+
+(** [zscore k e c] returns the score of the element [e] of the sorted set at the key [k] on connection [c], as per the [ZSCORE] redis keyword. *)
 val zscore : string -> string -> Connection.t -> float
+
+(** [zremrangebyscore k min max] removes all the memebers of the sorted set at the key [k] with scores between [min] and [max] on connection [c], as per the [ZREMRANGEBYSCORE] redis keyword.
+    @return the number of elements removed.
+*)
 val zremrangebyscore : string -> float -> float -> Connection.t -> int
+
+(** {3:sort_cmd Sorting} *)
+
+(** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.
+    @param pattern key pattern (i.e. [weight_*]) to use to fetch the value to sort by.
+    @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
+    @param get instead of returning the values in the key [k], use this pattern (i.e. [object_*]) to produce the output.
+    @param order either [`Asc] to sort ascending (the default) or [`Desc] for descending.
+    @param alpha either [`NonAlpha] to sort numerically (the default) or [`Alpha] to sort alphanumerically.
+*)
 val sort :
   string ->
   ?pattern:string ->
@@ -288,11 +325,19 @@ val sort :
   ?order:[< `Asc | `Desc > `Asc ] ->
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
   Connection.t -> bulk_data list
+
+(** {3:persistence_cmd Persistence control commands} *)
+
+(** [save c] synchronously save the DB to disk on connection [c], as per the [SAVE] redis keyword. *)
 val save : Connection.t -> unit
+
+(** [bgsave c] asynchronously save the DB to disk on connection [c], as per the [BGSAVE] redis keyword. *)
 val bgsave : Connection.t -> unit
-val bgrewriteaof : Connection.t -> unit
+
 val lastsave : Connection.t -> float
 val shutdown : Connection.t -> unit
+
+val bgrewriteaof : Connection.t -> unit
 
 module Info :
     sig
