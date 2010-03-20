@@ -52,6 +52,34 @@ let test_string_of_bulk_data () =
         with Failure(_) -> ()
     end;;
 
+let run_comparison_tests test_data transformation_function =
+    let tester (a,b) = 
+        assert ( transformation_function a = b )
+    in
+        List.iter tester test_data;;
+
+let test_string_of_response () =
+        run_comparison_tests
+            [
+                (Status("rory"), "Status(\"rory\")");
+                (Undecipherable, "Undecipherable");
+                (Integer(42), "Integer(42)");
+                (LargeInteger(42.0), "LargeInteger(42.00)");
+                (Bulk(Nil), "Bulk(Nil)");
+                (Multibulk([String("rory"); Nil]), "Multibulk([String(\"rory\"); Nil])")
+            ]
+            string_of_response;;
+
+let test_string_of_redis_value_type () =
+    run_comparison_tests
+        [
+            (RedisString , "String");
+            (RedisNil , "Nil");
+            (RedisList , "List");
+            (RedisSet, "Set");
+        ]
+        string_of_redis_value_type;;
+
 let test_receive_answer () =
     let test_func connection =
         begin

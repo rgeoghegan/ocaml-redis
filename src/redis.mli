@@ -8,14 +8,13 @@ type response = Status of string
   | Multibulk of bulk_data list
   | Error of string
 
+val string_of_redis_value_type : redis_value_type -> string
+val string_of_bulk_data : bulk_data -> string
+val string_of_response : response -> string
+
 module Connection :
     sig
         type t = in_channel * out_channel
-    end
-
-module Redis_util :
-    sig
-        val string_of_bulk_data : bulk_data -> string
     end
 
 val create_connection : ?addr:string -> ?port:int -> unit -> Connection.t

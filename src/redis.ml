@@ -6,6 +6,42 @@ type redis_value_type = RedisString | RedisNil | RedisList | RedisSet
 type bulk_data = Nil | String of string
 type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of bulk_data list | Error of string
 
+(* Printing functions for the above types *)
+let string_of_bulk_data bd =
+    match bd with
+        String(x) -> x |
+        Nil -> failwith "Trying to extract string from none"
+
+let string_of_response r =
+    let bulk_printer x =
+        match x with
+            Nil -> "Nil"
+            | String(d) -> Printf.sprintf "String(%S)" d
+    in
+    let rec multi_bulk_list_to_string l =
+        match l with
+            [] -> ""
+            | h :: t -> Printf.sprintf "; %s%s" (bulk_printer h) (multi_bulk_list_to_string t)
+    in
+    match r with
+        Status(x) -> Printf.sprintf "Status(%S)" x |
+        Undecipherable -> "Undecipherable" |
+        Integer(x) -> Printf.sprintf "Integer(%d)" x |
+        LargeInteger(x) -> Printf.sprintf "LargeInteger(%.2f)" x |
+        Error(x) -> Printf.sprintf "Error(%S)" x |
+        Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
+        Multibulk(x) -> match x with
+            [] -> Printf.sprintf "Multibulk([])" |
+            h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t)
+
+let string_of_redis_value_type vt =
+    match vt with
+        RedisNil -> "Nil" |
+        RedisString -> "String" |
+        RedisList -> "List" |
+        RedisSet -> "Set"
+
+(* The Connection module handles some low level operations with the sockets *)
 module Connection =
     struct
         type t = in_channel * out_channel
@@ -77,40 +113,6 @@ module Redis_util =
             Printf.printf "%s %S\n" comment value;
             flush stdout
         end
-
-        let string_of_bulk_data bd =
-            match bd with
-                String(x) -> x |
-                Nil -> failwith "Trying to extract string from none"
-
-        let string_of_response r =
-            let bulk_printer x =
-                match x with
-                    Nil -> "Nil"
-                    | String(d) -> Printf.sprintf "String(%S)" d
-            in
-            let rec multi_bulk_list_to_string l =
-                match l with
-                    [] -> ""
-                    | h :: t -> Printf.sprintf "; %s%s" (bulk_printer h) (multi_bulk_list_to_string t)
-            in
-            match r with
-                Status(x) -> Printf.sprintf "Status(%S)" x |
-                Undecipherable -> "Undecipherable" |
-                Integer(x) -> Printf.sprintf "Integer(%d)" x |
-                LargeInteger(x) -> Printf.sprintf "LargeInteger(%f)" x |
-                Error(x) -> Printf.sprintf "Error(%S)" x |
-                Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
-                Multibulk(x) -> match x with
-                    [] -> Printf.sprintf "Multibulk([])" |
-                    h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t)
-
-        let string_of_redis_value_type vt =
-            match vt with
-                RedisNil -> "Nil" |
-                RedisString -> "String" |
-                RedisList -> "List" |
-                RedisSet -> "Set"
 
         let get_bulk_data connection =
             let length = int_of_string (Connection.read_string connection)
