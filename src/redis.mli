@@ -1,18 +1,18 @@
 (**
-Redis is a module used to interact with a Redis key value store. For a full description of all the redis keywords, refer to the redis docs linked below.
+Redis is a module used to interact with a redis-key value store server. For a full description of all the redis keywords, refer to the redis docs linked below.
 
-@see <http://code.google.com/p/redis/> the Redis project.
+@see <http://code.google.com/p/redis/> the redis project.
 *)
 
 (** {3:redis_types Types used with redis} *)
 
-(** Different types of redis keys, as per the TYPE keyword. To get a string representation, use {!Redis.string_of_redis_value_type}. *)
+(** Different types of redis keys, as per the TYPE keyword. To get a string representation, use {!string_of_redis_value_type}. *)
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet
 
-(** Bulk types. To get a string representation, use {!Redis.string_of_bulk_data}. *)
+(** Bulk types. To get a string representation, use {!string_of_bulk_data}. *)
 type bulk_data = Nil | String of string
 
-(** All redis response types. To get a string representation, use {!Redis.string_of_response}. *)
+(** All redis response types. To get a string representation, use {!string_of_response}. *)
 type response = Status of string
   | Undecipherable
   | Integer of int
@@ -21,13 +21,13 @@ type response = Status of string
   | Multibulk of bulk_data list
   | Error of string
 
-(** Gives a string representation of a {!Redis.redis_value_type} type. *)
+(** Gives a string representation of a {!redis_value_type} type. *)
 val string_of_redis_value_type : redis_value_type -> string
 
-(** Gives a string representation of a {!Redis.bulk_data} type. *)
+(** Gives a string representation of a {!bulk_data} type. *)
 val string_of_bulk_data : bulk_data -> string
 
-(** Gives a string representation of a {!Redis.response} type. *)
+(** Gives a string representation of a {!response} type. *)
 val string_of_response : response -> string
 
 (** {3:connection Connection handling} *)
@@ -40,8 +40,8 @@ module Connection :
     end
 
 (** Returns a {!Connection.t} to be used by all the {!Redis} functions.
-    @param addr Address of the Redis server. Defaults to the localhost ([127.0.0.1]).
-    @param port Port of the Redis server. Defaults to the default redis port ([6379]).
+    @param addr Address of the redis server. Defaults to the localhost ([127.0.0.1]).
+    @param port Port of the redis server. Defaults to the default redis port ([6379]).
 *)
 val create_connection : ?addr:string -> ?port:int -> unit -> Connection.t
 
@@ -65,7 +65,7 @@ val exists : string -> Connection.t -> bool
 *)
 val del : string list -> Connection.t -> int
 
-(** [del_one k c] deletes the key [k] on connection [c]. This is a utility function to avoid creating a list of one key with the {!Redis.del} function.
+(** [del_one k c] deletes the key [k] on connection [c]. This is a utility function to avoid creating a list of one key with the {!del} function.
     @return [true] if the key was deleted.
 *)
 val del_one : string -> Connection.t -> bool
@@ -334,16 +334,32 @@ val save : Connection.t -> unit
 (** [bgsave c] asynchronously save the DB to disk on connection [c], as per the [BGSAVE] redis keyword. *)
 val bgsave : Connection.t -> unit
 
+(** [lastsave c] returns the UNIX time of the last save on connection [c], as per the [LASTSAVE] redis keyword.
+    @return a float, because the unix time is bigger than the int size in ocaml on 32 bit architectures.
+*)
 val lastsave : Connection.t -> float
+
+(** [shutdown c] write to disk and then shuts down the server on connection [c], as per the [SHUTDOWN] redis keyword. *)
 val shutdown : Connection.t -> unit
 
+(** [bgrewriteaof c] rewrite the append only file in the background on connection [c], as per the [BGREWRITEAOF] redis keyword. *)
 val bgrewriteaof : Connection.t -> unit
 
+(** {3:remote_cmd Remote server control commands} *)
+
+(** The [Info] module is used to manage a type containing redis server information. *)
 module Info :
     sig
+        (** Container for redis server information. *)
         type t = {fields: string list; values: (string, string) Hashtbl.t;}
-        val create : string -> t
+
+        (** [get i f] returns the value associated to the field [f] in the {!Info.t} container [t]. *)
         val get : t -> string -> string
+
+        (** [get_fields i] returns a list of all the fields contained in the {!Info.t} container [t]. *)
         val get_fields : t -> string list
     end
+
+(** [info c] returns information about the redis server, as per the [INFO] redis keyword. See {!Info} for more information about how to manipulate the container this function returns.
+*)
 val info : Connection.t -> Info.t

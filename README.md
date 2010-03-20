@@ -18,9 +18,12 @@ It currently only implements the commands listed in the following subsection of 
 
 ### Missing:
 
- * Remote server control commands
-  * MONITOR
-  * SLAVEOF
+* Commands operating on all the kind of values
+    * EXPIREAT
+
+* Remote server control commands
+    * MONITOR
+    * SLAVEOF
 
 Building
 --------
@@ -55,9 +58,12 @@ Todo
      * zrange and zrevrange should have with_scores option that returns (value, score) list
      * define RedisError exception for receiving errors from redis
      * sdiff should have first set to make difference of as explicit argument
+     * sort should be able to provide multiple get params
  * Move away from Rake and use Ocaml Make
 
  * Implement all missing keywords from 1.2.4:
-  * Remote server control commands
-   * MONITOR
-   * SLAVEOF
+    * Commands operating on all the kind of values
+        * EXPIREAT
+    * Remote server control commands
+        * MONITOR
+        * SLAVEOF
