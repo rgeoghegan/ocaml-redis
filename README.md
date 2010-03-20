@@ -29,7 +29,7 @@ To build the library,
 
     rake library
 
-should do the trick. From there, you will have to manually move redis.cmxa, redis.a, redis.cmi and redis_util.cmi to where ever suits you best.
+should do the trick. From there, you will have to statically link build/redis.cmx, build/redis.cmo and build/redis.cmi with your code.
 
 Testing
 -------
@@ -47,8 +47,6 @@ Todo
 
  * Docs
  * Move away from Rake and use Ocaml Make
- * Refactors:
-  * Move string_of_... functions to Redis instead of Redis_util
 
  * Implement all missing keywords from 1.2.4:
   * Remote server control commands
