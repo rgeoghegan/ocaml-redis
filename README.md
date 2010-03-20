@@ -3,7 +3,7 @@ Redis client library for Ocaml
 
 ocaml-redis implements the client spec of the [Redis key-value store](http://code.google.com/p/redis/).
 
-It currently only implements the commands listed in the following subsection of the [Redis Command Reference](http://code.google.com/p/redis/wiki/CommandReference) for Redis 1.2.4:
+It currently only implements the commands listed in the following subsection of the [Redis Command Reference](http://code.google.com/p/redis/wiki/CommandReference) for Redis 1.2.5:
 
  * Connection handling
  * Commands operating on all the kind of values
@@ -51,7 +51,6 @@ Todo
  * Docs
      * Document testing, both unit tests and smoke tests
  * Library changes/bug fixes
-     * Test with redis-1.2.5
      * quit should close connection too 
      * zrange and zrevrange should have with_scores option that returns (value, score) list
      * define RedisError exception for receiving errors from redis

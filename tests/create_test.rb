@@ -26,7 +26,7 @@ let execute_test test_name test_func =
     begin
         print_string ("    " ^ test_name ^ "... ");
         test_func ();
-        print_endline "passed"
+        print_endline "\x1b[32mpassed\x1b[m"
     end;;
 
 let main () =
@@ -39,7 +39,7 @@ let main () =
 % end
         print_newline ();
 % end
-        print_endline "All Done!";
+        print_endline "\x1b[36mAll Done!\x1b[m";
     end;;
 
 let _ = main();;

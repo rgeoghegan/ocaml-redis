@@ -168,8 +168,7 @@ let smoke_test_with_quit conn = begin
     Redis.bgrewriteaof conn;
 
     Redis.flushall conn;
-    Redis.quit conn;
-    print_endline "Smoke test passed"
+    Redis.quit conn
 end;;
 
 let smoke_test_with_shutdown conn = begin
@@ -182,5 +181,6 @@ let _ =
     in
     begin
         smoke_test_with_quit (default_connection ());
-        smoke_test_with_shutdown (default_connection ())
+        smoke_test_with_shutdown (default_connection ());
+        print_endline "\x1b[32mSmoke test passed\x1b[m"
     end;;
