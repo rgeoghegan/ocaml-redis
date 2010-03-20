@@ -80,10 +80,10 @@ val keys : string -> Connection.t -> string list
 (** [randomkey c] returns a random key on connection [c], as per the [RANDOMKEY] redis keyword. *)
 val randomkey : Connection.t -> string
 
-(** [rename k nk c] renames key [k] to new key [nk] on connection [c], as per the [RENAME] redis keyword. *)
+(** [rename on nn c] renames old key name [on] to new key name [nn] on connection [c], as per the [RENAME] redis keyword. *)
 val rename : string -> string -> Connection.t -> unit
 
-(** [renamenx k nk c] renames key [k] to new key [nk] on connection [c], much like {!rename}, except it will return [true] if the new key does not already exists, [false] otherwise, as per the [RENAMENX] redis keyword. *)
+(** [renamenx on nn c] renames old key name [on] to new key name [nn] on connection [c], much like {!rename}, except it will return [true] if the new key does not already exists, [false] otherwise, as per the [RENAMENX] redis keyword. *)
 val renamenx : string -> string -> Connection.t -> bool
 
 (** [dbsize c] returns the number of keys in the database *)
@@ -97,10 +97,10 @@ val expire : string -> int -> Connection.t -> bool
 (** [ttl k c] returns the time to live in seconds for key [k] on connection [c], as per the [TTL] redis keyword. *)
 val ttl : string -> Connection.t -> int
 
-(** [select db c] selects database n. [db] on connection [c], as per the [SELECT] redis keyword. *)
+(** [select i c] selects database index [i] on connection [c], as per the [SELECT] redis keyword. *)
 val select : int -> Connection.t -> unit
 
-(** [move k db c] moves key [k] to database n. [db] on connection [c], as per the [MOVE] redis keyword.
+(** [move k db c] moves key [k] to database index [db] on connection [c], as per the [MOVE] redis keyword.
     @return [false] if the key [k] exists in the database [db] or does not exist in the current database.
 *)
 val move : string -> int -> Connection.t -> bool
@@ -123,50 +123,143 @@ val get : string -> Connection.t -> bulk_data
 val getset :
   string -> string -> Connection.t -> bulk_data
 
-(** [mget k c] gets the list of keys [k] on connection [c], as per the [MGET] redis keyword. *)
+(** [mget kl c] gets the values associated to each key in list [kl] on connection [c], as per the [MGET] redis keyword. *)
 val mget :
   string list -> Connection.t -> bulk_data list
 
-(** [getset k v] gets the ket [k] on connection [c], and then sets it to [v], as per the [GETSET] redis keyword. *)
+(** [setnx k v c] sets key [k] to value [v] on connection [c], as per the [SETNX] redis keyword. As opposed to {!set}, will return [false] and not set the key if the key [k] already exists; otherwise returns [true]. *)
 val setnx : string -> string -> Connection.t -> bool
+
+(** [mset kv c] sets the list of key-value pairs [kv] on connection [c], as per the [MSET] redis keyword. *)
 val mset : (string * string) list -> Connection.t -> unit
+
+(** [msetnx kv c] sets the list of key-value pairs [kv] on connection [c], as per the [MSETNX] redis keyword. As opposed to {!mset}, will return [false] and not set {i any} of the given keys if any of them exist already. *)
 val msetnx : (string * string) list -> Connection.t -> bool
+
+(** [incr k c] increments key [k] by 1 on connection [c], as per the [INCR] redis keyword.
+    @return the new value of the key.
+*)
 val incr : string -> Connection.t -> int
+
+(** [incrby k i c] increments key [k] by interger [i] on connection [c], as per the [INCRBY] redis keyword.
+    @return the new value of the key.
+*)
 val incrby : string -> int -> Connection.t -> int
+
+(** [decr k c] decrements key [k] by 1 on connection [c], as per the [DECR] redis keyword.
+    @return the new value of the key.
+*)
 val decr : string -> Connection.t -> int
+
+(** [decrby k i c] decrements key [k] by interger [i] on connection [c], as per the [DECRBY] redis keyword.
+    @return the new value of the key.
+*)
 val decrby : string -> int -> Connection.t -> int
 
+(** {3:list_cmd Commands operating on lists} *)
+
+(** [rpush k v c] pushes value [v] to the tail of the list at key [k] on connection [c], as per the [RPUSH] redis keyword. *)
 val rpush : string -> string -> Connection.t -> unit
+
+(** [lpush k v c] pushes value [v] to the head of the list at key [k] on connection [c], as per the [LPUSH] redis keyword. *)
 val lpush : string -> string -> Connection.t -> unit
+
+(** [llen k c] returns the length of list as key [k] on connection [c], as per the [LLEN] redis keyword. *)
 val llen : string -> Connection.t -> int
+
+(** [lrange k s e c] returns the elements of list as key [k] between start index [s] and end index [e] inclusively on connection [c], as per the [LRANGE] redis keyword. *)
 val lrange :
   string ->
   int -> int -> Connection.t -> bulk_data list
+
+(** [ltrim k s e c] remove all elements of the list at key [k] {i not} between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ltrim] redis keyword. *)
 val ltrim : string -> int -> int -> Connection.t -> unit
+
+(** [lindex k i c] get the value at index [i] in the list at key [k] on connection [c], as per the [LINDEX] redis keyword. *)
 val lindex :
   string -> int -> Connection.t -> bulk_data
+
+(** [lset k i v c] sets the index [i] of the list at key [k] to value [v] on connection [c], as per the [LSET] redis keyword. *)
 val lset : string -> int -> string -> Connection.t -> unit
+
+(** [lrem k ct v c] removes up to count [ct] values [v] from list at key [k] on connection [c], as per the [LREM] redis keyword.
+    @return the number of values removed.
+*)
 val lrem : string -> int -> string -> Connection.t -> int
+
+(** [lpop k c] pops the head of the list at key [k] on connection [c], as per the [LPOP] redis keyword.
+    @return the value popped.
+*)
 val lpop : string -> Connection.t -> bulk_data
+
+(** [rpop k c] pops the tail of the list at key [k] on connection [c], as per the [RPOP] redis keyword.
+    @return the value popped.
+*)
 val rpop : string -> Connection.t -> bulk_data
+
+(** [rpoplpush sk dk c] pops the tail of the list at the source key [sk] and pushes it to the tail of the list at the destination key [dk] on connection [c], as per the [RPOPLPUSH] redis keyword. *)
 val rpoplpush : string -> string -> Connection.t -> bulk_data
+
+(** {3:set_cmd Commands operating on sets} *)
+
+(** [sadd k m c] add member [m] to set at key [k] on connection [c], as per the [SADD] redis keyword.
+    @return [true] if member [m] not part of the set already, [false] otherwise.
+*)
 val sadd : string -> string -> Connection.t -> bool
+
+(** [srem k m c] removes member [m] from the set at key [k] on connection [c], as per the [SREM] redis keyword.
+    @return [true] if member [m] was part of the set, [false] otherwise.
+*)
 val srem : string -> string -> Connection.t -> bool
+
+(** [spop k c] pop a random member from the set at key [k] on connection [c], as per the [SPOP] redis keyword.
+    @return the member that got popped.
+*)
 val spop : string -> Connection.t -> bulk_data
+
+(** [smove sk dk m c] moves the member [m] from the set at the source key [sk] to the set at the destination key [dk] on connection c, as per the [SMOVE] redis keyword.
+    @return [false] if the element was not found in the first set and no operation was done, [false] otherwise. 
+*)
 val smove : string -> string -> string -> Connection.t -> bool
+
+(** [scard k c] returns the number of members in the set at key [k] on connection [c], as per the [SCARD] redis keyword. *)
 val scard : string -> Connection.t -> int
+
+(** [sismember k m c] checks if the member [m] is in the set at key [k] exists on connection [c], as per the [SISMEMBER] redis keyword. *)
 val sismember : string -> string -> Connection.t -> bool
-val smembers :
-  string -> Connection.t -> bulk_data list
+
+(** [sinter kl c] returns the intersection of all the sets at the keys listed in [kl] on connection [c], as per the [SINTER] redis keyword. *)
 val sinter :
   string list -> Connection.t -> bulk_data list
+
+(** [sinterstore dk kl c] puts the intersection of all the sets listed in [kl] into the set at destination key [dk] on connection [c], as per the [SINTERSTORE] redis keyword.
+    @return the number of members in the new set.
+*)
 val sinterstore : string -> string list -> Connection.t -> int
+
+(** [sunion kl c] returns the union of all the sets at the keys listed in [kl] on connection [c], as per the [SUNION] redis keyword. *)
 val sunion :
   string list -> Connection.t -> bulk_data list
+
+(** [sunionstore dk kl c] puts the union of all the sets listed in [kl] into the set at destination key [dk] on connection [c], as per the [SUNIONSTORE] redis keyword.
+    @return the number of members in the new set.
+*)
 val sunionstore : string -> string list -> Connection.t -> int
+
+(** [sdiff kl c] returns the difference between the set at the first key in [kl] and the other keys in the [kl] on connection [c], as per the [SDIFF] redis keyword. *)
 val sdiff :
   string list -> Connection.t -> bulk_data list
+
+(** [sdiffstore dk kl c] puts the difference between the set at the first key in [kl] and the other keys in the [kl] into the set at the destination key [dk] on connection [c], as per the [SDIFFSTORE] redis keyword.
+    @return the number of members in the new set.
+*)
 val sdiffstore : string -> string list -> Connection.t -> int
+
+(** [smembers k c] returns all the members of the set at key [k] on connection [c], as per the [SMEMBERS] redis keyword. *)
+val smembers :
+  string -> Connection.t -> bulk_data list
+
+(** [srandmember k c] returns a random member from the set at the key [k] on connection [c], as per the [SRANDMEMBER] redis keyword. *)
 val srandmember : string -> Connection.t -> bulk_data
 
 val zadd : string -> float -> string -> Connection.t -> bool
