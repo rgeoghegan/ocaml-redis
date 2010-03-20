@@ -233,17 +233,24 @@ let test_del () =
 let test_value_type () =
     let test_func connection = begin
         Redis.set "rory" "cool" connection;
+        Redis.zadd "tim" 1.0 "not cool" connection;
         assert (Redis.RedisString = Redis.value_type "rory" connection);
-        assert (Redis.RedisNil = Redis.value_type "tim" connection);
+        assert (Redis.RedisZSet = Redis.value_type "tim" connection);
+        assert (Redis.RedisNil = Redis.value_type "bob" connection);
     end in
     Script.use_test_script
         [
             Script.ReadThisLine("SET rory 4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
+            Script.ReadThisLine("ZADD tim 1.000000 8");
+            Script.ReadThisLine("not cool");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("TYPE rory");
             Script.WriteThisLine("+string");
             Script.ReadThisLine("TYPE tim");
+            Script.WriteThisLine("+zset");
+            Script.ReadThisLine("TYPE bob");
             Script.WriteThisLine("+none");
         ]
         test_func;;

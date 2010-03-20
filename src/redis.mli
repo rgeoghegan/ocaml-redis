@@ -7,7 +7,7 @@ Redis is a module used to interact with a redis-key value store server. For a fu
 (** {3:redis_types Types used with redis} *)
 
 (** Different types of redis keys, as per the TYPE keyword. To get a string representation, use {!string_of_redis_value_type}. *)
-type redis_value_type = RedisString | RedisNil | RedisList | RedisSet
+type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 
 (** Bulk types. To get a string representation, use {!string_of_bulk_data}. *)
 type bulk_data = Nil | String of string

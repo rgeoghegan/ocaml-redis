@@ -77,6 +77,7 @@ let test_string_of_redis_value_type () =
             (RedisNil , "Nil");
             (RedisList , "List");
             (RedisSet, "Set");
+            (RedisZSet, "ZSet");
         ]
         string_of_redis_value_type;;
 

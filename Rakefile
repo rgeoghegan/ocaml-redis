@@ -2,7 +2,7 @@
 # Released under the BSD license. See the LICENSE.txt file for more info.
 
 desc "Compile the library"
-task :library => ["build/redis.cmx", "build/redis.cmi", "build/redis.o"]
+task :library
 
 desc "Create the binary used for testing"
 task :test_binaries
@@ -60,6 +60,9 @@ class OcamlFile < String
     def dest prefix="build"
         pathmap("#{prefix}/%n") # remove ext
     end
+    def o prefix="build"
+        with_prefix_and_extension prefix, "cmx"
+    end
 end
     
 def compile source, dest
@@ -77,6 +80,7 @@ end
 file source.cmi => [source.mli, "build"] do
     compile source.mli, source.cmi
 end
+task :library => [source.cmx, source.cmi]
 
 # Test files
 

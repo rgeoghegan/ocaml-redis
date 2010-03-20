@@ -2,7 +2,7 @@
    Released under the BSD license. See the LICENSE.txt file for more info.
 
    Main library file. *)
-type redis_value_type = RedisString | RedisNil | RedisList | RedisSet
+type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 type bulk_data = Nil | String of string
 type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of bulk_data list | Error of string
 
@@ -39,7 +39,8 @@ let string_of_redis_value_type vt =
         RedisNil -> "Nil" |
         RedisString -> "String" |
         RedisList -> "List" |
-        RedisSet -> "Set"
+        RedisSet -> "Set" |
+        RedisZSet -> "ZSet"
 
 (* The Connection module handles some low level operations with the sockets *)
 module Connection =
@@ -370,6 +371,7 @@ let value_type key connection =
     match send_and_receive_command_safely ("TYPE " ^ key) connection with
         Status("string") -> RedisString |
         Status("set") -> RedisSet |
+        Status("zset") -> RedisZSet |
         Status("list") -> RedisList |
         Status("none") -> RedisNil |
         _ -> failwith "Did not recognize what I got back";;
