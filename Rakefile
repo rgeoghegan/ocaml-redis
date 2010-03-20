@@ -123,7 +123,7 @@ file "build/tests/smoke_test" => [:library, "build/tests/smoke_test.cmx", "build
     sh "ocamlopt -I build -o build/tests/smoke_test #{external_libs} #{source.cmx} build/tests/smoke_test.cmx"
 end
 
-file "build/tests/smoke_test.cmx" => ["tests/smoke_test.ml", "build/tests"] do
+file "build/tests/smoke_test.cmx" => [:library, "tests/smoke_test.ml", "build/tests"] do
     compile "tests/smoke_test.ml", "build/tests/smoke_test"
 end
 

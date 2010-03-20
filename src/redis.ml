@@ -263,7 +263,7 @@ let ping connection =
         _ -> failwith "Did not recognize what I got back";;
 
 let quit connection =
-    (* QUIT *)
+    (* QUIT, also should automatically close the connection *)
     Connection.send_text "QUIT" connection;;
 
 let auth password connection =

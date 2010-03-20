@@ -173,14 +173,12 @@ end;;
 
 let smoke_test_with_shutdown conn = begin
     Redis.auth "qwerty" conn;
-   Redis.shutdown conn
+    Redis.shutdown conn
 end
 
 let _ =
-    let default_connection () = Redis.create_connection ()
-    in
     begin
-        smoke_test_with_quit (default_connection ());
-        smoke_test_with_shutdown (default_connection ());
+        smoke_test_with_quit (Redis.create_connection ());
+        smoke_test_with_shutdown (Redis.create_connection ());
         print_endline "\x1b[32mSmoke test passed\x1b[m"
     end;;

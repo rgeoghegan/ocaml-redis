@@ -7,6 +7,45 @@ open Script
 open Redis.Redis_util
 open Redis
 
+let test_string_of_bulk_data () =
+    begin
+        assert ( "rory" = (string_of_bulk_data (String("rory"))));
+        try
+            (* Test failure when passing in Nil *)
+            ignore (string_of_bulk_data (Nil))
+        with Failure(_) -> ()
+    end;;
+
+let run_comparison_tests test_data transformation_function =
+    let tester (a,b) = 
+        assert ( transformation_function a = b )
+    in
+        List.iter tester test_data;;
+
+
+let test_string_of_response () =
+        run_comparison_tests
+            [
+                (Status("rory"), "Status(\"rory\")");
+                (Undecipherable, "Undecipherable");
+                (Integer(42), "Integer(42)");
+                (LargeInteger(42.0), "LargeInteger(42.00)");
+                (Bulk(Nil), "Bulk(Nil)");
+                (Multibulk([String("rory"); Nil]), "Multibulk([String(\"rory\"); Nil])")
+            ]
+            string_of_response;;
+
+let test_string_of_redis_value_type () =
+    run_comparison_tests
+        [
+            (RedisString , "String");
+            (RedisNil , "Nil");
+            (RedisList , "List");
+            (RedisSet, "Set");
+            (RedisZSet, "ZSet");
+        ]
+        string_of_redis_value_type;;
+
 let test_connection_read_string () =
     let test_pipe_read, test_pipe_write = piped_channel()
     in
@@ -37,49 +76,11 @@ let test_connection_read_fixed_string () =
         )
     end;;
 
-let test_send_text () =
+let test_connection_send_text () =
     let test_func connection =
         Redis.Connection.send_text "foo" connection
     in
     use_test_script [ReadThisLine("foo")] test_func;;
-
-let test_string_of_bulk_data () =
-    begin
-        assert ( "rory" = (string_of_bulk_data (String("rory"))));
-        try
-            (* Test failure when passing in Nil *)
-            ignore (string_of_bulk_data (Nil))
-        with Failure(_) -> ()
-    end;;
-
-let run_comparison_tests test_data transformation_function =
-    let tester (a,b) = 
-        assert ( transformation_function a = b )
-    in
-        List.iter tester test_data;;
-
-let test_string_of_response () =
-        run_comparison_tests
-            [
-                (Status("rory"), "Status(\"rory\")");
-                (Undecipherable, "Undecipherable");
-                (Integer(42), "Integer(42)");
-                (LargeInteger(42.0), "LargeInteger(42.00)");
-                (Bulk(Nil), "Bulk(Nil)");
-                (Multibulk([String("rory"); Nil]), "Multibulk([String(\"rory\"); Nil])")
-            ]
-            string_of_response;;
-
-let test_string_of_redis_value_type () =
-    run_comparison_tests
-        [
-            (RedisString , "String");
-            (RedisNil , "Nil");
-            (RedisList , "List");
-            (RedisSet, "Set");
-            (RedisZSet, "ZSet");
-        ]
-        string_of_redis_value_type;;
 
 let test_receive_answer () =
     let test_func connection =
@@ -231,20 +232,27 @@ let test_send_multibulk_command () =
         ]
         test_func;;
 
+let test_handle_special_status () =
+    handle_special_status "rory is cool" (Status("rory is cool"));
+    try handle_special_status "OK" (Status("rory is cool"));
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Received status(rory is cool)");
+    try handle_special_status "OK" (Error("rory is not cool"));
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Received error: rory is not cool");
+    try handle_special_status "OK" (Undecipherable);
+            failwith("Failed test")
+        with Failure(x) ->
+            assert(x = "Did not recognize what I got back");;
+
 let test_handle_status () =
     handle_status (Status("OK"));
     try handle_status (Status("rory is cool"));
             failwith("Failed test")
         with Failure(x) ->
-            assert(x = "Received status(rory is cool)");
-    try handle_status (Error("rory is not cool"));
-            failwith("Failed test")
-        with Failure(x) ->
-            assert(x = "Received error: rory is not cool");
-    try handle_status (Undecipherable);
-            failwith("Failed test")
-        with Failure(x) ->
-            assert(x = "Did not recognize what I got back")
+            assert(x = "Received status(rory is cool)");;
 
 let test_handle_integer () =
     assert (not (handle_integer (Integer(0))));
