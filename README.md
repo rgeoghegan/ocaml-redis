@@ -46,6 +46,11 @@ Todo
 ----
 
  * Docs
+  * Ocaml docs for all functions
+  * Document testing, both unit tests and smoke tests
+ * Define zset type
+ * Test with redis-1.2.5
+ * quit should close connection too 
  * Move away from Rake and use Ocaml Make
 
  * Implement all missing keywords from 1.2.4:

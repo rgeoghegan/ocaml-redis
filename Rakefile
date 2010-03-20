@@ -28,6 +28,9 @@ task :start_redis do
     sh "redis-server etc/redis.conf"
 end
 
+desc "Build html documentation"
+task :docs => "doc/index.html"
+
 directory "build"
 
 # Utility code
@@ -122,4 +125,10 @@ end
 
 file script.cmx("build/tests") => ["build/tests", "tests/script.ml"] do
     sh "ocamlopt -c -o #{script.dest("build/tests")} #{script}"
+end
+
+# Documentation
+directory "doc"
+file "doc/index.html" => ["doc", "src/redis.mli"] do
+    sh "ocamldoc -html -d doc src/redis.mli"
 end
