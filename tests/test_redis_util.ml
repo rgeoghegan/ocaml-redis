@@ -82,6 +82,21 @@ let test_connection_send_text () =
     in
     use_test_script [ReadThisLine("foo")] test_func;;
 
+let test_parse_integer_response () =
+    assert( Integer(42) = parse_integer_response "42");
+    assert( LargeInteger(10000000000000000000.0) = parse_integer_response "10000000000000000000");;
+
+let test_handle_error () =
+    assert (Status("OK") = (handle_error (Status("OK"))));
+    try (handle_error (Error("Some error")));
+            failwith ("Should have raised error")
+        with RedisError(x) ->
+            assert( x = "Some error" );
+    try (handle_error (Undecipherable));
+            failwith ("Should have raised error")
+        with RedisError(x) ->
+            assert(x = "Could not decipher response");;
+
 let test_receive_answer () =
     let test_func connection =
         begin
@@ -195,7 +210,7 @@ let test_send_and_receive_command_safely () =
             );
             try ignore (send_and_receive_command_safely "foo" connection);
                 assert(false) (* Should never reach this point *)
-            with Failure(x) ->
+            with RedisError(x) ->
                 assert(x = "Some error")
         end
     in
@@ -240,12 +255,12 @@ let test_handle_special_status () =
             assert(x = "Received status(rory is cool)");
     try handle_special_status "OK" (Error("rory is not cool"));
             failwith("Failed test")
-        with Failure(x) ->
-            assert(x = "Received error: rory is not cool");
+        with RedisError(x) ->
+            assert(x = "rory is not cool");
     try handle_special_status "OK" (Undecipherable);
             failwith("Failed test")
-        with Failure(x) ->
-            assert(x = "Did not recognize what I got back");;
+        with RedisError(x) ->
+            assert(x = "Could not decipher response");;
 
 let test_handle_status () =
     handle_status (Status("OK"));
@@ -257,10 +272,10 @@ let test_handle_status () =
 let test_handle_integer () =
     assert (not (handle_integer (Integer(0))));
     assert (handle_integer (Integer(1)));
-    try ignore (handle_integer (Undecipherable));
+    try ignore (handle_integer (Error("rory")));
             failwith("Failed test")
-        with Failure(x) ->
-            assert(x = "Did not recognize what I got back");;
+        with RedisError(x) ->
+            assert(x = "rory");;
 
 let test_handle_float () =
     assert (1.0 = (handle_float (Bulk(String("1.0")))));

@@ -2,6 +2,8 @@
 Redis is a module used to interact with a redis-key value store server. For a full description of all the redis keywords, refer to the redis docs linked below.
 
 @see <http://code.google.com/p/redis/> the redis project.
+
+Note that every command below will raise a {!RedisError} exception if the redis server sends back some sort of error.
 *)
 
 (** {3:redis_types Types used with redis} *)
@@ -29,6 +31,9 @@ val string_of_bulk_data : bulk_data -> string
 
 (** Gives a string representation of a {!response} type. *)
 val string_of_response : response -> string
+
+(** Exception when getting an error ("-...") response from the redis server. *)
+exception RedisError of string
 
 (** {3:connection Connection handling} *)
 
