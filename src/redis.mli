@@ -282,10 +282,24 @@ val zrange :
   string ->
   int -> int -> Connection.t -> bulk_data list
 
+(** [zrange_withscores k s e c], returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrange} function except it also gives the score for each item.
+    @return a list of [({bulk_data}, float)] for the specified range.
+*)
+val zrange_withscores : 
+  string ->
+  int -> int -> Connection.t -> (bulk_data * float) list
+
 (** [zrevrange k s e c] returns a {i reversed ordered} list of members of the sorted set at key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZREVRANGE] redis keyword. *)
 val zrevrange :
   string ->
   int -> int -> Connection.t -> bulk_data list
+
+(** [zrevrange_withscores k s e c], returns a {i reversed ordered} list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrevrange} function except it also gives the score for each item.
+    @return a list of [({bulk_data}, float)] for the specified range.
+*)
+val zrevrange_withscores : 
+  string ->
+  int -> int -> Connection.t -> (bulk_data * float) list
 
 (** [zrangebyscore k min max limit c] returns a list of all the members in sorted set at the key [k] with scores between [min] and [max], inclusively, on connection [c], as per the [ZRANGEBYSCORE] redis keyword.
     @param limit Pass in [`Limit(offset, limit)] to limit the number of returned values by [limit] offset by [offset].

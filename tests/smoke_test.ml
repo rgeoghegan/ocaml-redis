@@ -127,10 +127,22 @@ let smoke_test_with_quit conn = begin
             (Redis.zrange "coolest" 0 1 conn));
 
     assert (
+        [("rory", 1.0); ("tim", 99.0)]
+        = List.map
+            (fun (a,b) -> (Redis.string_of_bulk_data a, b))
+            (Redis.zrange_withscores "coolest" 0 1 conn));
+
+    assert (
         ["tim"; "rory"]
         = List.map
             Redis.string_of_bulk_data
             (Redis.zrevrange "coolest" 0 1 conn));
+
+    assert (
+        [("tim", 99.0); ("rory", 1.0)]
+        = List.map
+            (fun (a,b) -> (Redis.string_of_bulk_data a, b))
+            (Redis.zrevrange_withscores "coolest" 0 1 conn));
 
     assert (
         "rory"

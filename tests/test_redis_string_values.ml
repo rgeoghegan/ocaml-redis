@@ -233,7 +233,7 @@ let test_del () =
 let test_value_type () =
     let test_func connection = begin
         Redis.set "rory" "cool" connection;
-        Redis.zadd "tim" 1.0 "not cool" connection;
+        ignore (Redis.zadd "tim" 1.0 "not cool" connection);
         assert (Redis.RedisString = Redis.value_type "rory" connection);
         assert (Redis.RedisZSet = Redis.value_type "tim" connection);
         assert (Redis.RedisNil = Redis.value_type "bob" connection);

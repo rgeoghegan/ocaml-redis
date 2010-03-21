@@ -628,10 +628,37 @@ let zrange key start stop connection =
         Multibulk(l) -> l |
         _ -> failwith "Did not recognize what I got back";;
 
+let score_transformer value_and_scores_list =
+    let rec value_iter l out =
+        match l with
+            [] -> List.rev out |
+            h :: t -> score_iter t h out
+    and score_iter l value out =
+        match l with
+            h :: t ->
+                let score = float_of_string (string_of_bulk_data h)
+                in
+                value_iter t ((value, score) :: out) |
+            [] -> failwith ("Missing score for value " ^ (string_of_bulk_data value))
+    in
+        value_iter value_and_scores_list [];;
+    
+let zrange_withscores key start stop connection =
+    (* ZRANGE, but with the WITHSCORES option added on. *)
+    match send_and_receive_command_safely (Printf.sprintf "ZRANGE %s %d %d WITHSCORES" key start stop) connection with
+        Multibulk(l) -> score_transformer l |
+        _ -> failwith "Did not recognize what I got back";;
+
 let zrevrange key start stop connection =
     (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
     match send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection with
         Multibulk(l) -> l |
+        _ -> failwith "Did not recognize what I got back";;
+
+let zrevrange_withscores key start stop connection =
+    (* ZRANGE, but with the WITHSCORES option added on. *)
+    match send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d WITHSCORES" key start stop) connection with
+        Multibulk(l) -> score_transformer l |
         _ -> failwith "Did not recognize what I got back";;
 
 let zrangebyscore key start stop ?(limit=`Unlimited) connection =

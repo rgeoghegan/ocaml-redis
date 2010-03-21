@@ -53,6 +53,36 @@ let test_zrange () =
         ]
         test_func;;
 
+let test_zrange_withscores () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42.0 "cool" connection);
+        ignore (Redis.zadd "rory" 13.0 "strong" connection);
+        assert(
+            [ (Redis.String("strong"), 13.0); (Redis.String("cool"), 42.0)]
+            = Redis.zrange_withscores "rory" 0 1 connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZADD rory 42.000000 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("ZADD rory 13.000000 6");
+            Script.ReadThisLine("strong");
+            Script.WriteThisLine(":1");
+
+            Script.ReadThisLine("ZRANGE rory 0 1 WITHSCORES");
+            Script.WriteThisLine("*4");
+            Script.WriteThisLine("$6");
+            Script.WriteThisLine("strong");
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("13");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("42");
+        ]
+        test_func;;
+
 let test_zrevrange () =
     let test_func connection =
         ignore (Redis.zadd "rory" 42.0 "cool" connection);
@@ -76,6 +106,36 @@ let test_zrevrange () =
             Script.WriteThisLine("cool");
             Script.WriteThisLine("$6");
             Script.WriteThisLine("strong");
+        ]
+        test_func;;
+
+let test_zrevrange_withscores () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42.0 "cool" connection);
+        ignore (Redis.zadd "rory" 13.0 "strong" connection);
+        assert(
+            [(Redis.String("cool"), 42.0); (Redis.String("strong"), 13.0)]
+            = Redis.zrevrange_withscores "rory" 0 1 connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("ZADD rory 42.000000 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("ZADD rory 13.000000 6");
+            Script.ReadThisLine("strong");
+            Script.WriteThisLine(":1");
+
+            Script.ReadThisLine("ZREVRANGE rory 0 1 WITHSCORES");
+            Script.WriteThisLine("*4");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("42");
+            Script.WriteThisLine("$6");
+            Script.WriteThisLine("strong");
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("13");
         ]
         test_func;;
 
