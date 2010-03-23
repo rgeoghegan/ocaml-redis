@@ -15,7 +15,7 @@ let test_sadd () =
         ]
         test_func;;
 
-let test_rem () =
+let test_srem () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
         assert (Redis.srem "rory" "cool" connection)
@@ -31,7 +31,7 @@ let test_rem () =
         ]
         test_func;;
 
-let test_rem () =
+let test_spop () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
         assert (Redis.String("cool") = Redis.spop "rory" connection)
@@ -86,7 +86,7 @@ let test_scard () =
         ]
         test_func;;
 
-let test_scard () =
+let test_sismember () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
         assert ( Redis.sismember "rory" "cool" connection )
