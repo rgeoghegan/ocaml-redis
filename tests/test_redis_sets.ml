@@ -202,7 +202,7 @@ let test_sunionstore () =
 let test_sdiff () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
-        assert ( [Redis.String("cool")] = Redis.sdiff ["rory"; "tim"] connection )
+        assert ( [Redis.String("cool")] = Redis.sdiff "rory" ["tim"] connection )
     in
     Script.use_test_script
         [
@@ -219,7 +219,7 @@ let test_sdiff () =
 let test_sdiffstore () =
     let test_func connection =
         ignore (Redis.sadd "rory" "cool" connection);
-        assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] connection )
+        assert ( 1 = Redis.sdiffstore "bob" "rory" ["tim"] connection )
     in
     Script.use_test_script
         [

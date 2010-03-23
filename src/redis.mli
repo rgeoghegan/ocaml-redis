@@ -251,14 +251,14 @@ val sunion :
 *)
 val sunionstore : string -> string list -> Connection.t -> int
 
-(** [sdiff kl c] returns the difference between the set at the first key in [kl] and the other keys in the [kl] on connection [c], as per the [SDIFF] redis keyword. *)
+(** [sdiff fk kl c] returns the difference between the set at the from key [km] and the other keys in the [kl] on connection [c], as per the [SDIFF] redis keyword. *)
 val sdiff :
-  string list -> Connection.t -> bulk_data list
+  string -> string list -> Connection.t -> bulk_data list
 
-(** [sdiffstore dk kl c] puts the difference between the set at the first key in [kl] and the other keys in the [kl] into the set at the destination key [dk] on connection [c], as per the [SDIFFSTORE] redis keyword.
+(** [sdiffstore dk fk kl c] puts the difference between the set at the from key [fk] and the other keys in the [kl] into the set at the destination key [dk] on connection [c], as per the [SDIFFSTORE] redis keyword.
     @return the number of members in the new set.
 *)
-val sdiffstore : string -> string list -> Connection.t -> int
+val sdiffstore : string -> string -> string list -> Connection.t -> int
 
 (** [smembers k c] returns all the members of the set at key [k] on connection [c], as per the [SMEMBERS] redis keyword. *)
 val smembers :

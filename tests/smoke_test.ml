@@ -95,8 +95,8 @@ let smoke_test_with_quit conn = begin
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sunionstore "bob" ["rory"; "tim"] conn );
     ignore ( Redis.srem "tim" "even cooler" conn );
-    assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sdiff ["rory"; "tim"] conn)) );
-    assert ( 1 = Redis.sdiffstore "bob" ["rory"; "tim"] conn);
+    assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sdiff "rory" ["tim"] conn)) );
+    assert ( 1 = Redis.sdiffstore "bob" "rory" ["tim"] conn);
 
     ignore (Redis.del_one "rory" conn);
     ignore (Redis.del_one "tim" conn);
