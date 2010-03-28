@@ -43,6 +43,9 @@ let smoke_test_with_quit conn = begin
     assert ( Redis.expire "rory" 10 conn );
     assert ( 10 >= Redis.ttl "rory" conn );
 
+    assert (Redis.expireat "tim" (Unix.time() +. 10.) conn);
+    assert ( 10 >= Redis.ttl "tim" conn );
+
     (* List operations *)
     ignore (Redis.del ["rory"] conn);
     Redis.rpush "rory" "cool" conn;

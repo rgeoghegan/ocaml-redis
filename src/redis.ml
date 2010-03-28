@@ -414,6 +414,10 @@ let expire key seconds connection =
     (* EXPIRE *)
     handle_integer (send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection);;
 
+let expireat key time connection =
+    (* EXPIREAT *)
+    handle_integer (send_and_receive_command (Printf.sprintf "EXPIREAT %s %.f" key time) connection);;
+
 let ttl key connection =
     (* TTL *)
     match send_and_receive_command_safely ("TTL " ^ key) connection with

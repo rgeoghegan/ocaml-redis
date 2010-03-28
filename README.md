@@ -49,15 +49,12 @@ Todo
 ----
 
  * Docs
+     * Split up docs, provide examples
      * Document testing, both unit tests and smoke tests
- * Library changes/bug fixes
-     * sort should be able to provide multiple get params
  * Building
      * Move away from Rake and use Ocaml Make
 
- * Implement all missing keywords from 1.2.4:
-     * Commands operating on all the kind of values
-         * EXPIREAT
+ * Implement all missing keywords from 1.2.5:
      * Remote server control commands
          * MONITOR
          * SLAVEOF

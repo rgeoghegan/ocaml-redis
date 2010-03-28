@@ -99,6 +99,11 @@ val dbsize : Connection.t -> int
 *)
 val expire : string -> int -> Connection.t -> bool
 
+(** [expireat k u c] sets the expire time of key [k] to the time [u] on connection [c], as per the [EXPIRE] redis keyword.
+    @param u A time as a unix time stamp, i.e. the number of seconds since January 1st, 1970 UTC).
+*)
+val expireat :string -> float -> Connection.t -> bool
+
 (** [ttl k c] returns the time to live in seconds for key [k] on connection [c], as per the [TTL] redis keyword. *)
 val ttl : string -> Connection.t -> int
 
