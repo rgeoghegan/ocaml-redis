@@ -88,11 +88,11 @@ let test_parse_integer_response () =
 
 let test_handle_error () =
     assert (Status("OK") = (handle_error (Status("OK"))));
-    try (handle_error (Error("Some error")));
+    try ignore (handle_error (Error("Some error")));
             failwith ("Should have raised error")
         with RedisError(x) ->
             assert( x = "Some error" );
-    try (handle_error (Undecipherable));
+    try ignore (handle_error (Undecipherable));
             failwith ("Should have raised error")
         with RedisError(x) ->
             assert(x = "Could not decipher response");;

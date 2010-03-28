@@ -51,7 +51,6 @@ Todo
  * Docs
      * Document testing, both unit tests and smoke tests
  * Library changes/bug fixes
-     * sdiff should have first set to make difference of as explicit argument
      * sort should be able to provide multiple get params
  * Building
      * Move away from Rake and use Ocaml Make

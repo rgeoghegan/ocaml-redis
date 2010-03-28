@@ -739,6 +739,50 @@ let sort key
         Multibulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let sort_get_many key get_patterns
+    ?pattern
+    ?(limit=`Unlimited)
+    ?(order=`Asc)
+    ?(alpha=`NonAlpha)
+        connection =
+    (* SORT, for multiple gets *)
+    let command = 
+        let pattern = match pattern with
+            None -> "" |
+            Some x -> " BY " ^ x
+        in
+        let limit = match limit with
+            `Unlimited -> "" |
+            `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
+        in
+        let order = match order with
+            `Asc -> "" |
+            `Desc -> " DESC"
+        in
+        let alpha = match alpha with
+            `NonAlpha -> "" |
+            `Alpha -> " ALPHA"
+        in
+        let get = List.fold_left
+            (fun rest n -> rest ^ " GET " ^ n)
+            ""
+            get_patterns
+        in
+        "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
+    in
+    let collate_response count responses =
+        let rec iter x whats_left current_response all_responses =
+            match (x, whats_left) with
+                (0, _) -> iter count whats_left [] ((List.rev current_response) :: all_responses) |
+                (count, []) -> List.rev all_responses |
+                (_, h::t) -> iter (x - 1) t (h :: current_response) all_responses
+        in
+            iter count responses [] []
+    in
+        match send_and_receive_command_safely command connection with
+            Multibulk(x) -> collate_response (List.length get_patterns) x |
+            _ -> failwith "Did not recognize what I got back";;
+
 (* Persistence control commands *)
 let save connection =
     (* SAVE *)

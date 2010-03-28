@@ -162,9 +162,35 @@ let smoke_test_with_quit conn = begin
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
     (* Sort *)
+        
     assert ( "2" = Redis.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));
+
+    (* This requires quite some test data to set up *)
+    let fields = ["name"; "yob"]
+    in
+    let data = [
+        ["Rory"; "1984"];
+        ["Bob"; "1980"]
+    ]
+    in
+    let add_record index record =
+        let add_field name value =
+            Redis.set (name ^ "_" ^ (string_of_int index)) value conn
+        in
+        begin
+            Redis.rpush "people" (string_of_int index) conn;
+            List.iter2 add_field fields record;
+            index + 1
+        end
+    in
+    ignore (List.fold_left add_record 1 data);
+    assert (
+        ["Bob"; "1980"] =
+        List.map Redis.string_of_bulk_data
+            (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:"yob_*" conn))
+    );
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get

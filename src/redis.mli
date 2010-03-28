@@ -345,6 +345,22 @@ val sort :
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
   Connection.t -> bulk_data list
 
+(** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
+    @return a list of lists of values "gotten" by the patterns in the list [gt]
+    @param pattern key pattern (i.e. [weight_*]) to use to fetch the value to sort by.
+    @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
+    @param order either [`Asc] to sort ascending (the default) or [`Desc] for descending.
+    @param alpha either [`NonAlpha] to sort numerically (the default) or [`Alpha] to sort alphanumerically.
+*)
+val sort_get_many :
+  string ->
+  string list ->
+  ?pattern:string ->
+  ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
+  ?order:[< `Asc | `Desc > `Asc ] ->
+  ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
+  Connection.t -> bulk_data list list
+    
 (** {3:persistence_cmd Persistence control commands} *)
 
 (** [save c] synchronously save the DB to disk on connection [c], as per the [SAVE] redis keyword. *)
