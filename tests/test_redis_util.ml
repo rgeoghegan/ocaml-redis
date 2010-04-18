@@ -13,7 +13,7 @@ let test_string_of_bulk_data () =
         try
             (* Test failure when passing in Nil *)
             ignore (string_of_bulk_data (Nil))
-        with Failure(_) -> ()
+        with RedisNilError(_) -> ()
     end;;
 
 let run_comparison_tests test_data transformation_function =
@@ -90,11 +90,11 @@ let test_handle_error () =
     assert (Status("OK") = (handle_error (Status("OK"))));
     try ignore (handle_error (Error("Some error")));
             failwith ("Should have raised error")
-        with RedisError(x) ->
+        with RedisServerError(x) ->
             assert( x = "Some error" );
     try ignore (handle_error (Undecipherable));
             failwith ("Should have raised error")
-        with RedisError(x) ->
+        with RedisServerError(x) ->
             assert(x = "Could not decipher response");;
 
 let test_receive_answer () =
@@ -210,7 +210,7 @@ let test_send_and_receive_command_safely () =
             );
             try ignore (send_and_receive_command_safely "foo" connection);
                 assert(false) (* Should never reach this point *)
-            with RedisError(x) ->
+            with RedisServerError(x) ->
                 assert(x = "Some error")
         end
     in
@@ -255,11 +255,11 @@ let test_handle_special_status () =
             assert(x = "Received status(rory is cool)");
     try handle_special_status "OK" (Error("rory is not cool"));
             failwith("Failed test")
-        with RedisError(x) ->
+        with RedisServerError(x) ->
             assert(x = "rory is not cool");
     try handle_special_status "OK" (Undecipherable);
             failwith("Failed test")
-        with RedisError(x) ->
+        with RedisServerError(x) ->
             assert(x = "Could not decipher response");;
 
 let test_handle_status () =
@@ -274,7 +274,7 @@ let test_handle_integer () =
     assert (handle_integer (Integer(1)));
     try ignore (handle_integer (Error("rory")));
             failwith("Failed test")
-        with RedisError(x) ->
+        with RedisServerError(x) ->
             assert(x = "rory");;
 
 let test_handle_float () =

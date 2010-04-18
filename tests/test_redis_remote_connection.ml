@@ -23,3 +23,14 @@ let test_info () =
             Script.WriteThisLine("redis_version:0.07\r\nconnected_clients:1\r\nconnected_slaves:0\r\nused_memory:3187\r\nchanges_since_last_save:0\r\nlast_save_time:1237655729\r\ntotal_connections_received:1\r\ntotal_commands_processed:1\r\nuptime_in_seconds:25\r\nuptime_in_days:0")
         ]
         test_func;;
+
+let test_slaveof () =
+    let test_func connection =
+        Redis.slaveof "other_redis_server" 6379 connection
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("SLAVEOF other_redis_server 6379");
+            Script.WriteThisLine("+OK")
+        ]
+        test_func;;

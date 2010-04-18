@@ -3,7 +3,7 @@ Redis is a module used to interact with a redis-key value store server. For a fu
 
 @see <http://code.google.com/p/redis/> the redis project.
 
-Note that every command below will raise a {!RedisError} exception if the redis server sends back some sort of error.
+Note that every command below will raise a {!RedisServerError} exception if the redis server sends back some sort of error.
 *)
 
 (** {3:redis_types Types used with redis} *)
@@ -14,26 +14,17 @@ type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSe
 (** Bulk types. To get a string representation, use {!string_of_bulk_data}. *)
 type bulk_data = Nil | String of string
 
-(** All redis response types. To get a string representation, use {!string_of_response}. *)
-type response = Status of string
-  | Undecipherable
-  | Integer of int
-  | LargeInteger of float
-  | Bulk of bulk_data
-  | Multibulk of bulk_data list
-  | Error of string
+(** Exception raised when trying to get a {!String} out of a {!Nil} {!bulk_data} type. *)
+exception RedisNilError of string
 
 (** Gives a string representation of a {!redis_value_type} type. *)
 val string_of_redis_value_type : redis_value_type -> string
 
-(** Gives a string representation of a {!bulk_data} type. *)
+(** Returns the string contained by a {!bulk_data} type, as long as the type is {!String}. If it is {!Nil}, it raises a {!RedisNilError} exception. *)
 val string_of_bulk_data : bulk_data -> string
 
-(** Gives a string representation of a {!response} type. *)
-val string_of_response : response -> string
-
 (** Exception when getting an error ("-...") response from the redis server. *)
-exception RedisError of string
+exception RedisServerError of string
 
 (** {3:connection Connection handling} *)
 
@@ -403,3 +394,6 @@ module Info :
 (** [info c] returns information about the redis server, as per the [INFO] redis keyword. See {!Info} for more information about how to manipulate the container this function returns.
 *)
 val info : Connection.t -> Info.t
+
+(** [slaveof a p c] makes the redis server a slave of another redis server at host [a] and port [o] on connection [c], as per the [SLAVEOF] redis keyword. *)
+val slaveof : string -> int -> Connection.t -> unit

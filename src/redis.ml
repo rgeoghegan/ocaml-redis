@@ -4,14 +4,17 @@
    Main library file. *)
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 type bulk_data = Nil | String of string
+exception RedisServerError of string
+exception RedisNilError of string
+
+(* This is an internal type used to transform what the Redis server can handle into ocaml types. *)
 type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of bulk_data list | Error of string
-exception RedisError of string
 
 (* Printing functions for the above types *)
 let string_of_bulk_data bd =
     match bd with
         String(x) -> x |
-        Nil -> failwith "Trying to extract string from none"
+        Nil -> raise (RedisNilError "Trying to extract string from none")
 
 let string_of_response r =
     let bulk_printer x =
@@ -155,11 +158,11 @@ module Redis_util =
 
         let handle_error reply =
             (* Filters out any errors and raises them.
-                Raises RedisError with the error message if getting an explicit error from the server ("-...")
-                or a RedisError with "Could not decipher response" for an unrecognised response type. *)
+                Raises RedisServerError with the error message if getting an explicit error from the server ("-...")
+                or a RedisServerError with "Could not decipher response" for an unrecognised response type. *)
             match reply with
-                Error(e) -> raise (RedisError e) |
-                Undecipherable -> raise (RedisError "Could not decipher response") |
+                Error(e) -> raise (RedisServerError e) |
+                Undecipherable -> raise (RedisServerError "Could not decipher response") |
                 x -> x;;
 
         let receive_answer connection =
@@ -853,3 +856,10 @@ let info connection =
     match send_and_receive_command_safely "INFO" connection with
         Bulk(x) -> Info.create (string_of_bulk_data x) |
         _ -> failwith "Did not recognize what I got back";;
+
+let slaveof addr port connection =
+    handle_status
+        (send_and_receive_command_safely
+            (Printf.sprintf "SLAVEOF %s %d" addr port)
+            connection);;
+    

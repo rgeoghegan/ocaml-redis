@@ -15,15 +15,26 @@ It currently only implements the commands listed in the following subsection of 
  * Persistence control commands
  * Remote server control commands
   * INFO
+  * SLAVEOF
 
 ### Missing:
 
-* Commands operating on all the kind of values
-    * EXPIREAT
-
 * Remote server control commands
     * MONITOR
-    * SLAVEOF
+
+Example Usage
+-------------
+
+    >> let conn = Redis.create_connection ()
+    in
+    begin
+        Redis.lpush "redis" "works" conn;
+        Redis.lpush "redis" "fast" conn;
+        Redis.lpush "redis" "simple" conn;
+        List.map Redis.string_of_bulk_data
+            (Redis.lrange "redis" 0 2 conn);
+    end;;
+    ["simple"; "fast"; "works"]
 
 Building
 --------
@@ -57,4 +68,3 @@ Todo
  * Implement all missing keywords from 1.2.5:
      * Remote server control commands
          * MONITOR
-         * SLAVEOF
