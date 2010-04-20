@@ -195,6 +195,9 @@ let smoke_test_with_quit conn = begin
             (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:"yob_*" conn))
     );
     
+    assert(2=
+        Redis.sort_and_store "people" ["name_*"] "results" ~pattern:"yob_*" conn);
+    
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get
         (Redis.info conn)

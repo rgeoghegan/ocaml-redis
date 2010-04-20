@@ -121,5 +121,46 @@ let test_sort_get_many_get_one () =
                 WriteThisLine("rory")
             ]
             test_func;;
-        
-            
+
+let test_sort_and_store () =
+    let test_func connection = 
+        begin
+            Redis.rpush "people" "1" connection;
+            Redis.set "age_1" "25" connection;
+            Redis.set "name_1" "rory" connection;
+            Redis.rpush "people" "2" connection;
+            Redis.set "age_2" "20" connection;
+            Redis.set "name_2" "tim" connection;
+            assert ( 4 = Redis.sort_and_store
+                            "people"
+                            ["age_*"; "name_*"]
+                            "results"
+                            ~pattern:"age_*"
+                            connection
+            )
+        end
+    in
+        use_test_script
+            [
+                ReadThisLine("RPUSH people 1");
+                ReadThisLine("1");
+                WriteThisLine("+OK");
+                ReadThisLine("SET age_1 2");
+                ReadThisLine("25");
+                WriteThisLine("+OK");
+                ReadThisLine("SET name_1 4");
+                ReadThisLine("rory");
+                WriteThisLine("+OK");
+                ReadThisLine("RPUSH people 1");
+                ReadThisLine("2");
+                WriteThisLine("+OK");
+                ReadThisLine("SET age_2 2");
+                ReadThisLine("20");
+                WriteThisLine("+OK");
+                ReadThisLine("SET name_2 3");
+                ReadThisLine("tim");
+                WriteThisLine("+OK");
+                ReadThisLine("SORT people BY age_* GET age_* GET name_* STORE results");
+                WriteThisLine(":4");
+            ]
+            test_func;;

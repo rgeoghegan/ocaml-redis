@@ -712,6 +712,27 @@ let zremrangebyscore key min max connection =
         _ -> failwith "Did not recognize what I got back";;
 
 (* Sorting *)
+
+let parse_sort_args pattern limit order alpha =
+    (* Some of the sort args need further parsing and are used across multiple functions. *)
+    let pattern = match pattern with
+        None -> "" |
+        Some x -> " BY " ^ x
+    in
+    let limit = match limit with
+        `Unlimited -> "" |
+        `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
+    in
+    let order = match order with
+        `Asc -> "" |
+        `Desc -> " DESC"
+    in
+    let alpha = match alpha with
+        `NonAlpha -> "" |
+        `Alpha -> " ALPHA"
+    in
+        (pattern, limit, order, alpha);;
+    
 let sort key
     ?pattern
     ?(limit=`Unlimited)
@@ -721,25 +742,12 @@ let sort key
         connection =
     (* SORT *)
     let command = 
-        let pattern = match pattern with
-            None -> "" |
-            Some x -> " BY " ^ x
-        in
-        let limit = match limit with
-            `Unlimited -> "" |
-            `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
+        let pattern, limit, order, alpha =
+            parse_sort_args pattern limit order alpha
         in
         let get = match get with
             None -> "" |
             Some x -> " GET " ^ x
-        in
-        let order = match order with
-            `Asc -> "" |
-            `Desc -> " DESC"
-        in
-        let alpha = match alpha with
-            `NonAlpha -> "" |
-            `Alpha -> " ALPHA"
         in
         "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
     in match send_and_receive_command_safely command connection with
@@ -754,21 +762,8 @@ let sort_get_many key get_patterns
         connection =
     (* SORT, for multiple gets *)
     let command = 
-        let pattern = match pattern with
-            None -> "" |
-            Some x -> " BY " ^ x
-        in
-        let limit = match limit with
-            `Unlimited -> "" |
-            `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
-        in
-        let order = match order with
-            `Asc -> "" |
-            `Desc -> " DESC"
-        in
-        let alpha = match alpha with
-            `NonAlpha -> "" |
-            `Alpha -> " ALPHA"
+        let pattern, limit, order, alpha =
+            parse_sort_args pattern limit order alpha
         in
         let get = List.fold_left
             (fun rest n -> rest ^ " GET " ^ n)
@@ -788,6 +783,30 @@ let sort_get_many key get_patterns
     in
         match send_and_receive_command_safely command connection with
             Multibulk(x) -> collate_response (List.length get_patterns) x |
+            _ -> failwith "Did not recognize what I got back";;
+
+let sort_and_store key get_patterns dest_key
+    ?pattern
+    ?(limit=`Unlimited)
+    ?(order=`Asc)
+    ?(alpha=`NonAlpha)
+        connection =
+    (* SORT, with the STORE keyword *)
+    let command = 
+        let pattern, limit, order, alpha =
+            parse_sort_args pattern limit order alpha
+        in
+        let get = List.fold_left
+            (fun rest n -> rest ^ " GET " ^ n)
+            ""
+            get_patterns
+        in
+        let store = " STORE " ^ dest_key
+        in
+        "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha ^ store
+    in
+        match send_and_receive_command_safely command connection with
+            Integer(x) -> x |
             _ -> failwith "Did not recognize what I got back";;
 
 (* Persistence control commands *)
