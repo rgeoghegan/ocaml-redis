@@ -329,7 +329,7 @@ let mset key_value_pairs connection =
     handle_status (send_multibulk_command ( "MSET" :: (flatten key_value_pairs [])) connection)
 
 let msetnx key_value_pairs connection =
-    (* MSET *)
+    (* MSETNX *)
     let rec flatten list_of_pairs result =
         match list_of_pairs with
             (key, value) :: tail -> flatten tail (key :: value :: result) |
@@ -344,7 +344,7 @@ let incr key connection =
         _ -> failwith "Did not recognize what I got back";;
 
 let incrby key value connection =
-    (* INCR *)
+    (* INCRBY *)
     match send_and_receive_command_safely (Printf.sprintf "INCRBY %s %d" key value) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
@@ -356,7 +356,7 @@ let decr key connection =
         _ -> failwith "Did not recognize what I got back";;
 
 let decrby key value connection =
-    (* DECR *)
+    (* DECRBY *)
     match send_and_receive_command_safely (Printf.sprintf "DECRBY %s %d" key value) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
@@ -440,7 +440,7 @@ let rpush key value connection =
     end;;
 
 let lpush key value connection =
-    (* RPUSH *)
+    (* LPUSH *)
     begin
         Connection.send_text_straight (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
         Connection.send_text value connection;
@@ -469,7 +469,7 @@ let ltrim key start stop connection =
         _ -> failwith "Did not recognize what I got back";;
 
 let lindex key index connection =
-    (* GET *)
+    (* LINDEX *)
     match send_and_receive_command_safely (Printf.sprintf "LINDEX %s %d" key index) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
@@ -872,11 +872,13 @@ module Info =
     end;;
         
 let info connection =
+    (* INFO *)
     match send_and_receive_command_safely "INFO" connection with
         Bulk(x) -> Info.create (string_of_bulk_data x) |
         _ -> failwith "Did not recognize what I got back";;
 
 let slaveof addr port connection =
+    (* SLAVEOF *)
     handle_status
         (send_and_receive_command_safely
             (Printf.sprintf "SLAVEOF %s %d" addr port)
