@@ -4,7 +4,13 @@
 #
 # Script that generates a global test module based on all the ocaml code files it parses.
 
+require "rubygems"
+require "trollop"
 require "erb"
+
+opts = Trollop::options do
+    opt :outfile, "Outfile to write to", :type => String
+end
 
 MODULE_NAMER = /([^\/]*)\.ml$/
 tests = {}
@@ -44,5 +50,11 @@ let main () =
 
 let _ = main();;
 }
+
 template = ERB.new(template_text, 0, "%")
-puts template.result
+
+if opts[:outfile] then
+    File.open(opts[:outfile], "w") {|f| f.write(template.result)}
+else
+    puts template.result
+end
