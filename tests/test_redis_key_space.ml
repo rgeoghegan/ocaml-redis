@@ -37,7 +37,8 @@ let test_randomkey () =
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("RANDOMKEY");
-            Script.WriteThisLine("+rory")
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory")
         ]
         test_func;;
 

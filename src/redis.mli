@@ -73,7 +73,7 @@ val value_type :
 (** [keys p c] returns a list of keys matching the pattern [p] on connection [c], as per the [KEYS] redis keyword. *)
 val keys : string -> Connection.t -> string list
 
-(** [randomkey c] returns a random key on connection [c], as per the [RANDOMKEY] redis keyword. *)
+(** [randomkey c] returns a random key on connection [c], as per the [RANDOMKEY] redis keyword. If no keys are in the store, will raise a RedisNilError. *)
 val randomkey : Connection.t -> string
 
 (** [rename on nn c] renames old key name [on] to new key name [nn] on connection [c], as per the [RENAME] redis keyword. *)

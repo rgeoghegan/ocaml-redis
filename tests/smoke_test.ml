@@ -31,7 +31,7 @@ let smoke_test_with_quit conn = begin
     assert ( Redis.RedisString = (Redis.value_type "rory" conn));
 
     assert ( ["rory"] = Redis.keys "*" conn); 
-(*  assert ( "rory" = Redis.randomkey conn); *)
+    assert ( "rory" = Redis.randomkey conn);
     Redis.rename "rory" "tim" conn;
 
 (*  assert ( "tim" = Redis.randomkey conn); *)
