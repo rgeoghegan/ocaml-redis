@@ -390,7 +390,7 @@ let value_type key connection =
 let keys pattern connection =
     (* KEYS *)
     match send_and_receive_command_safely ("KEYS " ^ pattern) connection with
-        Bulk(String(x)) -> Str.split (Str.regexp " +") x |
+        Multibulk(l) -> List.map string_of_bulk_data l |
         _ -> failwith "Did not recognize what I got back";;
 
 let randomkey connection =

@@ -18,8 +18,11 @@ let test_keys () =
             Script.ReadThisLine("uncool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("KEYS *");
-            Script.WriteThisLine("$8");
-            Script.WriteThisLine("rory tim")
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+            Script.WriteThisLine("$3");
+            Script.WriteThisLine("tim")
         ]
         test_func;;
 
