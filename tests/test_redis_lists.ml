@@ -5,13 +5,26 @@
 
 let test_rpush () =
     let test_func connection =
-        Redis.rpush "rory" "cool" connection
+        assert( 1 == (Redis.rpush "rory" "cool" connection));
+        Redis.set "rory" "cool" connection;
+        try
+            begin
+                ignore (Redis.rpush "rory" "cool" connection);
+                failwith "Should have thrown error about pushing to list."
+            end
+        with Redis.RedisServerError(_) -> ()
     in
     Script.use_test_script
         [
             Script.ReadThisLine("RPUSH rory 4");
             Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
+            Script.ReadThisLine("RPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("-ERR Operation against a key holding the wrong kind of value");
         ]
         test_func;;
 
@@ -30,21 +43,6 @@ let test_lpush () =
 let test_llen () =
     let test_func connection =
         Redis.rpush "rory" "cool" connection;
-        assert ( 1 = (Redis.llen "rory" connection));
-    in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("RPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("LLEN rory");
-            Script.WriteThisLine(":1");
-        ]
-        test_func;;
-
-let test_llen () =
-    let test_func connection =
-        Redis.rpush "rory" "cool" connection;
         Redis.rpush "rory" "still cool" connection;
         assert ( [Redis.String("cool"); Redis.String("still cool")] = (Redis.lrange "rory" 0 1 connection))
     in
@@ -52,10 +50,10 @@ let test_llen () =
         [
             Script.ReadThisLine("RPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("RPUSH rory 10");
             Script.ReadThisLine("still cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":2");
             Script.ReadThisLine("LRANGE rory 0 1");
             Script.WriteThisLine("*2");
             Script.WriteThisLine("$4");
@@ -75,32 +73,12 @@ let test_ltrim () =
         [
             Script.ReadThisLine("RPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("RPUSH rory 10");
             Script.ReadThisLine("still cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":2");
             Script.ReadThisLine("LTRIM rory 0 1");
             Script.WriteThisLine("+OK");
-        ]
-        test_func;;
-
-let test_ltrim () =
-    let test_func connection =
-        Redis.rpush "rory" "cool" connection;
-        Redis.rpush "rory" "still cool" connection;
-        assert( Redis.String("cool") = (Redis.lindex "rory" 0 connection))
-    in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("RPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("RPUSH rory 10");
-            Script.ReadThisLine("still cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("LINDEX rory 0");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
         ]
         test_func;;
 

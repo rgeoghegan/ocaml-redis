@@ -93,7 +93,7 @@ let test_sort_get_many_get_one () =
             [
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("1");
-                WriteThisLine("+OK");
+                WriteThisLine(":1");
                 ReadThisLine("SET age_1 2");
                 ReadThisLine("25");
                 WriteThisLine("+OK");
@@ -102,7 +102,7 @@ let test_sort_get_many_get_one () =
                 WriteThisLine("+OK");
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("2");
-                WriteThisLine("+OK");
+                WriteThisLine(":2");
                 ReadThisLine("SET age_2 2");
                 ReadThisLine("20");
                 WriteThisLine("+OK");
@@ -144,7 +144,7 @@ let test_sort_and_store () =
             [
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("1");
-                WriteThisLine("+OK");
+                WriteThisLine(":1");
                 ReadThisLine("SET age_1 2");
                 ReadThisLine("25");
                 WriteThisLine("+OK");
@@ -153,7 +153,7 @@ let test_sort_and_store () =
                 WriteThisLine("+OK");
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("2");
-                WriteThisLine("+OK");
+                WriteThisLine(":2");
                 ReadThisLine("SET age_2 2");
                 ReadThisLine("20");
                 WriteThisLine("+OK");
