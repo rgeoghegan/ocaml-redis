@@ -6,8 +6,8 @@ open Script;;
 
 let test_default () =
     let test_func connection =
-        Redis.lpush "rory" "1" connection;
-        assert( [Redis.String("1")] = Redis.sort "rory" connection )
+        assert (1 = Redis.lpush "rory" "1" connection);
+        assert ([Redis.String("1")] = Redis.sort "rory" connection )
     in
     use_test_script
         [
@@ -75,10 +75,10 @@ let test_sort_all_combos () =
 let test_sort_get_many_get_one () =
     let test_func connection = 
         begin
-            Redis.rpush "people" "1" connection;
+            assert (1 = Redis.rpush "people" "1" connection);
             Redis.set "age_1" "25" connection;
             Redis.set "name_1" "rory" connection;
-            Redis.rpush "people" "2" connection;
+            assert (2 = Redis.rpush "people" "2" connection);
             Redis.set "age_2" "20" connection;
             Redis.set "name_2" "tim" connection;
             assert (
@@ -125,10 +125,10 @@ let test_sort_get_many_get_one () =
 let test_sort_and_store () =
     let test_func connection = 
         begin
-            Redis.rpush "people" "1" connection;
+            assert (1 = Redis.rpush "people" "1" connection);
             Redis.set "age_1" "25" connection;
             Redis.set "name_1" "rory" connection;
-            Redis.rpush "people" "2" connection;
+            assert (2 = Redis.rpush "people" "2" connection);
             Redis.set "age_2" "20" connection;
             Redis.set "name_2" "tim" connection;
             assert ( 4 = Redis.sort_and_store
