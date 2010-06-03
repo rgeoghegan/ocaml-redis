@@ -13,7 +13,7 @@ let test_default () =
         [
             ReadThisLine("LPUSH rory 1");
             ReadThisLine("1");
-            WriteThisLine("+OK");
+            WriteThisLine(":1");
             ReadThisLine("SORT rory");
             WriteThisLine("*1");
             WriteThisLine("$1");

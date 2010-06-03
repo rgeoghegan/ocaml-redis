@@ -36,7 +36,7 @@ let test_lpush () =
         [
             Script.ReadThisLine("LPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
         ]
         test_func;;
 
@@ -91,7 +91,7 @@ let test_lset () =
         [
             Script.ReadThisLine("LPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("LSET rory 0 11");
             Script.ReadThisLine("even cooler");
             Script.WriteThisLine("+OK");
@@ -108,10 +108,10 @@ let test_lrem () =
         [
             Script.ReadThisLine("LPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("LPUSH rory 11");
             Script.ReadThisLine("even cooler");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":2");
             Script.ReadThisLine("LREM rory 0 4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine(":1");
@@ -127,7 +127,7 @@ let test_lpop () =
         [
             Script.ReadThisLine("LPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("LPOP rory");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("cool");
@@ -143,7 +143,7 @@ let test_rpop () =
         [
             Script.ReadThisLine("LPUSH rory 4");
             Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("RPOP rory");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("cool");
@@ -159,7 +159,7 @@ let test_rpoplpush () =
         [
             Script.ReadThisLine("LPUSH cool 4");
             Script.ReadThisLine("rory");
-            Script.WriteThisLine("+OK");
+            Script.WriteThisLine(":1");
             Script.ReadThisLine("RPOPLPUSH cool not_cool");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("rory");

@@ -163,7 +163,7 @@ val decrby : string -> int -> Connection.t -> int
 val rpush : string -> string -> Connection.t -> int
 
 (** [lpush k v c] pushes value [v] to the head of the list at key [k] on connection [c], as per the [LPUSH] redis keyword. *)
-val lpush : string -> string -> Connection.t -> unit
+val lpush : string -> string -> Connection.t -> int
 
 (** [llen k c] returns the length of list as key [k] on connection [c], as per the [LLEN] redis keyword. *)
 val llen : string -> Connection.t -> int

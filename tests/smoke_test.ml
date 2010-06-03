@@ -50,8 +50,8 @@ let smoke_test_with_quit conn = begin
     (* List operations *)
     ignore (Redis.del ["rory"] conn);
     assert ( 1 == Redis.rpush "rory" "cool" conn);
-(*
     assert ( 2 == Redis.lpush "rory" "even cooler" conn);
+(*
     assert ( 2 == (Redis.llen "rory" conn));
     assert ( [Redis.String("even cooler"); Redis.String("cool")] = (Redis.lrange "rory" 0 1 conn));
 *)

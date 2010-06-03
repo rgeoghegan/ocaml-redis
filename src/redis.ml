@@ -443,9 +443,8 @@ let lpush key value connection =
     begin
         Connection.send_text_straight (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
         Connection.send_text value connection;
-        match receive_answer connection with
-            Status("OK") -> () |
-            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
+        match handle_error (receive_answer connection) with
+            Integer(x) -> x |
             _ -> failwith "Did not recognize what I got back"
     end;;
 
