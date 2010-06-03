@@ -51,27 +51,23 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.del ["rory"] conn);
     assert ( 1 == Redis.rpush "rory" "cool" conn);
     assert ( 2 == Redis.lpush "rory" "even cooler" conn);
-(*
     assert ( 2 == (Redis.llen "rory" conn));
     assert ( [Redis.String("even cooler"); Redis.String("cool")] = (Redis.lrange "rory" 0 1 conn));
-*)
 
-(* ------------------------ *)
-(*    Redis.ltrim "rory" 0 0 conn; *)
-(*  assert ( (Redis.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler"); *)
-(*
+    Redis.ltrim "rory" 0 0 conn;
+    assert ( (Redis.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler");
     Redis.lset "rory" 0 "just cool" conn;
-    Redis.rpush "rory" "cool" conn;
-    assert ( 1 = Redis.lrem "rory" 0 "cool" conn);
+    ignore (Redis.rpush "rory" "cool" conn);
+    assert (1 = Redis.lrem "rory" 0 "cool" conn);
 
-    Redis.rpush "rory" "cool" conn;
-    Redis.rpush "rory" "even cooler" conn;
+    ignore (Redis.rpush "rory" "cool" conn);
+    ignore (Redis.rpush "rory" "even cooler" conn);
 
     assert ( (Redis.string_of_bulk_data (Redis.lpop "rory" conn)) = "just cool");
     assert ( (Redis.string_of_bulk_data (Redis.rpop "rory" conn)) = "even cooler");
 
-    Redis.rpush "cool" "rory" conn;
-    Redis.rpush "cool" "tim" conn;
+    ignore (Redis.rpush "cool" "rory" conn);
+    ignore (Redis.rpush "cool" "tim" conn);
     assert ( (Redis.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
 
     (* Set operations *)
@@ -118,12 +114,11 @@ let smoke_test_with_quit conn = begin
     Redis.select 0 conn;
     assert ( Redis.move "rory" 1 conn );
 
-    Redis.lpush "rory" "1" conn;
-    Redis.lpush "rory" "2" conn;
-    Redis.lpush "rory" "11" conn;
+    ignore (Redis.lpush "rory" "1" conn);
+    ignore (Redis.lpush "rory" "2" conn);
+    ignore (Redis.lpush "rory" "11" conn);
 
     (* Sorted sets *)
-(* ------------------------ *)
     assert (Redis.zadd "coolest" 42.0 "rory" conn);
     assert (Redis.zrem "coolest" "rory" conn);
 
@@ -170,6 +165,7 @@ let smoke_test_with_quit conn = begin
 
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
+(* ------------------------ *)
     (* Sort *)
         
     assert ( "2" = Redis.string_of_bulk_data (List.hd (
@@ -189,7 +185,7 @@ let smoke_test_with_quit conn = begin
             Redis.set (name ^ "_" ^ (string_of_int index)) value conn
         in
         begin
-            Redis.rpush "people" (string_of_int index) conn;
+            ignore (Redis.rpush "people" (string_of_int index) conn);
             List.iter2 add_field fields record;
             index + 1
         end
@@ -219,7 +215,6 @@ let smoke_test_with_quit conn = begin
 
     Redis.flushall conn;
     Redis.quit conn
-    *)
 end;;
 
 let smoke_test_with_shutdown conn = begin
@@ -230,6 +225,6 @@ end
 let _ =
     begin
         smoke_test_with_quit (Redis.create_connection ());
-        (*smoke_test_with_shutdown (Redis.create_connection ());*)
+        smoke_test_with_shutdown (Redis.create_connection ());
         print_endline "\x1b[32mSmoke test passed\x1b[m"
     end;;
