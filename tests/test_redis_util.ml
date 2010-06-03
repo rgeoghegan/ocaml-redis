@@ -269,10 +269,10 @@ let test_handle_status () =
         with Failure(x) ->
             assert(x = "Received status(rory is cool)");;
 
-let test_handle_integer () =
-    assert (not (handle_integer (Integer(0))));
-    assert (handle_integer (Integer(1)));
-    try ignore (handle_integer (Error("rory")));
+let test_handle_integer_as_boolean () =
+    assert (not (handle_integer_as_boolean (Integer(0))));
+    assert (handle_integer_as_boolean (Integer(1)));
+    try ignore (handle_integer_as_boolean (Error("rory")));
             failwith("Failed test")
         with RedisServerError(x) ->
             assert(x = "rory");;

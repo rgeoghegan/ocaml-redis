@@ -238,7 +238,7 @@ module Redis_util =
         let handle_status = handle_special_status "OK"
             (* The most common case of handle_special_status is the "OK" status *)
 
-        let handle_integer reply =
+        let handle_integer_as_boolean reply =
             (* For integer replies, does error checking and casting to boolean *)
             match handle_error reply with
                 Integer(0) -> false |
@@ -316,7 +316,7 @@ let setnx key value connection =
     begin
         Connection.send_text_straight (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
         Connection.send_text value connection;
-        handle_integer (receive_answer connection)
+        handle_integer_as_boolean (receive_answer connection)
     end;;
 
 let mset key_value_pairs connection =
@@ -335,7 +335,7 @@ let msetnx key_value_pairs connection =
             (key, value) :: tail -> flatten tail (key :: value :: result) |
             [] -> result
     in
-    handle_integer (send_multibulk_command ( "MSETNX" :: (flatten key_value_pairs [])) connection)
+    handle_integer_as_boolean (send_multibulk_command ( "MSETNX" :: (flatten key_value_pairs [])) connection)
 
 let incr key connection =
     (* INCR *)
@@ -361,9 +361,18 @@ let decrby key value connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let append key value connection =
+    (* APPEND *)
+    begin
+        Connection.send_text_straight (Printf.sprintf "APPEND %s %d" key (String.length value)) connection;
+        match send_and_receive_command_safely value connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back"
+    end;;
+
 let exists key connection =
     (* EXISTS *)
-    handle_integer (send_and_receive_command ("EXISTS " ^ key) connection)
+    handle_integer_as_boolean (send_and_receive_command ("EXISTS " ^ key) connection)
 
 let del keys connection =
     (* DEL *)
@@ -373,7 +382,7 @@ let del keys connection =
 
 let del_one key connection =
     (* Exactly like "del", except you do not need to provide a list, just one key. Not in spec *)
-    handle_integer (send_and_receive_command ("DEL " ^ key) connection);;
+    handle_integer_as_boolean (send_and_receive_command ("DEL " ^ key) connection);;
 
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
@@ -405,7 +414,7 @@ let rename oldkey newkey connection =
 
 let renamenx oldkey newkey connection =
     (* RENAMENX *)
-    handle_integer (send_and_receive_command (Printf.sprintf "RENAMENX %s %s" oldkey newkey) connection);;
+    handle_integer_as_boolean (send_and_receive_command (Printf.sprintf "RENAMENX %s %s" oldkey newkey) connection);;
 
 let dbsize connection =
     (* DBSIZE *)
@@ -415,11 +424,11 @@ let dbsize connection =
 
 let expire key seconds connection =
     (* EXPIRE *)
-    handle_integer (send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection);;
+    handle_integer_as_boolean (send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection);;
 
 let expireat key time connection =
     (* EXPIREAT *)
-    handle_integer (send_and_receive_command (Printf.sprintf "EXPIREAT %s %.f" key time) connection);;
+    handle_integer_as_boolean (send_and_receive_command (Printf.sprintf "EXPIREAT %s %.f" key time) connection);;
 
 let ttl key connection =
     (* TTL *)
@@ -513,14 +522,14 @@ let sadd key member connection =
     (* SADD *)
     Connection.send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
     Connection.send_text member connection;
-    handle_integer (receive_answer connection)
+    handle_integer_as_boolean (receive_answer connection)
 
 let srem key member connection =
     (* SREM *)
     begin
         Connection.send_text_straight (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
         Connection.send_text member connection;
-        handle_integer (receive_answer connection)
+        handle_integer_as_boolean (receive_answer connection)
     end;;
 
 let spop key connection =
@@ -534,7 +543,7 @@ let smove srckey destkey member connection =
     begin
         Connection.send_text_straight (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
         Connection.send_text member connection;
-        handle_integer (receive_answer connection)
+        handle_integer_as_boolean (receive_answer connection)
     end;;
 
 let scard key connection =
@@ -548,7 +557,7 @@ let sismember key member connection =
     begin
         Connection.send_text_straight (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
         Connection.send_text member connection;
-        handle_integer (receive_answer connection)
+        handle_integer_as_boolean (receive_answer connection)
     end;;
 
 let smembers key connection =
@@ -610,7 +619,7 @@ let select index connection =
 
 let move key index connection =
     (* MOVE *)
-    handle_integer (send_and_receive_command ( Printf.sprintf "MOVE %s %d" key index ) connection)
+    handle_integer_as_boolean (send_and_receive_command ( Printf.sprintf "MOVE %s %d" key index ) connection)
 
 let flushdb connection =
     (* FLUSHDB *)
@@ -625,13 +634,13 @@ let zadd key score member connection =
     (* ZADD *)
     Connection.send_text (Printf.sprintf "ZADD %s %f %d" key score (String.length member)) connection;
     Connection.send_text member connection;
-    handle_integer (receive_answer connection);;
+    handle_integer_as_boolean (receive_answer connection);;
 
 let zrem key member connection =
     (* ZREM *)
     Connection.send_text (Printf.sprintf "ZREM %s %d" key (String.length member)) connection;
     Connection.send_text member connection;
-    handle_integer (receive_answer connection);;
+    handle_integer_as_boolean (receive_answer connection);;
 
 let zrange key start stop connection =
     (* ZRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)

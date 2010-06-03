@@ -157,6 +157,11 @@ val decr : string -> Connection.t -> int
 *)
 val decrby : string -> int -> Connection.t -> int
 
+(** [append k v c] appends string [v] to key [k] on connection [c], as per the [APPEND] redis keyword.
+    @return the new length of the value stored at that key.
+*)
+val append : string -> string -> Connection.t -> int
+
 (** {3:list_cmd Commands operating on lists} *)
 
 (** [rpush k v c] pushes value [v] to the tail of the list at key [k] on connection [c], as per the [RPUSH] redis keyword. *)

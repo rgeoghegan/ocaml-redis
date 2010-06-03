@@ -24,6 +24,9 @@ let smoke_test_with_quit conn = begin
     assert ( 4 = Redis.decr "rory" conn);
     assert ( 2 = Redis.decrby "rory" 2 conn);
 
+    Redis.set "rory" "very " conn;
+    assert (9 = Redis.append "rory" "cool" conn);
+
     assert ( 2 = Redis.del ["rory"; "tim"] conn);
 
     Redis.set "rory" "cool" conn;
@@ -165,7 +168,6 @@ let smoke_test_with_quit conn = begin
 
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
-(* ------------------------ *)
     (* Sort *)
         
     assert ( "2" = Redis.string_of_bulk_data (List.hd (

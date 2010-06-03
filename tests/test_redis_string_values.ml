@@ -254,3 +254,16 @@ let test_value_type () =
             Script.WriteThisLine("+none");
         ]
         test_func;;
+
+let test_append () =
+    let test_func connection =
+        assert (4 = Redis.append "rory" "cool" connection);
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("APPEND rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":4");
+        ]
+        test_func;;
+    
