@@ -160,7 +160,7 @@ val decrby : string -> int -> Connection.t -> int
 (** {3:list_cmd Commands operating on lists} *)
 
 (** [rpush k v c] pushes value [v] to the tail of the list at key [k] on connection [c], as per the [RPUSH] redis keyword. *)
-val rpush : string -> string -> Connection.t -> unit
+val rpush : string -> string -> Connection.t -> int
 
 (** [lpush k v c] pushes value [v] to the head of the list at key [k] on connection [c], as per the [LPUSH] redis keyword. *)
 val lpush : string -> string -> Connection.t -> unit
