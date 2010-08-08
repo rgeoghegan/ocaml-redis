@@ -541,6 +541,23 @@ let blpop key ?(timeout=`None) connection =
             Multibulk(MultibulkNil) -> Nil |
             _ -> failwith "Did not recognize what I got back";;
 
+let blpop_many key_list ?(timeout=`None) connection =
+    (* BLPOP *)
+    match send_and_receive_command_safely
+            (Printf.sprintf
+                "BLPOP %s %d"
+                (List.fold_left
+                    (fun rest n -> rest ^ " " ^ n)
+                    (List.hd key_list)
+                    (List.tl key_list))
+                (match timeout with
+                    `None -> 0 |
+                    `Seconds(s) -> s)) connection
+        with
+            Multibulk(MultibulkValue([key; v])) -> ((string_of_bulk_data key), v) |
+            Multibulk(MultibulkNil) -> ("", Nil) |
+            _ -> failwith "Did not recognize what I got back";;
+
 (* Commands operating on sets *)
 let sadd key member connection =
     (* SADD *)

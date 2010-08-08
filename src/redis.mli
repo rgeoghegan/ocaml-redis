@@ -14,13 +14,13 @@ type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSe
 (** Bulk types. To get a string representation, use {!string_of_bulk_data}. *)
 type bulk_data = Nil | String of string
 
-(** Exception raised when trying to get a {!String} out of a {!Nil} {!bulk_data} type. *)
+(** Exception raised when trying to get a {!bulk_data} [String] out of a {!bulk_data} [Nil] type. *)
 exception RedisNilError of string
 
 (** Gives a string representation of a {!redis_value_type} type. *)
 val string_of_redis_value_type : redis_value_type -> string
 
-(** Returns the string contained by a {!bulk_data} type, as long as the type is {!String}. If it is {!Nil}, it raises a {!RedisNilError} exception. *)
+(** Returns the string contained by a {!bulk_data} type, as long as the type is {!bulk_data} [String]. If it is {!bulk_data} [Nil], it raises a {!RedisNilError} exception. *)
 val string_of_bulk_data : bulk_data -> string
 
 (** Exception when getting an error ("-...") response from the redis server. *)
@@ -208,13 +208,23 @@ val rpoplpush : string -> string -> Connection.t -> bulk_data
 
 (** [blpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [PLPOP] redis keyword, but for only one key.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
-    @return the value poped from key [k]
+    @return the value poped from key [k], or {!bulk_data} [Nil] if the list at [k] is empty
 *)
 val blpop :
     string ->
     ?timeout:[< `None | `Seconds of int > `None ] ->
     Connection.t ->
     bulk_data
+
+(** [blpop_many kl timeout c] blocks until it can pop a value off one of the lists given by the list of keys [kl] on connection [c], as per the [PLPOP] redis keyword, like {!blpop} but for many keys.
+    @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
+    @return a pair of ([key], {!bulk_data}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!bulk_data} [Nil]) is returned
+*)
+val blpop_many :
+    string list ->
+    ?timeout:[< `None | `Seconds of int > `None ] ->
+    Connection.t ->
+    string * bulk_data
 
 (** {3:set_cmd Commands operating on sets} *)
 
@@ -356,7 +366,7 @@ val sort :
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
   Connection.t -> bulk_data list
 
-(** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
+(** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [SORT] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
     @return a list of lists of values "gotten" by the patterns in the list [gt]
     @param pattern key pattern (i.e. [weight_*]) to use to fetch the value to sort by.
     @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
@@ -372,7 +382,7 @@ val sort_get_many :
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
   Connection.t -> bulk_data list list
 
-(** [sort_and_store k gt d pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], and places the results at key [d], as per the [sort] redis keyword. This function is a way to use the [STORE] keyword with either one or multiple [GET]s times as per the redis spec.
+(** [sort_and_store k gt d pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], and places the results at key [d], as per the [SORT] redis keyword. This function is a way to use the [STORE] keyword with either one or multiple [GET]s times as per the redis spec.
     @return the length of the destination list at key [d]
     @param gt a list of keys to store in the destination list, can be a list with one item.
     @param pattern key pattern (i.e. [weight_*]) to use to fetch the value to sort by.
