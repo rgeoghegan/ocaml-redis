@@ -527,7 +527,6 @@ let rpoplpush src_key dest_key connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
-(*
 let blpop key ?(timeout=`None) connection =
     (* BLPOP, but for only one key *)
     match send_and_receive_command_safely
@@ -541,7 +540,6 @@ let blpop key ?(timeout=`None) connection =
             Multibulk(MultibulkValue([key; v])) -> v |
             Multibulk(MultibulkNil) -> Nil |
             _ -> failwith "Did not recognize what I got back";;
-*)
 
 (* Commands operating on sets *)
 let sadd key member connection =

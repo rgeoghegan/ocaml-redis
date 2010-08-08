@@ -73,6 +73,9 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.rpush "cool" "tim" conn);
     assert ( (Redis.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
 
+    assert ((Redis.string_of_bulk_data (Redis.blpop "cool" conn)) = "rory");
+    assert ((Redis.blpop "cool" ~timeout:(`Seconds(1)) conn) = Redis.Nil);
+
     (* Set operations *)
     ignore (Redis.del_one "tim" conn);
     assert ( Redis.sadd "tim" "not cool" conn);
