@@ -24,14 +24,15 @@ task :clean do
 end
 
 desc "Start a Redis Server"
-task :start_redis do
-    sh "redis-server etc/redis.conf"
+task :start_redis => "/tmp/redis" do
+    sh "redis-server redis.conf"
 end
 
 desc "Build html documentation"
 task :docs => "doc/index.html"
 
 directory "build"
+directory "/tmp/redis"
 
 # Utility code
 

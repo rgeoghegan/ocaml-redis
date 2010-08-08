@@ -47,28 +47,28 @@ let test_sort_all_combos () =
         use_test_script
             [
                 ReadThisLine("SORT rory BY id_* LIMIT 0 10");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
                 ReadThisLine("SORT rory BY id_* GET data_*");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
                 ReadThisLine("SORT rory BY id_* DESC");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
                 ReadThisLine("SORT rory BY id_* ALPHA");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
 
                 ReadThisLine("SORT rory LIMIT 0 10 GET data_*");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
                 ReadThisLine("SORT rory LIMIT 0 10 DESC");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
                 ReadThisLine("SORT rory LIMIT 0 10 ALPHA");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
 
                 ReadThisLine("SORT rory GET data_* DESC");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
                 ReadThisLine("SORT rory GET data_* ALPHA");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
 
                 ReadThisLine("SORT rory DESC ALPHA");
-                WriteThisLine("*-1");
+                WriteThisLine("*0");
             ]
             test_func;;
 

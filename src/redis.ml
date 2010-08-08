@@ -4,13 +4,15 @@
    Main library file. *)
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 type bulk_data = Nil | String of string
+type multi_bulk_data = MultibulkNil | MultibulkValue of bulk_data list
 exception RedisServerError of string
 exception RedisNilError of string
 
 (* This is an internal type used to transform what the Redis server can handle into ocaml types. *)
-type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of bulk_data list | Error of string
+type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of multi_bulk_data | Error of string
 
-(* Printing functions for the above types *)
+(* Different printing functions for the above types *)
+
 let string_of_bulk_data bd =
     match bd with
         String(x) -> x |
@@ -35,8 +37,9 @@ let string_of_response r =
         Error(x) -> Printf.sprintf "Error(%S)" x |
         Bulk(x) -> Printf.sprintf "Bulk(%s)" (bulk_printer x) |
         Multibulk(x) -> match x with
-            [] -> Printf.sprintf "Multibulk([])" |
-            h :: t -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t)
+            MultibulkNil -> "MultibulkNil" |
+            MultibulkValue([]) -> Printf.sprintf "Multibulk([])" |
+            MultibulkValue(h :: t) -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t)
 
 let string_of_redis_value_type vt =
     match vt with
@@ -138,16 +141,18 @@ module Redis_util =
             in
             let rec iter i data =
                 if i == 0
-                then Multibulk(List.rev data)
+                then Multibulk(MultibulkValue(List.rev data))
                 else match input_char in_chan with
                     '$' -> iter
                         (i - 1)
                         ((get_bulk_data conn) :: data)
                     | _ -> Undecipherable
             in
-            if size < 1
-            then Multibulk([])
-            else iter size []
+            match size with
+                -1 -> Multibulk(MultibulkNil) |
+                0 -> Multibulk(MultibulkValue([])) |
+                x when x > 0 -> iter size [] |
+                _ -> Undecipherable
 
         let parse_integer_response response =
             (* Expecting an integer response, will return the right type depending on the size *)
@@ -254,6 +259,13 @@ module Redis_util =
                     with Failure "float_of_string" ->
                         failwith (Printf.sprintf "%S is not a floating point number" x) ) |
                 Bulk(Nil) | _ -> failwith "Did not recognize what I got back"
+
+        let expect_non_nil_multibulk reply =
+            (* Extracts bulk_data_list out of Multibulk replies, raises and error if a nil is found *)
+            match reply with
+                Multibulk(MultibulkNil) -> raise (RedisNilError "Was not expecting MultibulkNil response.") |
+                Multibulk(MultibulkValue(v)) -> v |
+                _ -> failwith "Did not recognize what I got back"
     end;;
 
 open Redis_util;;
@@ -307,9 +319,8 @@ let getset key new_value connection =
 
 let mget keys connection = 
     (* MGET *)
-    match send_and_receive_command_safely (aggregate_command "MGET" keys) connection with
-        Multibulk(l) -> l |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk 
+        (send_and_receive_command_safely (aggregate_command "MGET" keys) connection);;
 
 let setnx key value connection =
     (* SETNX *)
@@ -399,7 +410,7 @@ let value_type key connection =
 let keys pattern connection =
     (* KEYS *)
     match send_and_receive_command_safely ("KEYS " ^ pattern) connection with
-        Multibulk(l) -> List.map string_of_bulk_data l |
+        Multibulk(MultibulkValue(l)) -> List.map string_of_bulk_data l |
         _ -> failwith "Did not recognize what I got back";;
 
 let randomkey connection =
@@ -465,9 +476,8 @@ let llen key connection =
 
 let lrange key start stop connection =
     (* LRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command_safely (Printf.sprintf "LRANGE %s %d %d" key start stop) connection with
-        Multibulk(l) -> l |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely (Printf.sprintf "LRANGE %s %d %d" key start stop) connection);;
 
 let ltrim key start stop connection =
     (* LTRIM, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
@@ -517,6 +527,22 @@ let rpoplpush src_key dest_key connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+(*
+let blpop key ?(timeout=`None) connection =
+    (* BLPOP, but for only one key *)
+    match send_and_receive_command_safely
+            (Printf.sprintf
+                "BLPOP %s %d"
+                key
+                (match timeout with
+                    `None -> 0 |
+                    `Seconds(s) -> s)) connection
+        with
+            Multibulk(MultibulkValue([key; v])) -> v |
+            Multibulk(MultibulkNil) -> Nil |
+            _ -> failwith "Did not recognize what I got back";;
+*)
+
 (* Commands operating on sets *)
 let sadd key member connection =
     (* SADD *)
@@ -562,15 +588,13 @@ let sismember key member connection =
 
 let smembers key connection =
     (* SMEMBERS *)
-    match send_and_receive_command_safely ("SMEMBERS " ^ key) connection with
-        Multibulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely ("SMEMBERS " ^ key) connection);;
 
 let sinter keys connection =
     (* SINTER *)
-    match send_and_receive_command_safely (aggregate_command "SINTER" keys) connection with
-        Multibulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely (aggregate_command "SINTER" keys) connection);;
 
 let sinterstore dstkey keys connection =
     (* SINTERSTORE *)
@@ -580,9 +604,8 @@ let sinterstore dstkey keys connection =
 
 let sunion keys connection =
     (* SUNION *)
-    match send_and_receive_command_safely (aggregate_command "SUNION" keys) connection with
-        Multibulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely (aggregate_command "SUNION" keys) connection);;
 
 let sunionstore dstkey keys connection =
     (* SUNIONSTORE *)
@@ -592,9 +615,8 @@ let sunionstore dstkey keys connection =
 
 let sdiff from_key keys connection =
     (* SDIFF *)
-    match send_and_receive_command_safely (aggregate_command "SDIFF" (from_key :: keys)) connection with
-        Multibulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely (aggregate_command "SDIFF" (from_key :: keys)) connection);;
 
 let sdiffstore dstkey from_key keys connection =
     (* SDIFFSTORE *)
@@ -644,11 +666,12 @@ let zrem key member connection =
 
 let zrange key start stop connection =
     (* ZRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command_safely (Printf.sprintf "ZRANGE %s %d %d" key start stop) connection with
-        Multibulk(l) -> l |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely (Printf.sprintf "ZRANGE %s %d %d" key start stop) connection);;
 
 let score_transformer value_and_scores_list =
+    (* Takes a list of [v_1; s_1; v_2; s_2; ...; v_n; s_n] and
+    collates it into a list of pairs [(v_1, s_1); (v_2, s_2); ... ; (v_n, s_n)] *)
     let rec value_iter l out =
         match l with
             [] -> List.rev out |
@@ -665,21 +688,24 @@ let score_transformer value_and_scores_list =
     
 let zrange_withscores key start stop connection =
     (* ZRANGE, but with the WITHSCORES option added on. *)
-    match send_and_receive_command_safely (Printf.sprintf "ZRANGE %s %d %d WITHSCORES" key start stop) connection with
-        Multibulk(l) -> score_transformer l |
-        _ -> failwith "Did not recognize what I got back";;
+    score_transformer
+        (expect_non_nil_multibulk
+            (send_and_receive_command_safely
+                (Printf.sprintf "ZRANGE %s %d %d WITHSCORES" key start stop)
+                connection));;
 
 let zrevrange key start stop connection =
     (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection with
-        Multibulk(l) -> l |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection);;
 
 let zrevrange_withscores key start stop connection =
     (* ZRANGE, but with the WITHSCORES option added on. *)
-    match send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d WITHSCORES" key start stop) connection with
-        Multibulk(l) -> score_transformer l |
-        _ -> failwith "Did not recognize what I got back";;
+    score_transformer
+        (expect_non_nil_multibulk
+            (send_and_receive_command_safely
+                (Printf.sprintf "ZREVRANGE %s %d %d WITHSCORES" key start stop)
+                connection));;
 
 let zrangebyscore key start stop ?(limit=`Unlimited) connection =
     (* ZRANGEBYSCORE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
@@ -690,9 +716,8 @@ let zrangebyscore key start stop ?(limit=`Unlimited) connection =
         in
         Printf.sprintf "ZRANGEBYSCORE %s %f %f%s" key start stop limit
     in
-    match (send_and_receive_command_safely command connection) with
-        Multibulk(m) -> m |
-        _ -> failwith "Did not recognize what I got back";;
+    expect_non_nil_multibulk
+        (send_and_receive_command_safely command connection);;
 
 let zincrby key increment member connection =
     (* ZINCRBY *)
@@ -757,9 +782,8 @@ let sort key
             Some x -> " GET " ^ x
         in
         "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
-    in match send_and_receive_command_safely command connection with
-        Multibulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    in
+        expect_non_nil_multibulk (send_and_receive_command_safely command connection);;
 
 let sort_get_many key get_patterns
     ?pattern
@@ -780,6 +804,7 @@ let sort_get_many key get_patterns
         "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
     in
     let collate_response count responses =
+        (* Collates the returned list into a series of lists matching the 'GET' parameter *)
         let rec iter x whats_left current_response all_responses =
             match (x, whats_left) with
                 (0, _) -> iter count whats_left [] ((List.rev current_response) :: all_responses) |
@@ -788,9 +813,10 @@ let sort_get_many key get_patterns
         in
             iter count responses [] []
     in
-        match send_and_receive_command_safely command connection with
-            Multibulk(x) -> collate_response (List.length get_patterns) x |
-            _ -> failwith "Did not recognize what I got back";;
+        collate_response
+            (List.length get_patterns)
+            (expect_non_nil_multibulk
+                (send_and_receive_command_safely command connection));;
 
 let sort_and_store key get_patterns dest_key
     ?pattern

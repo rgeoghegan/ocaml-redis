@@ -165,3 +165,26 @@ let test_rpoplpush () =
             Script.WriteThisLine("rory");
         ]
         test_func;;
+
+(*let test_blpop () =
+    let test_func connection =
+        assert (1 = Redis.lpush "rory" "cool" connection);
+        assert (Redis.String("cool") = Redis.blpop "rory" connection);
+        assert (Redis.Nil = Redis.blpop "rory" ~timeout:(`Seconds(3)) connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH cool 4");
+            Script.ReadThisLine("rory");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("BLPOP rory 0");
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.ReadThisLine("BLPOP rory 3");
+            Script.WriteThisLine("*-1")
+        ]
+        test_func;;
+*)

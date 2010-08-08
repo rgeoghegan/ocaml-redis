@@ -31,7 +31,7 @@ let test_string_of_response () =
                 (Integer(42), "Integer(42)");
                 (LargeInteger(42.0), "LargeInteger(42.00)");
                 (Bulk(Nil), "Bulk(Nil)");
-                (Multibulk([String("rory"); Nil]), "Multibulk([String(\"rory\"); Nil])")
+                (Multibulk(MultibulkValue([String("rory"); Nil])), "Multibulk([String(\"rory\"); Nil])")
             ]
             string_of_response;;
 
@@ -134,11 +134,15 @@ let test_receive_answer () =
             );
             assert (
                 receive_answer connection
-                = Multibulk([String("rory"); String("tim")])
+                = Multibulk(MultibulkValue([String("rory"); String("tim")]))
             );
             assert (
                 receive_answer connection
-                = Multibulk([])
+                = Multibulk(MultibulkValue([]))
+            );
+            assert (
+                receive_answer connection
+                = Multibulk(MultibulkNil)
             )
         end
     in
@@ -159,7 +163,8 @@ let test_receive_answer () =
             WriteThisLine("rory");
             WriteThisLine("$3");
             WriteThisLine("tim");
-            WriteThisLine("*-1"); (* Empty Multibulk *)
+            WriteThisLine("*0"); (* Empty Multibulk *)
+            WriteThisLine("*-1"); (* Nil Multibulk *)
         ]
         test_func;;
 

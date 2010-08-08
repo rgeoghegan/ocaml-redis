@@ -206,6 +206,17 @@ val rpop : string -> Connection.t -> bulk_data
 (** [rpoplpush sk dk c] pops the tail of the list at the source key [sk] and pushes it to the tail of the list at the destination key [dk] on connection [c], as per the [RPOPLPUSH] redis keyword. *)
 val rpoplpush : string -> string -> Connection.t -> bulk_data
 
+(*
+(** [blpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as poer the [PLPOP] redis keyword, but for only one key.
+    @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
+    @return the value poped from key [k]
+*)
+val blpop :
+    string ->
+    ?timeout:[< `None | `Seconds of int > `None ] ->
+    Connection.t -> bulk_data
+*)
+
 (** {3:set_cmd Commands operating on sets} *)
 
 (** [sadd k m c] add member [m] to set at key [k] on connection [c], as per the [SADD] redis keyword.
