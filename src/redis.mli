@@ -164,10 +164,14 @@ val append : string -> string -> Connection.t -> int
 
 (** {3:list_cmd Commands operating on lists} *)
 
-(** [rpush k v c] pushes value [v] to the tail of the list at key [k] on connection [c], as per the [RPUSH] redis keyword. *)
+(** [rpush k v c] pushes value [v] to the tail of the list at key [k] on connection [c], as per the [RPUSH] redis keyword.
+    @return the number of elements in the list after the push
+*)
 val rpush : string -> string -> Connection.t -> int
 
-(** [lpush k v c] pushes value [v] to the head of the list at key [k] on connection [c], as per the [LPUSH] redis keyword. *)
+(** [lpush k v c] pushes value [v] to the head of the list at key [k] on connection [c], as per the [LPUSH] redis keyword.
+    @return the number of elements in the list after the push
+*)
 val lpush : string -> string -> Connection.t -> int
 
 (** [llen k c] returns the length of list as key [k] on connection [c], as per the [LLEN] redis keyword. *)
@@ -367,6 +371,13 @@ val zscore : string -> string -> Connection.t -> float
     @return the number of elements removed.
 *)
 val zremrangebyscore : string -> float -> float -> Connection.t -> int
+
+(** {3:hash_cmd Commands operating on hashes} *)
+
+(** [hset k f v] sets field [f] to value [v] at key [k] on connection [c], as per the [HSET] redis keyword.
+    @return [true] if the field does not already exist in the hash
+*)
+val hset : string -> string -> string -> Connection.t -> bool
 
 (** {3:sort_cmd Sorting} *)
 

@@ -789,6 +789,16 @@ let zremrangebyscore key min max connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+(* Commands operating on hashes *)
+
+let hset key field value connection =
+    (* HSET *)
+    begin
+        Connection.send_text_straight (Printf.sprintf "HSET %s %s %d" key field (String.length value)) connection;
+        Connection.send_text value connection;
+        handle_integer_as_boolean (receive_answer connection)
+    end;;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =
