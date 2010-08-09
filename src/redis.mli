@@ -206,7 +206,7 @@ val rpop : string -> Connection.t -> bulk_data
 (** [rpoplpush sk dk c] pops the tail of the list at the source key [sk] and pushes it to the tail of the list at the destination key [dk] on connection [c], as per the [RPOPLPUSH] redis keyword. *)
 val rpoplpush : string -> string -> Connection.t -> bulk_data
 
-(** [blpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [PLPOP] redis keyword, but for only one key.
+(** [blpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [BLPOP] redis keyword, but for only one key.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
     @return the value poped from key [k], or {!bulk_data} [Nil] if the list at [k] is empty
 *)
@@ -216,11 +216,31 @@ val blpop :
     Connection.t ->
     bulk_data
 
-(** [blpop_many kl timeout c] blocks until it can pop a value off one of the lists given by the list of keys [kl] on connection [c], as per the [PLPOP] redis keyword, like {!blpop} but for many keys.
+(** [blpop_many kl timeout c] blocks until it can pop a value off one of the lists given by the list of keys [kl] on connection [c], as per the [BLPOP] redis keyword, like {!blpop} but for many keys.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
     @return a pair of ([key], {!bulk_data}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!bulk_data} [Nil]) is returned
 *)
 val blpop_many :
+    string list ->
+    ?timeout:[< `None | `Seconds of int > `None ] ->
+    Connection.t ->
+    string * bulk_data
+
+(** [brpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [BRPOP] redis keyword, but for only one key.
+    @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
+    @return the value poped from key [k], or {!bulk_data} [Nil] if the list at [k] is empty
+*)
+val brpop :
+    string ->
+    ?timeout:[< `None | `Seconds of int > `None ] ->
+    Connection.t ->
+    bulk_data
+
+(** [brpop_many kl timeout c] blocks until it can pop a value off one of the lists given by the list of keys [kl] on connection [c], as per the [BRPOP] redis keyword, like {!brpop} but for many keys.
+    @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
+    @return a pair of ([key], {!bulk_data}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!bulk_data} [Nil]) is returned
+*)
+val brpop_many :
     string list ->
     ?timeout:[< `None | `Seconds of int > `None ] ->
     Connection.t ->

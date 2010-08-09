@@ -73,13 +73,22 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.rpush "cool" "tim" conn);
     assert ( (Redis.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
 
-    assert ((Redis.string_of_bulk_data (Redis.blpop "cool" conn)) = "rory");
-    assert ((Redis.blpop "cool" ~timeout:(`Seconds(1)) conn) = Redis.Nil);
+    ignore (Redis.del ["rory"; "tim"; "bob"] conn);
+    ignore (Redis.rpush "rory" "cool" conn);
+    assert ((Redis.string_of_bulk_data (Redis.blpop "rory" conn)) = "cool");
+    assert ((Redis.blpop "rory" ~timeout:(`Seconds(1)) conn) = Redis.Nil);
 
-    ignore (Redis.del ["rory"; "tim"] conn);
     ignore (Redis.rpush "tim" "not cool" conn);
     assert ((Redis.blpop_many ["rory"; "tim"] conn) = ("tim", Redis.String("not cool")));
     assert ((Redis.blpop_many ["rory"; "tim"] ~timeout:(`Seconds(1)) conn) = ("", Redis.Nil));
+
+    ignore (Redis.rpush "rory" "cool" conn);
+    assert ((Redis.string_of_bulk_data (Redis.brpop "rory" conn)) = "cool");
+    assert ((Redis.brpop "rory" ~timeout:(`Seconds(1)) conn) = Redis.Nil);
+
+    ignore (Redis.rpush "tim" "not cool" conn);
+    assert ((Redis.blpop_many ["rory"; "tim"; "bob"] conn) = ("tim", Redis.String("not cool")));
+    assert ((Redis.blpop_many ["rory"; "tim"; "bob"] ~timeout:(`Seconds(1)) conn) = ("", Redis.Nil));
 
     (* Set operations *)
     ignore (Redis.del_one "tim" conn);

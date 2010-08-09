@@ -191,21 +191,65 @@ let test_blpop () =
 let test_blpop_many () =
     let test_func connection =
         assert (1 = Redis.lpush "rory" "cool" connection);
-        assert (("rory", Redis.String("cool")) = Redis.blpop_many ["rory"; "tim"] connection);
-        assert (("", Redis.Nil) = Redis.blpop_many ["rory"; "tim"] ~timeout:(`Seconds(3)) connection)
+        assert (("rory", Redis.String("cool")) = Redis.blpop_many ["rory"; "tim"; "bob"] connection);
+        assert (("", Redis.Nil) = Redis.blpop_many ["rory"; "tim"; "bob"] ~timeout:(`Seconds(3)) connection)
     in
     Script.use_test_script
         [
             Script.ReadThisLine("LPUSH rory 4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine(":1");
-            Script.ReadThisLine("BLPOP rory tim 0");
+            Script.ReadThisLine("BLPOP rory tim bob 0");
             Script.WriteThisLine("*2");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("rory");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("cool");
-            Script.ReadThisLine("BLPOP rory tim 3");
+            Script.ReadThisLine("BLPOP rory tim bob 3");
+            Script.WriteThisLine("*-1")
+        ]
+        test_func;;
+
+let test_brpop () =
+    let test_func connection =
+        assert (1 = Redis.lpush "rory" "cool" connection);
+        assert (Redis.String("cool") = Redis.brpop "rory" connection);
+        assert (Redis.Nil = Redis.brpop "rory" ~timeout:(`Seconds(3)) connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("BRPOP rory 0");
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.ReadThisLine("BRPOP rory 3");
+            Script.WriteThisLine("*-1")
+        ]
+        test_func;;
+
+let test_brpop_many () =
+    let test_func connection =
+        assert (1 = Redis.lpush "rory" "cool" connection);
+        assert (("rory", Redis.String("cool")) = Redis.brpop_many ["rory"; "tim"; "bob"] connection);
+        assert (("", Redis.Nil) = Redis.brpop_many ["rory"; "tim"; "bob"] ~timeout:(`Seconds(3)) connection)
+    in
+    Script.use_test_script
+        [
+            Script.ReadThisLine("LPUSH rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("BRPOP rory tim bob 0");
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("rory");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("cool");
+            Script.ReadThisLine("BRPOP rory tim bob 3");
             Script.WriteThisLine("*-1")
         ]
         test_func;;
