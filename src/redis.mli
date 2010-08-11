@@ -374,10 +374,15 @@ val zremrangebyscore : string -> float -> float -> Connection.t -> int
 
 (** {3:hash_cmd Commands operating on hashes} *)
 
-(** [hset k f v] sets field [f] to value [v] at key [k] on connection [c], as per the [HSET] redis keyword.
+(** [hset k f v c] sets field [f] to value [v] at key [k] on connection [c], as per the [HSET] redis keyword.
     @return [true] if the field does not already exist in the hash
 *)
 val hset : string -> string -> string -> Connection.t -> bool
+
+(** [hdel k f c] deletes field [f] from key [k] on connection [c], as per the [HDEL] redis keyword.
+    @return [true] if the field existed and was deleted, [false] otherwise
+*)
+val hdel : string -> string -> Connection.t -> bool
 
 (** {3:sort_cmd Sorting} *)
 

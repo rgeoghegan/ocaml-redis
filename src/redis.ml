@@ -2,6 +2,7 @@
    Released under the BSD license. See the LICENSE.txt file for more info.
 
    Main library file. *)
+
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 type bulk_data = Nil | String of string
 type multi_bulk_data = MultibulkNil | MultibulkValue of bulk_data list
@@ -48,6 +49,13 @@ let string_of_redis_value_type vt =
         RedisList -> "List" |
         RedisSet -> "Set" |
         RedisZSet -> "ZSet"
+
+let debug_string comment value  = begin
+    (* Simple function to print out a msg to stdout, should not be used in production code. *)
+    Printf.printf "%s %S\n" comment value;
+    flush stdout
+end
+
 
 (* The Connection module handles some low level operations with the sockets *)
 module Connection =
@@ -117,11 +125,6 @@ module Connection =
 
 module Redis_util =
     struct
-        let debug_string comment value  = begin
-            Printf.printf "%s %S\n" comment value;
-            flush stdout
-        end
-
         let get_bulk_data connection =
             let length = int_of_string (Connection.read_string connection)
             in
@@ -798,6 +801,13 @@ let hset key field value connection =
         Connection.send_text value connection;
         handle_integer_as_boolean (receive_answer connection)
     end;;
+
+let hdel key field connection =
+    (* HDEL *)
+    handle_integer_as_boolean
+        (send_and_receive_command
+            (Printf.sprintf "HDEL %s %s\r\n" key field) (* There is currently a bug where this command needs to send out an extra \r\n to work :( *)
+            connection);;
 
 (* Sorting *)
 
