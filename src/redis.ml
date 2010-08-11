@@ -809,6 +809,12 @@ let hdel key field connection =
             (Printf.sprintf "HDEL %s %s\r\n" key field) (* There is currently a bug where this command needs to send out an extra \r\n to work :( *)
             connection);;
 
+let hget key field connection =
+    (* HGET *)
+    match send_and_receive_command_safely (Printf.sprintf "HGET %s %s" key field) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =
