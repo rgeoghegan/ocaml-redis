@@ -6,7 +6,6 @@
 let smoke_test_with_quit conn = begin
     Redis.auth "qwerty" conn;
     Redis.flushall conn; 
-(*
 
     assert ( false = Redis.exists "rory" conn);
     Redis.set "rory" "cool" conn;
@@ -204,16 +203,14 @@ let smoke_test_with_quit conn = begin
         Redis.sort_and_store "people" ["name_*"] "results" ~pattern:"yob_*" conn);
 
     (* Hashes *)
-*)
+    (*
     ignore (Redis.del ["rory"] conn);
     assert (Redis.hset "rory" "cool" "true" conn);
     assert (not (Redis.hset "rory" "cool" "false" conn));
-    
-    flush stdout;
 
-    ignore (Redis.hdel "rory" "cool" conn);
-    (*
+    assert (Redis.hdel "rory" "cool" conn);
     assert (not (Redis.hdel "rory" "cool" conn));
+    *)
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get
@@ -224,6 +221,7 @@ let smoke_test_with_quit conn = begin
     (* These tests take a noticeable amount of time, so it's easier to slot them at the end *)
     print_endline "Starting tests with a timeout";
 
+    ignore (Redis.del ["rory"; "tim"; "bob"] conn);
     ignore (Redis.rpush "rory" "cool" conn);
     assert ((Redis.string_of_bulk_data (Redis.blpop "rory" conn)) = "cool");
     assert ((Redis.blpop "rory" ~timeout:(`Seconds(1)) conn) = Redis.Nil);
@@ -246,7 +244,6 @@ let smoke_test_with_quit conn = begin
 
     assert ( 0.0 < Redis.lastsave conn);
     Redis.bgrewriteaof conn;
-    *)
 
     Redis.flushall conn;
     Redis.quit conn
