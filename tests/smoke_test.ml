@@ -219,7 +219,7 @@ let smoke_test_with_quit conn = begin
     );
 
     (* These tests take a noticeable amount of time, so it's easier to slot them at the end *)
-    print_endline "Starting tests with a timeout";
+    print_endline "-- Starting tests with a timeout";
 
     ignore (Redis.del ["rory"; "tim"; "bob"] conn);
     ignore (Redis.rpush "rory" "cool" conn);
@@ -239,6 +239,7 @@ let smoke_test_with_quit conn = begin
     assert ((Redis.blpop_many ["rory"; "tim"; "bob"] ~timeout:(`Seconds(1)) conn) = ("", Redis.Nil));
 
     (* Persistence *)
+    print_endline "-- Starting persistence tests";
     Redis.save conn;
     Redis.bgsave conn;
 

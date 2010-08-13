@@ -126,21 +126,25 @@ module Connection =
 module Redis_util =
     struct
         let get_bulk_data connection =
+            (* Gets the data from a '$x\r\nx\r\n' response, once the first '$' has already been
+            popped off *)
             let length = int_of_string (Connection.read_string connection)
             in
-            match length with 
-                -1 -> Nil
-                | 0 -> String("")
-                | _ ->
-                    let out_str = String(Connection.read_fixed_string length connection)
-                    in
-                    begin
-                        List.iter (fun x -> assert(x == Connection.get_one_char connection)) ['\r'; '\n'];
-                        out_str
-                    end
+            if length == -1
+            then Nil
+            else let out_str = if length == 0
+                    then String("")
+                    else String(Connection.read_fixed_string length connection)
+                in
+                begin
+                    (* Exhausts the \r\n ending of a bulk data value *)
+                    List.iter (fun x -> assert(x == Connection.get_one_char connection)) ['\r'; '\n'];
+                    out_str
+                end
 
         let get_multibulk_data size conn =
-            let in_chan, out_chan = conn
+            (* Parse multibulk data structure, with first '*' already popped off *)
+            let in_chan, _ = conn
             in
             let rec iter i data =
                 if i == 0
@@ -198,6 +202,15 @@ module Redis_util =
         let send_and_receive_command_safely command connection =
             (* Will send the command, much like send_and_receive_command, but will catch and failwith any errors *)
             handle_error (send_and_receive_command command connection)
+
+        let send_with_value_and_receive_command_safely command value connection =
+            (* Will send out the command, appended with the length of value, and will then send out value. Also
+            will catch and fail on any errors. I.e., given 'foo' 'bar', will send "foo 3\r\nbar\r\n" *)
+            begin
+                Connection.send_text_straight (command ^ " " ^ (string_of_int (String.length value))) connection;
+                Connection.send_text value connection;
+                handle_error (receive_answer connection) 
+            end
 
         let aggregate_command command tokens = 
             (* Given a list of tokens, joins them with command *)
@@ -297,14 +310,8 @@ let auth password connection =
 (* Commands operating on string values *)
 let set key value connection =
     (* SET *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "SET %s %d" key (String.length value)) connection;
-        Connection.send_text value connection;
-        match receive_answer connection with
-            Status("OK") -> () |
-            Status(x) -> failwith ("Received status(" ^ x ^ ") when setting " ^ key) |
-            _ -> failwith "Did not recognize what I got back"
-    end;;
+    handle_status
+        (send_with_value_and_receive_command_safely ("SET " ^ key) value connection);;
 
 let get key connection =
     (* GET *)
@@ -314,9 +321,7 @@ let get key connection =
 
 let getset key new_value connection =
     (* GETSET *)
-    Connection.send_text_straight (Printf.sprintf "GETSET %s %d" key (String.length new_value)) connection;
-    Connection.send_text new_value connection;
-    match receive_answer connection with
+    match send_with_value_and_receive_command_safely ("GETSET " ^ key) new_value connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

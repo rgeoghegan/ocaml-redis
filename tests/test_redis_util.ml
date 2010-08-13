@@ -1,4 +1,4 @@
-(* Copyright (C) 2009 Rory Geoghegan - r.geoghegan@gmail.com
+(* Copyright (C) 2010 Rory Geoghegan - r.geoghegan@gmail.com
    Released under the BSD license. See the LICENSE.txt file for more info.
 
    Test utility functions in redis.ml *)
@@ -81,6 +81,49 @@ let test_connection_send_text () =
         Redis.Connection.send_text "foo" connection
     in
     use_test_script [ReadThisLine("foo")] test_func;;
+
+let test_get_bulk_data () =
+    let test_func connection =
+        assert(Redis.String("") = get_bulk_data connection);
+        assert(Redis.String("test") = get_bulk_data connection);
+        assert(Redis.Nil = get_bulk_data connection)
+    in
+    use_test_script [
+        WriteThisLine("0");
+        WriteThisLine("");
+        WriteThisLine("4");
+        WriteThisLine("test");
+        WriteThisLine("-1")
+    ] test_func;;
+
+let test_get_multibulk_data () =
+    let test_func connection =
+        assert(Multibulk(MultibulkNil) = (get_multibulk_data (-1) connection));
+        assert(Multibulk(MultibulkValue([])) = get_multibulk_data 0 connection);
+        assert(Multibulk(MultibulkValue([String("foo")])) 
+            = get_multibulk_data 1 connection);
+        assert(Multibulk(MultibulkValue([String("foo"); String("bar")]))
+            = get_multibulk_data 2 connection);
+        assert(Multibulk(MultibulkValue([Nil]))
+            = get_multibulk_data 1 connection);
+        assert(Multibulk(MultibulkValue([Nil; String("bar")]))
+            = get_multibulk_data 2 connection)
+    in
+    use_test_script [
+        WriteThisLine("$3");
+        WriteThisLine("foo");
+
+        WriteThisLine("$3");
+        WriteThisLine("foo");
+        WriteThisLine("$3");
+        WriteThisLine("bar");
+
+        WriteThisLine("$-1");
+
+        WriteThisLine("$-1");
+        WriteThisLine("$3");
+        WriteThisLine("bar");
+    ] test_func;;
 
 let test_parse_integer_response () =
     assert( Integer(42) = parse_integer_response "42");
@@ -229,6 +272,30 @@ let test_send_and_receive_command_safely () =
         ]
         test_func;;
 
+let test_send_with_value_and_receive_command_safely () =
+    let test_func connection =
+        begin
+            assert (
+                send_with_value_and_receive_command_safely "foo" "bar" connection
+                = Status("bar")
+            );
+            try ignore (send_with_value_and_receive_command_safely "foo" "bar" connection);
+                assert(false) (* Should never reach this point *)
+            with RedisServerError(x) ->
+                assert(x = "Some error")
+        end
+    in
+    use_test_script
+        [
+            ReadThisLine("foo 3");
+            ReadThisLine("bar");
+            WriteThisLine("+bar");
+            ReadThisLine("foo 3");
+            ReadThisLine("bar");
+            WriteThisLine("-Some error")
+        ]
+        test_func;;
+
 let test_aggregate_command  () =
     assert (
         "rory is cool" =
@@ -292,3 +359,11 @@ let test_handle_float () =
             failwith("Failed test")
         with Failure(x) ->
             assert(x = "Did not recognize what I got back"));;
+
+let test_expect_non_nil_multibulk () =
+    assert([] = (expect_non_nil_multibulk (Multibulk(MultibulkValue([])))));
+    (try ignore (expect_non_nil_multibulk (Multibulk(MultibulkNil)));
+            (* Should never get here *)
+            failwith("Failed test")
+        with RedisNilError(x) ->
+            assert(x = "Was not expecting MultibulkNil response."));;

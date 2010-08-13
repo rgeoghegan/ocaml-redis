@@ -19,7 +19,7 @@ let test_hset () =
         ]
         test_func;;
 
-let test_hdel () =
+(*let test_hdel () =
     let test_func connection =
         assert(Redis.hset "rory" "cool" "true" connection);
         assert(Redis.hdel "rory" "cool" connection);
@@ -30,16 +30,16 @@ let test_hdel () =
             Script.ReadThisLine("HSET rory cool 4");
             Script.ReadThisLine("true");
             Script.WriteThisLine(":1");
-            Script.ReadThisLine("HDEL rory cool");
-            Script.ReadThisLine("");
+            Script.ReadThisLine("HDEL rory 4");
+            Script.ReadThisLine("cool");
             Script.WriteThisLine(":1");
-            Script.ReadThisLine("HDEL rory cool");
-            Script.ReadThisLine("");
+            Script.ReadThisLine("HDEL rory 4");
+            Script.ReadThisLine("cool");
             Script.WriteThisLine(":0")
         ]
         test_func;;
 
-let test_hset () =
+ let test_hget () =
     let test_func connection =
         assert(Redis.hset "rory" "cool" "true" connection);
         assert(
@@ -51,8 +51,10 @@ let test_hset () =
             Script.ReadThisLine("HSET rory cool 4");
             Script.ReadThisLine("true");
             Script.WriteThisLine(":1");
-            Script.ReadThisLine("HGET rory cool");
+            Script.ReadThisLine("HGET rory 4");
+            Script.ReadThisLine("cool");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("true")
         ]
         test_func;;
+*)
