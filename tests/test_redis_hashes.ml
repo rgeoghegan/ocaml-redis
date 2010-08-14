@@ -39,8 +39,7 @@ let test_hdel () =
         ]
         test_func;;
 
-(*
- let test_hget () =
+let test_hget () =
     let test_func connection =
         assert(Redis.hset "rory" "cool" "true" connection);
         assert(
@@ -58,4 +57,3 @@ let test_hdel () =
             Script.WriteThisLine("true")
         ]
         test_func;;
-*)

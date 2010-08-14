@@ -207,10 +207,12 @@ let smoke_test_with_quit conn = begin
     assert (Redis.hset "rory" "cool" "true" conn);
     assert (not (Redis.hset "rory" "cool" "false" conn));
 
-(*
     assert (Redis.hdel "rory" "cool" conn);
     assert (not (Redis.hdel "rory" "cool" conn));
-*)
+
+    assert (Redis.hset "rory" "handsome" "true" conn);
+    assert (Redis.String("true") = Redis.hget "rory" "handsome" conn);
+    assert (Redis.Nil = Redis.hget "rory" "boring" conn);
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get

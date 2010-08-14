@@ -781,13 +781,11 @@ let hdel key field connection =
     handle_integer_as_boolean
         (send_with_value_and_receive_command_safely ("HDEL " ^ key) field connection);;
 
-(*
 let hget key field connection =
     (* HGET *)
-    match send_and_receive_command_safely (Printf.sprintf "HGET %s %s" key field) connection with
+    match send_with_value_and_receive_command_safely ("HGET " ^ key) field connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
-*)
 
 (* Sorting *)
 

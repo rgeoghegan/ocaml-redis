@@ -384,12 +384,10 @@ val hset : string -> string -> string -> Connection.t -> bool
 *)
 val hdel : string -> string -> Connection.t -> bool
 
-(*
 (** [hget k f c] retrieves the string stored for field [f] at key [k] con connection [c], as per the [HGET] redis keyword.
     @return {!Redis.Nil} if the field or the key cannot be found.
 *)
 val hget : string -> string -> Connection.t -> bulk_data
-*)
 
 (** {3:sort_cmd Sorting} *)
 
