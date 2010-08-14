@@ -19,7 +19,7 @@ let test_hset () =
         ]
         test_func;;
 
-(*let test_hdel () =
+let test_hdel () =
     let test_func connection =
         assert(Redis.hset "rory" "cool" "true" connection);
         assert(Redis.hdel "rory" "cool" connection);
@@ -39,6 +39,7 @@ let test_hset () =
         ]
         test_func;;
 
+(*
  let test_hget () =
     let test_func connection =
         assert(Redis.hset "rory" "cool" "true" connection);

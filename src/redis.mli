@@ -379,12 +379,12 @@ val zremrangebyscore : string -> float -> float -> Connection.t -> int
 *)
 val hset : string -> string -> string -> Connection.t -> bool
 
-(*
 (** [hdel k f c] deletes field [f] from key [k] on connection [c], as per the [HDEL] redis keyword.
     @return [true] if the field existed and was deleted, [false] otherwise
 *)
 val hdel : string -> string -> Connection.t -> bool
 
+(*
 (** [hget k f c] retrieves the string stored for field [f] at key [k] con connection [c], as per the [HGET] redis keyword.
     @return {!Redis.Nil} if the field or the key cannot be found.
 *)
