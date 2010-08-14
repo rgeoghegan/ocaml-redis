@@ -791,6 +791,7 @@ let hmget key field_list connection =
     (* HMGET *)
     let cmd_buf = Buffer.create 256
     in
+    (* Unfortunately, HMGET has the list of fields inline, except for the last field, which is given as a value *)
     let rec stick_together_but_leave_last cmds =
         match cmds with
             x :: [] -> x |
@@ -809,6 +810,17 @@ let hmget key field_list connection =
                 Multibulk(MultibulkValue(x)) -> x |
                 _ -> failwith "Did not recognize what I got back"
     end;;
+
+let hmset key field_value_pairs connection =
+    (* HMSET *)
+    let rec flatten list_of_pairs result =
+        match list_of_pairs with
+            (key, value) :: tail -> flatten tail (key :: value :: result) |
+            [] -> result
+    in
+    handle_status
+        (send_multibulk_command
+           ( "HMSET" :: key :: (flatten (List.rev field_value_pairs) [])) connection);;
 
 (* Sorting *)
 

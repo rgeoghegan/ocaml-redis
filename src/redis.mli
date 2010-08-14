@@ -393,6 +393,10 @@ val hget : string -> string -> Connection.t -> bulk_data
 *)
 val hmget : string -> string list -> Connection.t -> bulk_data list
 
+(** [hmset k fv c] sets the list of field-value pairs [fv] on connection [c], as per the [HMSET] redis keyword.
+*)
+val hmset : string -> (string * string) list -> Connection.t -> unit
+
 (** {3:sort_cmd Sorting} *)
 
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.
