@@ -210,7 +210,7 @@ let smoke_test_with_quit conn = begin
 (*
     assert (Redis.hdel "rory" "cool" conn);
     assert (not (Redis.hdel "rory" "cool" conn));
-    *)
+*)
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get

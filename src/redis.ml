@@ -332,11 +332,8 @@ let mget keys connection =
 
 let setnx key value connection =
     (* SETNX *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "SETNX %s %d" key (String.length value)) connection;
-        Connection.send_text value connection;
-        handle_integer_as_boolean (receive_answer connection)
-    end;;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely ("SETNX " ^ key) value connection);;
 
 let mset key_value_pairs connection =
     (* MSET *)
@@ -382,12 +379,9 @@ let decrby key value connection =
 
 let append key value connection =
     (* APPEND *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "APPEND %s %d" key (String.length value)) connection;
-        match send_and_receive_command_safely value connection with
-            Integer(x) -> x |
-            _ -> failwith "Did not recognize what I got back"
-    end;;
+    match send_with_value_and_receive_command_safely ("APPEND " ^ key) value connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
 
 let exists key connection =
     (* EXISTS *)
@@ -458,23 +452,15 @@ let ttl key connection =
 (* Commands operating on lists *)
 let rpush key value connection =
     (* RPUSH *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "RPUSH %s %d" key (String.length value)) connection;
-        Connection.send_text value connection;
-        match handle_error (receive_answer connection) with
-            Integer(x) -> x |
-            _ -> failwith "Did not recognize what I got back"
-    end;;
+    match send_with_value_and_receive_command_safely ("RPUSH " ^ key) value connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
 
 let lpush key value connection =
     (* LPUSH *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "LPUSH %s %d" key (String.length value)) connection;
-        Connection.send_text value connection;
-        match handle_error (receive_answer connection) with
-            Integer(x) -> x |
-            _ -> failwith "Did not recognize what I got back"
-    end;;
+    match send_with_value_and_receive_command_safely ("LPUSH " ^ key) value connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
 
 let llen key connection =
     (* LLEN *)
@@ -501,21 +487,14 @@ let lindex key index connection =
 
 let lset key index value connection =
     (* LSET *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "LSET %s %d %d" key index (String.length value)) connection;
-        Connection.send_text value connection;
-        handle_status (receive_answer connection)
-    end;;
+    handle_status
+        (send_with_value_and_receive_command_safely (Printf.sprintf "LSET %s %d" key index) value connection);;
 
 let lrem key count value connection =
     (* LREM *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "LREM %s %d %d" key count (String.length value)) connection;
-        Connection.send_text value connection;
-        match receive_answer connection with
-            Integer(x) -> x |
-            _ -> failwith "Did not recognize what I got back"
-    end;;
+    match send_with_value_and_receive_command_safely (Printf.sprintf "LREM %s %d" key count) value connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
 
 let lpop key connection =
     (* LPOP *)
@@ -600,17 +579,13 @@ let brpop_many key_list ?(timeout=`None) connection =
 (* Commands operating on sets *)
 let sadd key member connection =
     (* SADD *)
-    Connection.send_text_straight (Printf.sprintf "SADD %s %d" key (String.length member)) connection;
-    Connection.send_text member connection;
-    handle_integer_as_boolean (receive_answer connection)
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely ("SADD " ^ key) member connection);;
 
 let srem key member connection =
     (* SREM *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "SREM %s %d" key (String.length member)) connection;
-        Connection.send_text member connection;
-        handle_integer_as_boolean (receive_answer connection)
-    end;;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely ("SREM " ^ key) member connection);;
 
 let spop key connection =
     (* SPOP *)
@@ -620,11 +595,11 @@ let spop key connection =
 
 let smove srckey destkey member connection =
     (* SMOVE *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "SMOVE %s %s %d" srckey destkey (String.length member)) connection;
-        Connection.send_text member connection;
-        handle_integer_as_boolean (receive_answer connection)
-    end;;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely
+            (Printf.sprintf "SMOVE %s %s" srckey destkey)
+            member
+            connection);;
 
 let scard key connection =
     (* SCARD *)
@@ -634,11 +609,8 @@ let scard key connection =
 
 let sismember key member connection =
     (* SISMEMBER *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "SISMEMBER %s %d" key (String.length member)) connection;
-        Connection.send_text member connection;
-        handle_integer_as_boolean (receive_answer connection)
-    end;;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely ("SISMEMBER " ^ key) member connection);;
 
 let smembers key connection =
     (* SMEMBERS *)
@@ -801,24 +773,21 @@ let zremrangebyscore key min max connection =
 
 let hset key field value connection =
     (* HSET *)
-    begin
-        Connection.send_text_straight (Printf.sprintf "HSET %s %s %d" key field (String.length value)) connection;
-        Connection.send_text value connection;
-        handle_integer_as_boolean (receive_answer connection)
-    end;;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely (Printf.sprintf "HSET %s %s" key field) value connection);;
 
 let hdel key field connection =
     (* HDEL *)
     handle_integer_as_boolean
-        (send_and_receive_command
-            (Printf.sprintf "HDEL %s %s\r\n" key field) (* There is currently a bug where this command needs to send out an extra \r\n to work :( *)
-            connection);;
+        (send_with_value_and_receive_command_safely ("HDEL " ^ key) field connection);;
 
+(*
 let hget key field connection =
     (* HGET *)
     match send_and_receive_command_safely (Printf.sprintf "HGET %s %s" key field) connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
+*)
 
 (* Sorting *)
 
