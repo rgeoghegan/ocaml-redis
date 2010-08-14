@@ -57,3 +57,33 @@ let test_hget () =
             Script.WriteThisLine("true")
         ]
         test_func;;
+
+let tet_hmget () =
+    let test_func connection =
+        assert(Redis.hset "rory" "cool" "true" connection);
+        assert(Redis.hset "rory" "handsome" "true" connection);
+        assert([Redis.String("true")] = Redis.hmget "rory" ["cool"] connection);
+        assert([Redis.String("true"); Redis.String("true")] =
+            Redis.hmget "rory" ["cool"; "handsome"] connection)
+    in
+    Script.use_test_script [
+            Script.ReadThisLine("HSET rory cool 4");
+            Script.ReadThisLine("true");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("HSET rory handsome 4");
+            Script.ReadThisLine("true");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("HMGET rory 4");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("*1");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("true");
+            Script.ReadThisLine("HMGET rory cool 8");
+            Script.ReadThisLine("cool");
+            Script.WriteThisLine("*2");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("true");
+            Script.WriteThisLine("$4");
+            Script.WriteThisLine("true")
+        ] test_func;;
+

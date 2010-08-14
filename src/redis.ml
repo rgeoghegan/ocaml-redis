@@ -787,6 +787,29 @@ let hget key field connection =
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let hmget key field_list connection =
+    (* HMGET *)
+    let cmd_buf = Buffer.create 256
+    in
+    let rec stick_together_but_leave_last cmds =
+        match cmds with
+            x :: [] -> x |
+            x :: t -> begin
+                Buffer.add_char cmd_buf ' ';
+                Buffer.add_string cmd_buf x;
+                stick_together_but_leave_last t
+            end |
+            [] -> failwith "Something went wrong, not expecting an empty list."
+    in
+    begin
+        Buffer.add_string cmd_buf "HMGET";
+        let value = stick_together_but_leave_last (key :: field_list)
+        in
+            match send_with_value_and_receive_command_safely (Buffer.contents cmd_buf) value connection with
+                Multibulk(MultibulkValue(x)) -> x |
+                _ -> failwith "Did not recognize what I got back"
+    end;;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =
