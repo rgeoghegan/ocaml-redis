@@ -828,6 +828,11 @@ let hincrby key field value connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let hexists key field connection =
+    (* HEXISTS *)
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely ("HEXISTS " ^ key) field connection);;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =

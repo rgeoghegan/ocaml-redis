@@ -218,7 +218,10 @@ let smoke_test_with_quit conn = begin
 
     Redis.hmset "rory" [("handsome", "false"); ("boring", "true")] conn;
 
-    Redis.hincrby "rory" "age" 26 conn;
+    assert(26 = Redis.hincrby "rory" "age" 26 conn);
+
+    assert(Redis.hexists "rory" "handsome" conn);
+    assert(not (Redis.hexists "rory" "andsome" conn));
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get

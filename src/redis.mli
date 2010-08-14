@@ -401,6 +401,10 @@ val hmset : string -> (string * string) list -> Connection.t -> unit
 *)
 val hincrby : string -> string -> int -> Connection.t -> int
 
+(** [hexists k f c] returns [true] if field [f] exists at key [k] on connection [c], [false] otherwise, as per the [HEXISTS] redis keyword.
+*)
+val hexists : string -> string -> Connection.t -> bool
+
 (** {3:sort_cmd Sorting} *)
 
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.

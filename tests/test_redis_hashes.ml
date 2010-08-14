@@ -92,21 +92,21 @@ let test_hmset () =
         Redis.hmset "rory" [("cool", "true"); ("handsome", "true")] connection
     in
     Script.use_test_script [
-            Script.ReadThisLine("*6");
-            Script.ReadThisLine("$5");
-            Script.ReadThisLine("HMSET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("true");
-            Script.ReadThisLine("$8");
-            Script.ReadThisLine("handsome");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("true");
-            Script.WriteThisLine("+OK")
-        ] test_func;;
+        Script.ReadThisLine("*6");
+        Script.ReadThisLine("$5");
+        Script.ReadThisLine("HMSET");
+        Script.ReadThisLine("$4");
+        Script.ReadThisLine("rory");
+        Script.ReadThisLine("$4");
+        Script.ReadThisLine("cool");
+        Script.ReadThisLine("$4");
+        Script.ReadThisLine("true");
+        Script.ReadThisLine("$8");
+        Script.ReadThisLine("handsome");
+        Script.ReadThisLine("$4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine("+OK")
+    ] test_func;;
 
 let test_hincrby () =
     let test_func connection =
@@ -114,10 +114,28 @@ let test_hincrby () =
         assert (27 = Redis.hincrby "rory" "age" 1 connection)
     in
     Script.use_test_script [
-            Script.ReadThisLine("HSET rory age 2");
-            Script.ReadThisLine("26");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("HINCRBY rory age 1");
-            Script.WriteThisLine(":27")
+        Script.ReadThisLine("HSET rory age 2");
+        Script.ReadThisLine("26");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HINCRBY rory age 1");
+        Script.WriteThisLine(":27")
+    ] test_func;;
+
+let test_hexists () =
+    let test_func connection =
+        assert (Redis.hset "rory" "cool" "true" connection);
+        assert (Redis.hexists "rory" "cool" connection);
+        assert (not (Redis.hexists "rory" "age" connection))
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("HSET rory cool 4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HEXISTS rory 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HEXISTS rory 3");
+        Script.ReadThisLine("age");
+        Script.WriteThisLine(":0")
     ] test_func;;
     
