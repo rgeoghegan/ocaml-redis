@@ -172,3 +172,24 @@ let test_hkeys () =
         Script.WriteThisLine("$8");
         Script.WriteThisLine("handsome")
     ] test_func;;
+
+let test_hvals () =
+    let test_func connection =
+        assert(Redis.hset "rory" "cool" "true" connection);
+        assert(Redis.hset "rory" "handsome" "true" connection);
+        assert(["true"; "true"] = Redis.hvals "rory" connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("HSET rory cool 4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HSET rory handsome 4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HVALS rory");
+        Script.WriteThisLine("*2");
+        Script.WriteThisLine("$4");
+        Script.WriteThisLine("true");
+        Script.WriteThisLine("$4");
+        Script.WriteThisLine("true")
+    ] test_func;;

@@ -228,7 +228,9 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.del ["rory"] conn);
     ignore (Redis.hset "rory" "cool" "true" conn);
     assert("cool" = List.hd (Redis.hkeys "rory" conn));
-    
+
+    assert("true" = List.hd (Redis.hvals "rory" conn));
+
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get
         (Redis.info conn)

@@ -841,15 +841,15 @@ let hlen key connection =
 
 let hkeys key connection =
     (* HKEYS *)
-    let get_value x =
-        match x with
-            String(f) -> f |
-            _ -> failwith("Expecting string value in returned list")
-    in
     match send_and_receive_command_safely ("HKEYS " ^ key) connection with
-        Multibulk(MultibulkValue(x)) -> List.map get_value x |
+        Multibulk(MultibulkValue(x)) -> List.map string_of_bulk_data x |
         _ -> failwith "Did not recognize what I got back";;
-        
+
+let hvals key connection =
+    (* HVALS *)
+    match send_and_receive_command_safely ("HVALS " ^ key) connection with
+        Multibulk(MultibulkValue(x)) -> List.map string_of_bulk_data x |
+        _ -> failwith "Did not recognize what I got back";;
 
 (* Sorting *)
 
