@@ -417,6 +417,10 @@ val hkeys : string -> Connection.t -> string list
 *)
 val hvals : string -> Connection.t -> string list
 
+(** [hgetall k c] returns the pairs of field/values stored at key [k] on connection [c], as per the [HGETALL] redis keyword.
+*)
+val hgetall : string -> Connection.t -> (string * string) list
+
 (** {3:sort_cmd Sorting} *)
 
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.

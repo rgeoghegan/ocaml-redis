@@ -851,6 +851,18 @@ let hvals key connection =
         Multibulk(MultibulkValue(x)) -> List.map string_of_bulk_data x |
         _ -> failwith "Did not recognize what I got back";;
 
+let hgetall key connection =
+    (* HGETALL *)
+    let rec collate_pairs elems out =
+        match elems with
+            [] -> List.rev out |
+            f :: v :: rest -> collate_pairs rest ((f,v) :: out) |
+            _ -> failwith "Did not provide a pair of field-values"
+    in
+    match send_and_receive_command_safely ("HGETALL " ^ key) connection with
+        Multibulk(MultibulkValue(x)) -> collate_pairs (List.map string_of_bulk_data x) [] |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =
