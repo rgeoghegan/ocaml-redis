@@ -822,6 +822,12 @@ let hmset key field_value_pairs connection =
         (send_multibulk_command
            ( "HMSET" :: key :: (flatten (List.rev field_value_pairs) [])) connection);;
 
+let hincrby key field value connection =
+    (* HINCRBY *)
+    match send_and_receive_command_safely (Printf.sprintf "HINCRBY %s %s %d" key field value) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =

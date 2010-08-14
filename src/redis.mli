@@ -397,6 +397,10 @@ val hmget : string -> string list -> Connection.t -> bulk_data list
 *)
 val hmset : string -> (string * string) list -> Connection.t -> unit
 
+(** [hincrby k f v c] increments the field [f] on key [k] by value [v] on connection [c], as per the [HINCRBY] redis keyword.
+*)
+val hincrby : string -> string -> int -> Connection.t -> int
+
 (** {3:sort_cmd Sorting} *)
 
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.

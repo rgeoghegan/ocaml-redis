@@ -107,4 +107,17 @@ let test_hmset () =
             Script.ReadThisLine("true");
             Script.WriteThisLine("+OK")
         ] test_func;;
+
+let test_hincrby () =
+    let test_func connection =
+        assert (Redis.hset "rory" "age" "26" connection);
+        assert (27 = Redis.hincrby "rory" "age" 1 connection)
+    in
+    Script.use_test_script [
+            Script.ReadThisLine("HSET rory age 2");
+            Script.ReadThisLine("26");
+            Script.WriteThisLine(":1");
+            Script.ReadThisLine("HINCRBY rory age 1");
+            Script.WriteThisLine(":27")
+    ] test_func;;
     

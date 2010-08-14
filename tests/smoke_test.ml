@@ -217,6 +217,8 @@ let smoke_test_with_quit conn = begin
     assert ([Redis.String("true"); Redis.Nil] = Redis.hmget "rory" ["handsome"; "boring"] conn);
 
     Redis.hmset "rory" [("handsome", "false"); ("boring", "true")] conn;
+
+    Redis.hincrby "rory" "age" 26 conn;
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get
