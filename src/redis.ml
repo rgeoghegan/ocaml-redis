@@ -839,6 +839,18 @@ let hlen key connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let hkeys key connection =
+    (* HKEYS *)
+    let get_value x =
+        match x with
+            String(f) -> f |
+            _ -> failwith("Expecting string value in returned list")
+    in
+    match send_and_receive_command_safely ("HKEYS " ^ key) connection with
+        Multibulk(MultibulkValue(x)) -> List.map get_value x |
+        _ -> failwith "Did not recognize what I got back";;
+        
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =

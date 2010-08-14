@@ -151,3 +151,24 @@ let test_hlen () =
         Script.ReadThisLine("HLEN rory");
         Script.WriteThisLine(":1")
     ] test_func;;
+
+let test_hkeys () =
+    let test_func connection =
+        assert(Redis.hset "rory" "cool" "true" connection);
+        assert(Redis.hset "rory" "handsome" "true" connection);
+        assert(["cool"; "handsome"] = Redis.hkeys "rory" connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("HSET rory cool 4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HSET rory handsome 4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HKEYS rory");
+        Script.WriteThisLine("*2");
+        Script.WriteThisLine("$4");
+        Script.WriteThisLine("cool");
+        Script.WriteThisLine("$8");
+        Script.WriteThisLine("handsome")
+    ] test_func;;

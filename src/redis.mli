@@ -409,6 +409,10 @@ val hexists : string -> string -> Connection.t -> bool
 *)
 val hlen : string -> Connection.t -> int
 
+(** [hkeys k c] returns a list of all the fields at key [k] on connection [c], as per the [HKEYS] redis keyword.
+*)
+val hkeys : string -> Connection.t -> string list
+
 (** {3:sort_cmd Sorting} *)
 
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.
