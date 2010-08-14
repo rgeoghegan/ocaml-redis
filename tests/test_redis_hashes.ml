@@ -138,4 +138,16 @@ let test_hexists () =
         Script.ReadThisLine("age");
         Script.WriteThisLine(":0")
     ] test_func;;
-    
+
+let test_hlen () =
+    let test_func connection =
+        assert (Redis.hset "rory" "cool" "true" connection);
+        assert (1 = Redis.hlen "rory" connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("HSET rory cool 4");
+        Script.ReadThisLine("true");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("HLEN rory");
+        Script.WriteThisLine(":1")
+    ] test_func;;

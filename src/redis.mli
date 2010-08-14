@@ -405,6 +405,10 @@ val hincrby : string -> string -> int -> Connection.t -> int
 *)
 val hexists : string -> string -> Connection.t -> bool
 
+(** [hlen k c] returns the number of fields at key [k] on connection [c], as per the [HLEN] redis keyword.
+*)
+val hlen : string -> Connection.t -> int
+
 (** {3:sort_cmd Sorting} *)
 
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.

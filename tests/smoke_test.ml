@@ -222,6 +222,8 @@ let smoke_test_with_quit conn = begin
 
     assert(Redis.hexists "rory" "handsome" conn);
     assert(not (Redis.hexists "rory" "andsome" conn));
+
+    assert(3 = Redis.hlen "rory" conn);
     
     (* Remote server control commands *)
     assert ( "master" = Redis.Info.get

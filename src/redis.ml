@@ -833,6 +833,12 @@ let hexists key field connection =
     handle_integer_as_boolean
         (send_with_value_and_receive_command_safely ("HEXISTS " ^ key) field connection);;
 
+let hlen key connection =
+    (* HLEN *)
+    match send_and_receive_command_safely ("HLEN " ^ key) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Sorting *)
 
 let parse_sort_args pattern limit order alpha =
