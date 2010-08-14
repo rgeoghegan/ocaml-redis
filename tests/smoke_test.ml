@@ -203,11 +203,11 @@ let smoke_test_with_quit conn = begin
         Redis.sort_and_store "people" ["name_*"] "results" ~pattern:"yob_*" conn);
 
     (* Hashes *)
-    (*
     ignore (Redis.del ["rory"] conn);
     assert (Redis.hset "rory" "cool" "true" conn);
     assert (not (Redis.hset "rory" "cool" "false" conn));
 
+(*
     assert (Redis.hdel "rory" "cool" conn);
     assert (not (Redis.hdel "rory" "cool" conn));
     *)
