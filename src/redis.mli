@@ -166,6 +166,10 @@ val decrby : string -> int -> Connection.t -> int
 *)
 val append : string -> string -> Connection.t -> int
 
+(** [substr k s e c] returns the substring starting at index [s] and ending at index [e] for key [k] on connection [c].
+*)
+val substr : string -> int -> int -> Connection.t -> bulk_data
+
 (** {3:list_cmd Commands operating on lists} *)
 
 (** [rpush k v c] pushes value [v] to the tail of the list at key [k] on connection [c], as per the [RPUSH] redis keyword.

@@ -277,3 +277,16 @@ let test_append () =
         ]
         test_func;;
     
+let test_substr () =
+    let test_func connection =
+        Redis.set "rory" "cool" connection;
+        assert (Redis.String("ol") = Redis.substr "rory" 2 4 connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("SET rory 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine("+OK");
+        Script.ReadThisLine("SUBSTR rory 2 4");
+        Script.WriteThisLine("$2");
+        Script.WriteThisLine("ol")
+    ] test_func;;

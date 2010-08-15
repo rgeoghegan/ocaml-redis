@@ -389,6 +389,12 @@ let append key value connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let substr key start stop connection =
+    (* SUBSTR, note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
+    match send_and_receive_command_safely (Printf.sprintf "SUBSTR %s %d %d" key start stop) connection with
+        Bulk(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 let exists key connection =
     (* EXISTS *)
     handle_integer_as_boolean (send_and_receive_command ("EXISTS " ^ key) connection)

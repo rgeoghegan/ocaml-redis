@@ -27,6 +27,8 @@ let smoke_test_with_quit conn = begin
     Redis.set "rory" "very " conn;
     assert (9 = Redis.append "rory" "cool" conn);
 
+    assert ("cool" = Redis.string_of_bulk_data (Redis.substr "rory" 5 9 conn));
+
     assert ( 2 = Redis.del ["rory"; "tim"] conn);
 
     Redis.set "rory" "cool" conn;
