@@ -5,6 +5,7 @@
 
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 type bulk_data = Nil | String of string
+type rank = NilRank | Rank of int
 type multi_bulk_data = MultibulkNil | MultibulkValue of bulk_data list
 exception RedisServerError of string
 exception RedisNilError of string
@@ -18,6 +19,11 @@ let string_of_bulk_data bd =
     match bd with
         String(x) -> x |
         Nil -> raise (RedisNilError "Trying to extract string from none")
+
+let int_of_rank r =
+    match r with
+        Rank(x) -> x |
+        NilRank -> raise (RedisNilError "Trying to extract string from none")
 
 let string_of_response r =
     let bulk_printer x =
@@ -759,10 +765,16 @@ let zrangebyscore key start stop ?(limit=`Unlimited) connection =
 
 let zincrby key increment member connection =
     (* ZINCRBY *)
-    Connection.send_text (Printf.sprintf "ZINCRBY %s %f %d" key increment (String.length member)) connection;
-    Connection.send_text member connection;
-    handle_float (receive_answer connection);;
+    handle_float
+        (send_with_value_and_receive_command_safely (Printf.sprintf "ZINCRBY %s %f" key increment) member connection);;
 
+let zrank key member connection =
+    (* ZRANK *)
+    match send_with_value_and_receive_command_safely ("ZRANK " ^ key) member connection with
+        Integer(x) -> Rank(x) |
+        Bulk(Nil) -> NilRank |
+        _ -> failwith "Did not recognize what I got back";;
+        
 let zcard key connection =
     (* ZCARD *)
     match (send_and_receive_command_safely ("ZCARD " ^ key) connection) with

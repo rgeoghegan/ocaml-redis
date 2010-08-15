@@ -191,6 +191,24 @@ let test_zincrby () =
         ]
         test_func;;
 
+let test_zrank () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42.0 "cool" connection);
+        assert (Redis.Rank(0) = Redis.zrank "rory" "cool" connection);
+        assert (Redis.NilRank = Redis.zrank "rory" "boring" connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("ZADD rory 42.000000 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZRANK rory 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":0");
+        Script.ReadThisLine("ZRANK rory 6");
+        Script.ReadThisLine("boring");
+        Script.WriteThisLine("$-1")
+    ] test_func;;
+
 let test_zcard () =
     let test_func connection =
         assert (0 = Redis.zcard "rory" connection)

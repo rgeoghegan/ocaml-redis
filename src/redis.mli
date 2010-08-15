@@ -14,6 +14,9 @@ type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSe
 (** Bulk types. To get a string representation, use {!string_of_bulk_data}. *)
 type bulk_data = Nil | String of string
 
+(** Rank types. Ranks are an integer, or [Nil] for a non-existant key. *)
+type rank = NilRank | Rank of int
+
 (** Exception raised when trying to get a {!bulk_data} [String] out of a {!bulk_data} [Nil] type. *)
 exception RedisNilError of string
 
@@ -22,6 +25,9 @@ val string_of_redis_value_type : redis_value_type -> string
 
 (** Returns the string contained by a {!bulk_data} type, as long as the type is {!bulk_data} [String]. If it is {!bulk_data} [Nil], it raises a {!RedisNilError} exception. *)
 val string_of_bulk_data : bulk_data -> string
+
+(** Returns the rank contained by a {!rank} type, as long as the type is {!rank} [Rank]. If it is {!rank} [Nil], it raises a {!RedisNilError} exception. *)
+val int_of_rank : rank -> int
 
 (** Exception when getting an error ("-...") response from the redis server. *)
 exception RedisServerError of string
@@ -215,9 +221,6 @@ val lpop : string -> Connection.t -> bulk_data
 *)
 val rpop : string -> Connection.t -> bulk_data
 
-(** [rpoplpush sk dk c] pops the tail of the list at the source key [sk] and pushes it to the tail of the list at the destination key [dk] on connection [c], as per the [RPOPLPUSH] redis keyword. *)
-val rpoplpush : string -> string -> Connection.t -> bulk_data
-
 (** [blpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [BLPOP] redis keyword, but for only one key.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
     @return the value poped from key [k], or {!bulk_data} [Nil] if the list at [k] is empty
@@ -257,6 +260,9 @@ val brpop_many :
     ?timeout:[< `None | `Seconds of int > `None ] ->
     Connection.t ->
     string * bulk_data
+
+(** [rpoplpush sk dk c] pops the tail of the list at the source key [sk] and pushes it to the tail of the list at the destination key [dk] on connection [c], as per the [RPOPLPUSH] redis keyword. *)
+val rpoplpush : string -> string -> Connection.t -> bulk_data
 
 (** {3:set_cmd Commands operating on sets} *)
 
@@ -334,6 +340,9 @@ val zrem : string -> string -> Connection.t -> bool
 
 (** [zincrby k i m c] increment member [m] of set at key [k] by increment [i] on connection [c], as per the [ZINCRBY] redis keyword. *)
 val zincrby : string -> float -> string -> Connection.t -> float
+
+(** [zrank k m c] returns the rank of member [m] at key [k] on connection [c], as per the [ZRANK] redis keyword. *)
+val zrank : string -> string -> Connection.t -> rank
 
 (** [zrange k s e c] returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZRANGE] redis keyword. *)
 val zrange :

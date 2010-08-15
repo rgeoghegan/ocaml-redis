@@ -167,6 +167,9 @@ let smoke_test_with_quit conn = begin
         2.0
         = Redis.zincrby "coolest" 1.0 "rory" conn);
 
+    assert (
+        Redis.Rank(0) = Redis.zrank "coolest" "rory" conn
+    );
     assert (2 = Redis.zcard "coolest" conn);
 
     assert (2.0 = Redis.zscore "coolest" "rory" conn);

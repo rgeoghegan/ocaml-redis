@@ -16,6 +16,15 @@ let test_string_of_bulk_data () =
         with RedisNilError(_) -> ()
     end;;
 
+let test_int_of_rank () =
+    begin
+        assert ( 42 = (int_of_rank (Rank(42))));
+        try
+            (* Test failure when passing in Nil *)
+            ignore (int_of_rank (NilRank))
+        with RedisNilError(_) -> ()
+    end;;
+
 let run_comparison_tests test_data transformation_function =
     let tester (a,b) = 
         assert ( transformation_function a = b )
