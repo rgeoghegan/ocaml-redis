@@ -183,16 +183,23 @@ let smoke_test_with_quit conn = begin
 
     ignore (Redis.del_one "tim" conn);
     ignore (Redis.del_one "rory" conn);
-    ignore (Redis.zadd "rory" 10.0 "cool");
-    ignore (Redis.zadd "tim" 20.0 "cool");
-    assert (0 = Redis.zunionstore "union" ["rory"; "tim"] conn);
-    assert (0 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Min conn);
-    assert (0 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Max conn);
+    ignore (Redis.zadd "rory" 10.0 "cool" conn);
+    ignore (Redis.zadd "tim" 20.0 "uncool" conn);
+    assert (2 = Redis.zunionstore "union" ["rory"; "tim"] conn);
+    assert (2 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Sum conn);
+    assert (2 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Min conn);
+    assert (2 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Max conn);
 
-    assert (0 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] conn);
-    assert (0 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Min conn);
-    assert (0 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Max conn);
+    assert (2 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] conn);
+    assert (2 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Sum conn);
+    assert (2 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Min conn);
+    assert (2 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Max conn);
 
+    assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] conn);
+    assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Sum conn);
+    assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Min conn);
+    assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Max conn);
+    
     (* Sort *)
         
     ignore (Redis.del_one "rory" conn);
