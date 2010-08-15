@@ -9,6 +9,7 @@ type rank = NilRank | Rank of int
 type multi_bulk_data = MultibulkNil | MultibulkValue of bulk_data list
 exception RedisServerError of string
 exception RedisNilError of string
+exception RedisInvalidArgumentError of string
 
 (* This is an internal type used to transform what the Redis server can handle into ocaml types. *)
 type response = Status of string | Undecipherable | Integer of int | LargeInteger of float | Bulk of bulk_data | Multibulk of multi_bulk_data | Error of string
@@ -809,6 +810,20 @@ let zunionstore dstkey key_list ?(aggregate=`Sum) connection =
         (Printf.sprintf "ZUNIONSTORE %s %d%s AGGREGATE %s" dstkey
             (List.length key_list)
             (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
+            (match aggregate with
+                `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
+        connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
+let zunionstore_withweights dstkey key_list weight_list ?(aggregate=`Sum) connection =
+    if List.length key_list != List.length weight_list
+    then raise (RedisInvalidArgumentError("Not as many weights were given as keys to zunionstore_withweights"))
+    else match send_and_receive_command_safely
+        (Printf.sprintf "ZUNIONSTORE %s %d%s WEIGHTS%s AGGREGATE %s" dstkey
+            (List.length key_list)
+            (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
+            (List.fold_left (fun rest x -> Printf.sprintf "%s %f" rest x) "" weight_list)
             (match aggregate with
                 `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
         connection with

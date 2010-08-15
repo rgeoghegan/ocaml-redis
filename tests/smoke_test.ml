@@ -189,6 +189,10 @@ let smoke_test_with_quit conn = begin
     assert (0 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Min conn);
     assert (0 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Max conn);
 
+    assert (0 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] conn);
+    assert (0 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Min conn);
+    assert (0 = Redis.zunionstore_withweights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Max conn);
+
     (* Sort *)
         
     ignore (Redis.del_one "rory" conn);

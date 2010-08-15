@@ -32,6 +32,9 @@ val int_of_rank : rank -> int
 (** Exception when getting an error ("-...") response from the redis server. *)
 exception RedisServerError of string
 
+(** Exception when the client library discovers a problem with one of the arguments. *)
+exception RedisInvalidArgumentError of string
+
 (** {3:connection Connection handling} *)
 
 (** The [Connection] module is used to abstract away all the socket manipulations done by the {!Redis} module. *)
@@ -402,6 +405,12 @@ val zremrangebyscore : string -> float -> float -> Connection.t -> int
     @return The number of members now in the destination key.
 *)
 val zunionstore : string -> string list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
+
+(** [zunionstore_withweights d kl wl aggregate c] stores the union of all the members in the sorted sets at [kl] in destination key [d] by first multiplying the scores in each key by wl and then by aggregating by [aggregate] on connection [c], as per the [ZUNIONSTORE] redis keyword.
+    @param aggregate way to aggregate scores across all the same members of different keys. Either [`Sum] (the default), [`Min] or [`Max].
+    @return The number of members now in the destination key.
+*)
+val zunionstore_withweights : string -> string list -> float list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
 
 (** {3:hash_cmd Commands operating on hashes} *)
 
