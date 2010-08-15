@@ -131,6 +131,10 @@ val mget :
 (** [setnx k v c] sets key [k] to value [v] on connection [c], as per the [SETNX] redis keyword. As opposed to {!set}, will return [false] and not set the key if the key [k] already exists; otherwise returns [true]. *)
 val setnx : string -> string -> Connection.t -> bool
 
+(** [setex k t v c] sets the key [k] to value [v] with timeout [t] on connection [c], as per the [SETEX] redis keyword.
+*)
+val setex : string -> int -> string -> Connection.t -> unit
+
 (** [mset kv c] sets the list of key-value pairs [kv] on connection [c], as per the [MSET] redis keyword. *)
 val mset : (string * string) list -> Connection.t -> unit
 
@@ -385,7 +389,7 @@ val hset : string -> string -> string -> Connection.t -> bool
 val hdel : string -> string -> Connection.t -> bool
 
 (** [hget k f c] retrieves the string stored for field [f] at key [k] on connection [c], as per the [HGET] redis keyword.
-    @return {!Redis.Nil} if the field or the key cannot be found.
+    @return {!bulk_data} [Nil] if the field or the key cannot be found.
 *)
 val hget : string -> string -> Connection.t -> bulk_data
 

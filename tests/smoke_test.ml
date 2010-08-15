@@ -42,8 +42,11 @@ let smoke_test_with_quit conn = begin
     Redis.set "rory" "more cool" conn;
     assert ( false = Redis.renamenx "rory" "tim" conn);
 
+    Redis.setex "rory" 10 "cool" conn;
+
     assert ( 2 == Redis.dbsize conn );
 
+    Redis.set "rory" "cool" conn;
     assert ( Redis.expire "rory" 10 conn );
     assert ( 10 >= Redis.ttl "rory" conn );
 

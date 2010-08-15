@@ -335,6 +335,12 @@ let setnx key value connection =
     handle_integer_as_boolean
         (send_with_value_and_receive_command_safely ("SETNX " ^ key) value connection);;
 
+let setex key timeout value connection =
+    (* SETEX *)
+    handle_status
+        (send_with_value_and_receive_command_safely
+            (Printf.sprintf "SETEX %s %d" key timeout) value connection);;
+
 let mset key_value_pairs connection =
     (* MSET *)
     let rec flatten list_of_pairs result =

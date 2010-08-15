@@ -79,6 +79,16 @@ let test_setnx () =
         ]
         test_func;;
 
+let test_setex () =
+    let test_func connection =
+        Redis.setex "key" 10 "aaa" connection
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("SETEX key 10 3");
+        Script.ReadThisLine("aaa");
+        Script.WriteThisLine("+OK")
+    ] test_func;;
+
 let test_mset () =
     let test_func connection =
         Redis.mset [("rory", "cool"); ("tim", "not cool")] connection
