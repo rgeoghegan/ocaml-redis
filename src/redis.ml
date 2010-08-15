@@ -951,12 +951,15 @@ let hgetall key connection =
 
 (* Sorting *)
 
+type redis_sort_pattern = KeyPattern of string | FieldPattern of string * string | NoSort | NoPattern
+
 let parse_sort_args pattern limit order alpha =
     (* Some of the sort args need further parsing and are used across multiple functions. *)
     let pattern = match pattern with
-        `None -> "" |
-        `Pattern(x) -> " BY " ^ x |
-        `NoPattern -> " BY nosort"
+        KeyPattern(k) -> " BY " ^ k |
+        FieldPattern(k, f) -> Printf.sprintf " BY %s->%s" k f |
+        NoSort -> " BY nosort" |
+        NoPattern -> ""
     in
     let limit = match limit with
         `Unlimited -> "" |
@@ -973,7 +976,7 @@ let parse_sort_args pattern limit order alpha =
         (pattern, limit, order, alpha);;
     
 let sort key
-    ?(pattern=`None)
+    ?(pattern=NoPattern)
     ?(limit=`Unlimited)
     ?get
     ?(order=`Asc)
@@ -993,7 +996,7 @@ let sort key
         expect_non_nil_multibulk (send_and_receive_command_safely command connection);;
 
 let sort_get_many key get_patterns
-    ?(pattern=`None)
+    ?(pattern=NoPattern)
     ?(limit=`Unlimited)
     ?(order=`Asc)
     ?(alpha=`NonAlpha)
@@ -1026,7 +1029,7 @@ let sort_get_many key get_patterns
                 (send_and_receive_command_safely command connection));;
 
 let sort_and_store key get_patterns dest_key
-    ?(pattern=`None)
+    ?(pattern=NoPattern)
     ?(limit=`Unlimited)
     ?(order=`Asc)
     ?(alpha=`NonAlpha)

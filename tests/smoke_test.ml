@@ -215,7 +215,7 @@ let smoke_test_with_quit conn = begin
     )));
 
     assert ("2" = Redis.string_of_bulk_data (List.hd (
-        Redis.sort "rory" ~pattern:`NoPattern conn
+        Redis.sort "rory" ~pattern:Redis.NoSort conn
     )));
 
     (* This requires quite some test data to set up *)
@@ -237,14 +237,23 @@ let smoke_test_with_quit conn = begin
         end
     in
     ignore (List.fold_left add_record 1 data);
+    ignore (Redis.hset "hash_0" "yob" "1984" conn);
+    ignore (Redis.hset "hash_1" "yob" "1980" conn);
+
     assert (
         ["Bob"; "1980"] =
         List.map Redis.string_of_bulk_data
-            (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:(`Pattern("yob_*")) conn))
+            (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:(Redis.KeyPattern("yob_*")) conn))
+    );
+
+    assert (
+        ["Bob"; "1980"] =
+        List.map Redis.string_of_bulk_data
+            (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:(Redis.FieldPattern("hash_*", "yob")) conn))
     );
     
     assert(2=
-        Redis.sort_and_store "people" ["name_*"] "results" ~pattern:(`Pattern("yob_*")) conn);
+        Redis.sort_and_store "people" ["name_*"] "results" ~pattern:(Redis.KeyPattern("yob_*")) conn);
 
     (* Hashes *)
     ignore (Redis.del ["rory"] conn);

@@ -475,8 +475,12 @@ val hgetall : string -> Connection.t -> (string * string) list
 
 (** {3:sort_cmd Sorting} *)
 
+(** Sorting sometimes requires a pattern to be specifies. [KeyPattern(pattern] specifies the pattern for a key, [FieldPattern(key pattern)] specifies a specific field from a hash following the key pattern, [NoSort] specifies to not perform any sorting, and [NoPattern] is used to cancel the pattern parameter, and is usually a default.
+*)
+type redis_sort_pattern = KeyPattern of string | FieldPattern of string * string | NoSort | NoPattern
+
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.
-    @param pattern either a key pattern as [`Pattern(string)] (i.e. [`Pattern("weight_*")]) to use to fetch the value to sort by or [`NoPattern] to do no sorting, or [`None] (the default) to sort by the original key.
+    @param pattern a {!redis_sort_pattern}, [NoPattern] by default.
     @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
     @param get instead of returning the values in the key [k], use a pattern (i.e. [object_*]) to produce the output.
     @param order either [`Asc] to sort ascending (the default) or [`Desc] for descending.
@@ -484,7 +488,7 @@ val hgetall : string -> Connection.t -> (string * string) list
 *)
 val sort :
   string ->
-  ?pattern:[< `Pattern of string | `NoPattern | `None > `None ] ->
+  ?pattern:redis_sort_pattern ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
   ?get:string ->
   ?order:[< `Asc | `Desc > `Asc ] ->
@@ -493,7 +497,7 @@ val sort :
 
 (** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [SORT] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
     @return a list of lists of values "gotten" by the patterns in the list [gt]
-    @param pattern either a key pattern as [`Pattern(string)] (i.e. [`Pattern("weight_*")]) to use to fetch the value to sort by or [`NoPattern] to do no sorting, or [`None] (the default) to sort by the original key.
+    @param pattern a {!redis_sort_pattern}, [NoPattern] by default.
     @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
     @param order either [`Asc] to sort ascending (the default) or [`Desc] for descending.
     @param alpha either [`NonAlpha] to sort numerically (the default) or [`Alpha] to sort alphanumerically.
@@ -501,7 +505,7 @@ val sort :
 val sort_get_many :
   string ->
   string list ->
-  ?pattern:[< `Pattern of string | `NoPattern | `None > `None ] ->
+  ?pattern:redis_sort_pattern ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
   ?order:[< `Asc | `Desc > `Asc ] ->
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
@@ -510,7 +514,7 @@ val sort_get_many :
 (** [sort_and_store k gt d pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], and places the results at key [d], as per the [SORT] redis keyword. This function is a way to use the [STORE] keyword with either one or multiple [GET]s times as per the redis spec.
     @return the length of the destination list at key [d]
     @param gt a list of keys to store in the destination list, can be a list with one item.
-    @param pattern either a key pattern as [`Pattern(string)] (i.e. [`Pattern("weight_*")]) to use to fetch the value to sort by or [`NoPattern] to do no sorting, or [`None] (the default) to sort by the original key.
+    @param pattern a {!redis_sort_pattern}, [NoPattern] by default.
     @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
     @param order either [`Asc] to sort ascending (the default) or [`Desc] for descending.
     @param alpha either [`NonAlpha] to sort numerically (the default) or [`Alpha] to sort alphanumerically.
@@ -519,7 +523,7 @@ val sort_and_store :
   string ->
   string list ->
   string ->
-  ?pattern:[< `Pattern of string | `NoPattern | `None > `None ] ->
+  ?pattern:redis_sort_pattern ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
   ?order:[< `Asc | `Desc > `Asc ] ->
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
