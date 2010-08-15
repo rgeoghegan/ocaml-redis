@@ -181,8 +181,19 @@ let smoke_test_with_quit conn = begin
     
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
+    ignore (Redis.del_one "tim" conn);
+    ignore (Redis.del_one "rory" conn);
+    ignore (Redis.zadd "rory" 10.0 "cool");
+    ignore (Redis.zadd "tim" 20.0 "cool");
+    assert (0 = Redis.zunionstore "union" ["rory"; "tim"] conn);
+    assert (0 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Min conn);
+    assert (0 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Max conn);
+
     (* Sort *)
         
+    ignore (Redis.del_one "rory" conn);
+    ignore (Redis.lpush "rory" "1" conn);
+    ignore (Redis.lpush "rory" "2" conn);
     assert ( "2" = Redis.string_of_bulk_data (List.hd (
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));

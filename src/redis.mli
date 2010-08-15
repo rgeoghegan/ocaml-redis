@@ -397,6 +397,12 @@ val zremrangebyrank : string -> int -> int -> Connection.t -> int
 *)
 val zremrangebyscore : string -> float -> float -> Connection.t -> int
 
+(** [zunionstore d kl aggregate c] stores the union of all the members in the sorted sets at [kl] in destination key [d] by aggregating by [aggregate] on connection [c], as per the [ZUNIONSTORE] redis keyword.
+    @param aggregate way to aggregate scores across all the same members of different keys. Either [`Sum] (the default), [`Min] or [`Max].
+    @return The number of members now in the destination key.
+*)
+val zunionstore : string -> string list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
+
 (** {3:hash_cmd Commands operating on hashes} *)
 
 (** [hset k f v c] sets field [f] to value [v] at key [k] on connection [c], as per the [HSET] redis keyword.

@@ -282,5 +282,28 @@ let test_zremrangebyscore () =
             Script.WriteThisLine(":1");
         ]
         test_func;;
+
+let test_zunionstore () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42.0 "cool" connection);
+        ignore (Redis.zadd "tim" 10.0 "cool" connection);
+        assert (1 = Redis.zunionstore "union" ["rory"; "tim"] connection);
+        assert (1 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Min connection);
+        assert (1 = Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:`Max connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("ZADD rory 42.000000 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZADD tim 10.000000 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZUNIONSTORE union 2 rory tim AGGREGATE SUM");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZUNIONSTORE union 2 rory tim AGGREGATE MIN");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZUNIONSTORE union 2 rory tim AGGREGATE MAX");
+        Script.WriteThisLine(":1")
+    ] test_func;;
         
     
