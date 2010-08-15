@@ -698,15 +698,13 @@ let flushall connection =
 (* Commands operating on sorted sets *)
 let zadd key score member connection =
     (* ZADD *)
-    Connection.send_text (Printf.sprintf "ZADD %s %f %d" key score (String.length member)) connection;
-    Connection.send_text member connection;
-    handle_integer_as_boolean (receive_answer connection);;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely (Printf.sprintf "ZADD %s %f" key score) member connection);;
 
 let zrem key member connection =
     (* ZREM *)
-    Connection.send_text (Printf.sprintf "ZREM %s %d" key (String.length member)) connection;
-    Connection.send_text member connection;
-    handle_integer_as_boolean (receive_answer connection);;
+    handle_integer_as_boolean
+        (send_with_value_and_receive_command_safely ("ZREM " ^ key) member connection);;
 
 let zrange key start stop connection =
     (* ZRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
@@ -774,6 +772,13 @@ let zrank key member connection =
         Integer(x) -> Rank(x) |
         Bulk(Nil) -> NilRank |
         _ -> failwith "Did not recognize what I got back";;
+
+let zrevrank key member connection =
+    (* ZREVRANK *)
+    match send_with_value_and_receive_command_safely ("ZREVRANK " ^ key) member connection with
+        Integer(x) -> Rank(x) |
+        Bulk(Nil) -> NilRank |
+        _ -> failwith "Did not recognize what I got back";;
         
 let zcard key connection =
     (* ZCARD *)
@@ -783,9 +788,8 @@ let zcard key connection =
 
 let zscore key member connection =
     (* ZSCORE *)
-    Connection.send_text (Printf.sprintf "ZSCORE %s %d" key (String.length member)) connection;
-    Connection.send_text member connection;
-    handle_float (receive_answer connection);;
+    handle_float
+        (send_with_value_and_receive_command_safely ("ZSCORE " ^ key) member connection);;
 
 let zremrangebyscore key min max connection =
     (* ZREMRANGEBYSCORE *)

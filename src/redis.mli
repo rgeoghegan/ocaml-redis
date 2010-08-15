@@ -344,6 +344,9 @@ val zincrby : string -> float -> string -> Connection.t -> float
 (** [zrank k m c] returns the rank of member [m] at key [k] on connection [c], as per the [ZRANK] redis keyword. *)
 val zrank : string -> string -> Connection.t -> rank
 
+(** [zrevrank k m c] returns the reverse rank of member [m] at key [k] on connection [c], as per the [ZREVRANK] redis keyword. *)
+val zrevrank : string -> string -> Connection.t -> rank
+
 (** [zrange k s e c] returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZRANGE] redis keyword. *)
 val zrange :
   string ->
