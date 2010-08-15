@@ -954,8 +954,9 @@ let hgetall key connection =
 let parse_sort_args pattern limit order alpha =
     (* Some of the sort args need further parsing and are used across multiple functions. *)
     let pattern = match pattern with
-        None -> "" |
-        Some x -> " BY " ^ x
+        `None -> "" |
+        `Pattern(x) -> " BY " ^ x |
+        `NoPattern -> " BY nosort"
     in
     let limit = match limit with
         `Unlimited -> "" |
@@ -972,7 +973,7 @@ let parse_sort_args pattern limit order alpha =
         (pattern, limit, order, alpha);;
     
 let sort key
-    ?pattern
+    ?(pattern=`None)
     ?(limit=`Unlimited)
     ?get
     ?(order=`Asc)
@@ -992,7 +993,7 @@ let sort key
         expect_non_nil_multibulk (send_and_receive_command_safely command connection);;
 
 let sort_get_many key get_patterns
-    ?pattern
+    ?(pattern=`None)
     ?(limit=`Unlimited)
     ?(order=`Asc)
     ?(alpha=`NonAlpha)
@@ -1025,7 +1026,7 @@ let sort_get_many key get_patterns
                 (send_and_receive_command_safely command connection));;
 
 let sort_and_store key get_patterns dest_key
-    ?pattern
+    ?(pattern=`None)
     ?(limit=`Unlimited)
     ?(order=`Asc)
     ?(alpha=`NonAlpha)

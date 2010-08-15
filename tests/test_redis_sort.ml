@@ -32,10 +32,11 @@ let test_sort_all_combos () =
                 end
         in
             iter [
-                Redis.sort "rory" ~pattern:"id_*" ~limit:(`Limit(0,10));
-                Redis.sort "rory" ~pattern:"id_*" ~get:"data_*";
-                Redis.sort "rory" ~pattern:"id_*" ~order:`Desc;
-                Redis.sort "rory" ~pattern:"id_*" ~alpha:`Alpha;
+                Redis.sort "rory" ~pattern:(`Pattern("id_*")) ~limit:(`Limit(0,10));
+                Redis.sort "rory" ~pattern:(`Pattern("id_*")) ~get:"data_*";
+                Redis.sort "rory" ~pattern:(`Pattern("id_*")) ~order:`Desc;
+                Redis.sort "rory" ~pattern:(`Pattern("id_*")) ~alpha:`Alpha;
+                Redis.sort "rory" ~pattern:`NoPattern ~alpha:`Alpha;
                 Redis.sort "rory" ~limit:(`Limit(0,10)) ~get:"data_*";
                 Redis.sort "rory" ~limit:(`Limit(0,10)) ~order:`Desc;
                 Redis.sort "rory" ~limit:(`Limit(0,10)) ~alpha:`Alpha;
@@ -53,6 +54,8 @@ let test_sort_all_combos () =
                 ReadThisLine("SORT rory BY id_* DESC");
                 WriteThisLine("*0");
                 ReadThisLine("SORT rory BY id_* ALPHA");
+                WriteThisLine("*0");
+                ReadThisLine("SORT rory BY nosort ALPHA");
                 WriteThisLine("*0");
 
                 ReadThisLine("SORT rory LIMIT 0 10 GET data_*");
@@ -85,7 +88,7 @@ let test_sort_get_many_get_one () =
                 [   [ Redis.String("20"); Redis.String("tim") ];
                     [ Redis.String("25"); Redis.String("rory") ] ]
                 = Redis.sort_get_many "people" ["age_*"; "name_*"]
-                    ~pattern:"age_*" connection
+                    ~pattern:(`Pattern("age_*")) connection
             )
         end
     in
@@ -135,7 +138,7 @@ let test_sort_and_store () =
                             "people"
                             ["age_*"; "name_*"]
                             "results"
-                            ~pattern:"age_*"
+                            ~pattern:(`Pattern("age_*"))
                             connection
             )
         end

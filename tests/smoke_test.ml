@@ -214,6 +214,10 @@ let smoke_test_with_quit conn = begin
         Redis.sort "rory" ~alpha:`Alpha ~order:`Desc conn
     )));
 
+    assert ("2" = Redis.string_of_bulk_data (List.hd (
+        Redis.sort "rory" ~pattern:`NoPattern conn
+    )));
+
     (* This requires quite some test data to set up *)
     let fields = ["name"; "yob"]
     in
@@ -236,11 +240,11 @@ let smoke_test_with_quit conn = begin
     assert (
         ["Bob"; "1980"] =
         List.map Redis.string_of_bulk_data
-            (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:"yob_*" conn))
+            (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] ~pattern:(`Pattern("yob_*")) conn))
     );
     
     assert(2=
-        Redis.sort_and_store "people" ["name_*"] "results" ~pattern:"yob_*" conn);
+        Redis.sort_and_store "people" ["name_*"] "results" ~pattern:(`Pattern("yob_*")) conn);
 
     (* Hashes *)
     ignore (Redis.del ["rory"] conn);
