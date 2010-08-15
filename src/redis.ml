@@ -841,6 +841,20 @@ let zinterstore dstkey key_list ?(aggregate=`Sum) connection =
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
+let zinterstore_withweights dstkey key_list weight_list ?(aggregate=`Sum) connection =
+    if List.length key_list != List.length weight_list
+    then raise (RedisInvalidArgumentError("Not as many weights were given as keys to zinterstore_withweights"))
+    else match send_and_receive_command_safely
+        (Printf.sprintf "ZINTERSTORE %s %d%s WEIGHTS%s AGGREGATE %s" dstkey
+            (List.length key_list)
+            (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
+            (List.fold_left (fun rest x -> Printf.sprintf "%s %f" rest x) "" weight_list)
+            (match aggregate with
+                `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
+        connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 (* Commands operating on hashes *)
 
 let hset key field value connection =

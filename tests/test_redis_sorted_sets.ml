@@ -366,3 +366,35 @@ let test_zunionstore () =
         Script.ReadThisLine("ZINTERSTORE inter 1 rory AGGREGATE SUM");
         Script.WriteThisLine(":1")
     ] test_func;;
+
+let test_zinterstore_withweights () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42.0 "cool" connection);
+        ignore (Redis.zadd "tim" 10.0 "cool" connection);
+        try
+            ignore (Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0] connection)
+            with Redis.RedisInvalidArgumentError(_) -> ();
+        try
+            ignore (Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5; 0.25] connection)
+            with Redis.RedisInvalidArgumentError(_) -> ();
+        assert (1 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] connection);
+        assert (1 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Min connection);
+        assert (1 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Max connection);
+        assert (1 = Redis.zinterstore_withweights "inter" ["rory"] [1.0] connection)
+    in
+    Script.use_test_script [
+        Script.ReadThisLine("ZADD rory 42.000000 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZADD tim 10.000000 4");
+        Script.ReadThisLine("cool");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZINTERSTORE inter 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE SUM");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZINTERSTORE inter 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE MIN");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZINTERSTORE inter 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE MAX");
+        Script.WriteThisLine(":1");
+        Script.ReadThisLine("ZINTERSTORE inter 1 rory WEIGHTS 1.000000 AGGREGATE SUM");
+        Script.WriteThisLine(":1")
+    ] test_func;;

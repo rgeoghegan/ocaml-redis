@@ -199,6 +199,11 @@ let smoke_test_with_quit conn = begin
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Sum conn);
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Min conn);
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Max conn);
+
+    assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] conn);
+    assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Sum conn);
+    assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Min conn);
+    assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Max conn);
     
     (* Sort *)
         
