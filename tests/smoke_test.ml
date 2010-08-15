@@ -177,6 +177,8 @@ let smoke_test_with_quit conn = begin
 
     assert (2.0 = Redis.zscore "coolest" "rory" conn);
 
+    assert (1 = Redis.zremrangebyrank "coolest" 0 0 conn);
+    
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
     (* Sort *)

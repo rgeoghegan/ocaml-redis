@@ -791,6 +791,13 @@ let zscore key member connection =
     handle_float
         (send_with_value_and_receive_command_safely ("ZSCORE " ^ key) member connection);;
 
+let zremrangebyrank key start stop connection =
+    (* ZREMRANGEBYRANK *)
+    match send_and_receive_command_safely
+        (Printf.sprintf "ZREMRANGEBYRANK %s %d %d" key start stop) connection with
+        Integer(x) -> x |
+        _ -> failwith "Did not recognize what I got back";;
+
 let zremrangebyscore key min max connection =
     (* ZREMRANGEBYSCORE *)
     match send_and_receive_command_safely (Printf.sprintf "ZREMRANGEBYSCORE %s %f %f" key min max) connection with
