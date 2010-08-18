@@ -490,7 +490,7 @@ val sort :
   string ->
   ?pattern:redis_sort_pattern ->
   ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
-  ?get:string ->
+  ?get:redis_sort_pattern ->
   ?order:[< `Asc | `Desc > `Asc ] ->
   ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
   Connection.t -> bulk_data list

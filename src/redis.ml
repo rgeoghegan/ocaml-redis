@@ -974,11 +974,18 @@ let parse_sort_args pattern limit order alpha =
         `Alpha -> " ALPHA"
     in
         (pattern, limit, order, alpha);;
+
+let parse_get_arg get =
+    (* The get argument needs specific parsing *)
+    match get with
+        KeyPattern(k) -> " GET " ^ k |
+        FieldPattern(k, f) -> Printf.sprintf " GET %s->%s" k f |
+        NoSort | NoPattern -> "";;
     
 let sort key
     ?(pattern=NoPattern)
     ?(limit=`Unlimited)
-    ?get
+    ?(get=NoPattern)
     ?(order=`Asc)
     ?(alpha=`NonAlpha)
         connection =
@@ -987,11 +994,7 @@ let sort key
         let pattern, limit, order, alpha =
             parse_sort_args pattern limit order alpha
         in
-        let get = match get with
-            None -> "" |
-            Some x -> " GET " ^ x
-        in
-        "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha
+        "SORT " ^ key ^ pattern ^ limit ^ (parse_get_arg get) ^ order ^ alpha
     in
         expect_non_nil_multibulk (send_and_receive_command_safely command connection);;
 

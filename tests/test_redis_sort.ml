@@ -33,16 +33,17 @@ let test_sort_all_combos () =
         in
             iter [
                 Redis.sort "rory" ~pattern:(Redis.KeyPattern("id_*")) ~limit:(`Limit(0,10));
-                Redis.sort "rory" ~pattern:(Redis.KeyPattern("id_*")) ~get:"data_*";
+                Redis.sort "rory" ~pattern:(Redis.KeyPattern("id_*")) ~get:(Redis.KeyPattern("data_*"));
                 Redis.sort "rory" ~pattern:(Redis.KeyPattern("id_*")) ~order:`Desc;
                 Redis.sort "rory" ~pattern:(Redis.KeyPattern("id_*")) ~alpha:`Alpha;
                 Redis.sort "rory" ~pattern:Redis.NoSort ~alpha:`Alpha;
                 Redis.sort "rory" ~pattern:(Redis.FieldPattern("hash_*", "id")) ~alpha:`Alpha;
-                Redis.sort "rory" ~limit:(`Limit(0,10)) ~get:"data_*";
+                Redis.sort "rory" ~limit:(`Limit(0,10)) ~get:(Redis.KeyPattern("data_*"));
                 Redis.sort "rory" ~limit:(`Limit(0,10)) ~order:`Desc;
                 Redis.sort "rory" ~limit:(`Limit(0,10)) ~alpha:`Alpha;
-                Redis.sort "rory" ~get:"data_*" ~order:`Desc;
-                Redis.sort "rory" ~get:"data_*" ~alpha:`Alpha;
+                Redis.sort "rory" ~get:(Redis.KeyPattern("data_*")) ~order:`Desc;
+                Redis.sort "rory" ~get:(Redis.KeyPattern("data_*")) ~alpha:`Alpha;
+                Redis.sort "rory" ~get:(Redis.FieldPattern("hash_*", "data")) ~alpha:`Alpha;
                 Redis.sort "rory" ~order:`Desc ~alpha:`Alpha
             ]
     in
@@ -71,6 +72,8 @@ let test_sort_all_combos () =
                 ReadThisLine("SORT rory GET data_* DESC");
                 WriteThisLine("*0");
                 ReadThisLine("SORT rory GET data_* ALPHA");
+                WriteThisLine("*0");
+                ReadThisLine("SORT rory GET hash_*->data ALPHA");
                 WriteThisLine("*0");
 
                 ReadThisLine("SORT rory DESC ALPHA");

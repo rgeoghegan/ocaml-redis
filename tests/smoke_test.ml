@@ -237,9 +237,17 @@ let smoke_test_with_quit conn = begin
         end
     in
     ignore (List.fold_left add_record 1 data);
-    ignore (Redis.hset "hash_0" "yob" "1984" conn);
-    ignore (Redis.hset "hash_1" "yob" "1980" conn);
+    ignore (Redis.hset "hash_1" "yob" "1984" conn);
+    ignore (Redis.hset "hash_2" "yob" "1980" conn);
 
+    assert (
+        ["Rory"; "Bob"] =
+        List.map Redis.string_of_bulk_data
+            (Redis.sort "people" ~get:(Redis.KeyPattern("name_*")) conn));
+    assert (
+        ["1984"; "1980"] =
+        List.map Redis.string_of_bulk_data
+            (Redis.sort "people" ~get:(Redis.FieldPattern("hash_*", "yob")) conn));
     assert (
         ["Bob"; "1980"] =
         List.map Redis.string_of_bulk_data
