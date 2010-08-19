@@ -75,11 +75,11 @@ end
 external_libs = ["unix.cmxa", "str.cmxa"].join(" ")
 
 file "build/redis.cmx" => ["src/redis.ml", "build/redis_common.cmx", "build/redis.cmi"] do
-    compile "src/redis.ml", "build"
+    compile "src/redis.ml", "build/redis"
 end
 
 file "build/redis_common.cmx" => "src/redis_common.ml" do
-    compile "src/redis_common.ml", "build"
+    compile "src/redis_common.ml", "build/redis_common"
 end
 file "build/redis.cmi" => "src/redis.mli" do
     compile "src/redis.mli", "build/redis.cmi"
@@ -130,12 +130,51 @@ end
 
 task :test_binaries => "build/tests/run_test_redis_util"
 
-#end
-
-
 ## Now for all other tests
 #all_other_tests = OcamlFile.new("build/tests/all_other_tests.ml")
-#test_files = FileList["tests/test_*.ml"].exclude(/test_redis_util.ml$/).map{|f| OcamlFile.new(f)}
+test_files = FileList["tests/test_*.ml"].exclude(/test_redis_util.ml$/)
+
+test_files.each do |test_file|
+    file test_file.pathmap("build/tests/%n.cmx") => [test_file, "build/redis.cmx", "build/tests/script.cmx"] do
+        sh %W{
+            ocamlopt
+            -w X -c
+            -I build
+            -I build/tests
+            -o #{test_file.pathmap("build/tests/%n")}
+            #{test_file}
+        }.join(" ")
+    end
+    file "build/tests/all_other_tests" => test_file.pathmap("build/tests/%n.cmx")
+    file "build/tests/all_other_tests.ml" => test_file
+end
+
+file "build/tests/all_other_tests.ml" do
+    sh %W{
+        ruby
+        tests/create_test.rb
+        #{test_files.join(" ")}
+        > build/tests/all_other_tests.ml
+    }.join(" ")
+end
+
+file "build/tests/all_other_tests" => ["build/tests/all_other_tests.ml", :library] do
+    sh %W{
+        ocamlopt
+        -w X
+        -I build
+        -I build/tests
+        -o build/tests/all_other_tests
+        #{external_libs}
+        build/redis_common.cmx
+        build/redis.cmx
+        build/tests/script.cmx
+        #{test_files.map{|f| f.pathmap("build/tests/%n.cmx")}.join(" ")}
+        build/tests/all_other_tests.ml
+    }.join(" ")
+end
+
+task :test_binaries => "build/tests/all_other_tests"
 #test_files.each do |test_file|
 #    file test_file.cmx("build/tests") => [test_file, script.cmx("build/tests"), :library] do
 #        sh "ocamlopt -w X -c -I build -I build/tests -o #{test_file.cmx("build/tests")} #{test_file}"
@@ -143,7 +182,6 @@ task :test_binaries => "build/tests/run_test_redis_util"
 #    multitask :individual_test_objects => test_file.cmx("build/tests")
 #end
 #
-#task :test_binaries => "build/tests/all_other_tests"
 #file all_other_tests.dest("build/tests") => all_other_tests do
 #    sh "ocamlopt -o #{all_other_tests.dest("build/tests")} -I build/tests -I build #{external_libs} #{script.cmx("build/tests")} #{source.cmx} #{test_files.map{|f| f.cmx("build/tests")}.join(" ")} #{all_other_tests}"
 #end
