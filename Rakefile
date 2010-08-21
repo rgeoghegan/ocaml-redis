@@ -74,18 +74,29 @@ end
 
 external_libs = ["unix.cmxa", "str.cmxa"].join(" ")
 
-file "build/redis.cmx" => ["src/redis.ml", "build/redis_common.cmx", "build/redis.cmi"] do
-    compile "src/redis.ml", "build/redis"
-end
-
-file "build/redis_common.cmx" => "src/redis_common.ml" do
+file "build/redis_common.cmx" => ["src/redis_common.ml", "build"] do
     compile "src/redis_common.ml", "build/redis_common"
 end
-file "build/redis.cmi" => "src/redis.mli" do
+
+file "build/redis.cmi" => ["src/redis.mli", "build"] do
     compile "src/redis.mli", "build/redis.cmi"
 end
 
-task :library => "build/redis.cmx"
+file "build/redis.cmx" => ["src/redis.ml", "build/redis_common.cmx", "build/redis.cmi", "build"] do
+    compile "src/redis.ml", "build/redis"
+end
+
+file "build/Redis.cmxa" => ["build/redis.cmx", "build/redis_common.cmx", "build"] do
+    sh %W{
+        ocamlopt
+        -a
+        -o build/Redis.cmxa
+        build/redis_common.cmx
+        build/redis.cmx
+    }.join(" ")
+end
+
+task :library => "build/Redis.cmxa"
 
 # Test files
 
@@ -131,11 +142,10 @@ end
 task :test_binaries => "build/tests/run_test_redis_util"
 
 ## Now for all other tests
-#all_other_tests = OcamlFile.new("build/tests/all_other_tests.ml")
 test_files = FileList["tests/test_*.ml"].exclude(/test_redis_util.ml$/)
 
 test_files.each do |test_file|
-    file test_file.pathmap("build/tests/%n.cmx") => [test_file, "build/redis.cmx", "build/tests/script.cmx"] do
+    file test_file.pathmap("build/tests/%n.cmx") => [test_file, :library, "build/tests/script.cmx"] do
         sh %W{
             ocamlopt
             -w X -c
@@ -166,8 +176,7 @@ file "build/tests/all_other_tests" => ["build/tests/all_other_tests.ml", :librar
         -I build/tests
         -o build/tests/all_other_tests
         #{external_libs}
-        build/redis_common.cmx
-        build/redis.cmx
+        build/Redis.cmxa
         build/tests/script.cmx
         #{test_files.map{|f| f.pathmap("build/tests/%n.cmx")}.join(" ")}
         build/tests/all_other_tests.ml
