@@ -11,10 +11,20 @@ let test_keys () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
-            Script.ReadThisLine("SET tim 6");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("tim");
+            Script.ReadThisLine("$6");
             Script.ReadThisLine("uncool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("KEYS *");
@@ -33,7 +43,12 @@ let test_randomkey () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("RANDOMKEY");
@@ -49,7 +64,12 @@ let test_rename () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("RENAME rory tim");
@@ -65,10 +85,20 @@ let test_renamenx () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
-            Script.ReadThisLine("SET tim 8");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("tim");
+            Script.ReadThisLine("$8");
             Script.ReadThisLine("not cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("RENAMENX rory tim");
@@ -94,7 +124,12 @@ let test_expire () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("EXPIRE rory 10");
@@ -109,7 +144,12 @@ let test_expireat () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("EXPIREAT rory 946765012");
@@ -125,7 +165,12 @@ let test_ttl () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("EXPIRE rory 10");

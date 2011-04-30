@@ -103,21 +103,47 @@ let test_sort_get_many_get_one () =
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("1");
                 WriteThisLine(":1");
-                ReadThisLine("SET age_1 2");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$5");
+                ReadThisLine("age_1");
+                ReadThisLine("$2");
                 ReadThisLine("25");
                 WriteThisLine("+OK");
-                ReadThisLine("SET name_1 4");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$6");
+                ReadThisLine("name_1");
+                ReadThisLine("$4");
                 ReadThisLine("rory");
                 WriteThisLine("+OK");
+
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("2");
                 WriteThisLine(":2");
-                ReadThisLine("SET age_2 2");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$5");
+                ReadThisLine("age_2");
+                ReadThisLine("$2");
                 ReadThisLine("20");
                 WriteThisLine("+OK");
-                ReadThisLine("SET name_2 3");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$6");
+                ReadThisLine("name_2");
+                ReadThisLine("$3");
                 ReadThisLine("tim");
                 WriteThisLine("+OK");
+
                 ReadThisLine("SORT people BY age_* GET age_* GET name_*");
                 WriteThisLine("*4");
                 WriteThisLine("$2");
@@ -154,21 +180,47 @@ let test_sort_and_store () =
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("1");
                 WriteThisLine(":1");
-                ReadThisLine("SET age_1 2");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$5");
+                ReadThisLine("age_1");
+                ReadThisLine("$2");
                 ReadThisLine("25");
                 WriteThisLine("+OK");
-                ReadThisLine("SET name_1 4");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$6");
+                ReadThisLine("name_1");
+                ReadThisLine("$4");
                 ReadThisLine("rory");
                 WriteThisLine("+OK");
+
                 ReadThisLine("RPUSH people 1");
                 ReadThisLine("2");
                 WriteThisLine(":2");
-                ReadThisLine("SET age_2 2");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$5");
+                ReadThisLine("age_2");
+                ReadThisLine("$2");
                 ReadThisLine("20");
                 WriteThisLine("+OK");
-                ReadThisLine("SET name_2 3");
+
+                ReadThisLine("*3");
+                ReadThisLine("$3");
+                ReadThisLine("SET");
+                ReadThisLine("$6");
+                ReadThisLine("name_2");
+                ReadThisLine("$3");
                 ReadThisLine("tim");
                 WriteThisLine("+OK");
+
                 ReadThisLine("SORT people BY age_* GET age_* GET name_* STORE results");
                 WriteThisLine(":4");
             ]

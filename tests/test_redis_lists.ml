@@ -19,7 +19,12 @@ let test_rpush () =
             Script.ReadThisLine("RPUSH rory 4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine(":1");
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("RPUSH rory 4");

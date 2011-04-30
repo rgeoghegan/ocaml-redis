@@ -31,7 +31,7 @@ let auth password connection =
 let set key value connection =
     (* SET *)
     handle_status
-        (send_with_value_and_receive_command_safely ("SET " ^ key) value connection);;
+        (send_multibulk_and_receive_command_safely ["SET"; key; value] connection);;
 
 let get key connection =
     (* GET *)

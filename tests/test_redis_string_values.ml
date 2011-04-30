@@ -9,7 +9,12 @@ let test_set () =
     in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET key 3");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("key");
+            Script.ReadThisLine("$3");
             Script.ReadThisLine("aaa");
             Script.WriteThisLine("+OK")
         ]
@@ -223,13 +228,28 @@ let test_del () =
     end in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
-            Script.ReadThisLine("SET tim 6");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("tim");
+            Script.ReadThisLine("$6");
             Script.ReadThisLine("uncool");
             Script.WriteThisLine("+OK");
-            Script.ReadThisLine("SET bob 7");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("bob");
+            Script.ReadThisLine("$7");
             Script.ReadThisLine("unknown");
             Script.WriteThisLine("+OK");
 
@@ -250,7 +270,12 @@ let test_value_type () =
     end in
     Script.use_test_script
         [
-            Script.ReadThisLine("SET rory 4");
+            Script.ReadThisLine("*3");
+            Script.ReadThisLine("$3");
+            Script.ReadThisLine("SET");
+            Script.ReadThisLine("$4");
+            Script.ReadThisLine("rory");
+            Script.ReadThisLine("$4");
             Script.ReadThisLine("cool");
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("ZADD tim 1.000000 8");
@@ -283,7 +308,12 @@ let test_substr () =
         assert (Redis.String("ol") = Redis.substr "rory" 2 4 connection)
     in
     Script.use_test_script [
-        Script.ReadThisLine("SET rory 4");
+        Script.ReadThisLine("*3");
+        Script.ReadThisLine("$3");
+        Script.ReadThisLine("SET");
+        Script.ReadThisLine("$4");
+        Script.ReadThisLine("rory");
+        Script.ReadThisLine("$4");
         Script.ReadThisLine("cool");
         Script.WriteThisLine("+OK");
         Script.ReadThisLine("SUBSTR rory 2 4");

@@ -25,7 +25,12 @@ let test_move () =
         [
             ReadThisLine("SELECT 0");
             WriteThisLine("+OK");
-            ReadThisLine("SET rory 4");
+            ReadThisLine("*3");
+            ReadThisLine("$3");
+            ReadThisLine("SET");
+            ReadThisLine("$4");
+            ReadThisLine("rory");
+            ReadThisLine("$4");
             ReadThisLine("cool");
             WriteThisLine("+OK");
             ReadThisLine("MOVE rory 1");
