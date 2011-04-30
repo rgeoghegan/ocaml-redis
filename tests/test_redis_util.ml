@@ -327,6 +327,38 @@ let test_send_multibulk_command () =
             WriteThisLine("+OK");
         ]
         test_func;;
+let test_send_multibulk_and_receive_command_safely () =
+    (* Test for the "send_multibulk_and_receive_command_safely" function *)
+    let test_func connection =
+        begin
+            assert (
+                Redis_common.Helpers.send_multibulk_and_receive_command_safely ["foo"; "bar"] connection
+                = Redis_common.Status("bar")
+            );
+            try ignore
+                (Redis_common.Helpers.send_multibulk_and_receive_command_safely
+                    ["foo"; "bar"] connection);
+                assert(false) (* Should never reach this point *)
+            with Redis_common.RedisServerError(x) ->
+                assert(x = "Some error")
+        end
+    in
+    use_test_script
+        [
+            ReadThisLine("*2");
+            ReadThisLine("$3");
+            ReadThisLine("foo");
+            ReadThisLine("$3");
+            ReadThisLine("bar");
+            WriteThisLine("+bar");
+            ReadThisLine("*2");
+            ReadThisLine("$3");
+            ReadThisLine("foo");
+            ReadThisLine("$3");
+            ReadThisLine("bar");
+            WriteThisLine("-Some error")
+        ]
+        test_func;;
 
 let test_handle_special_status () =
     Redis_common.Helpers.handle_special_status "rory is cool" (Redis_common.Status("rory is cool"));

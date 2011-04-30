@@ -231,7 +231,7 @@ module Helpers =
                         end
 
         let send_multibulk_command tokens connection =
-            (* Will send a given list of tokens to send in multibulk. *)
+            (* Will send a given list of tokens to send in multibulk using the unified request protocol. *)
             let token_length = (string_of_int (List.length tokens))
             in
             let rec send_in_tokens tokens_left =
@@ -249,6 +249,10 @@ module Helpers =
                 Connection.flush_connection connection;
                 receive_answer connection
             end
+
+        let send_multibulk_and_receive_command_safely tokens connection =
+            (* Will send out the command in the same way as "send_multibulk_command" but will catch and fail on any errors. *)
+            handle_error (send_multibulk_command tokens connection);;
 
         let handle_special_status special_status reply =
             (* For status replies, does error checking and display *)
