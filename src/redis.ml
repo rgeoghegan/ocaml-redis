@@ -41,7 +41,7 @@ let get key connection =
 
 let getset key new_value connection =
     (* GETSET *)
-    match send_with_value_and_receive_command_safely ("GETSET " ^ key) new_value connection with
+    match send_multibulk_and_receive_command_safely ["GETSET"; key; new_value] connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

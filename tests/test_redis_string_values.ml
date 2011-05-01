@@ -37,12 +37,12 @@ let test_getset () =
         )
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("GETSET key 3");
-            Script.ReadThisLine("now");
+        ((Script.read_lines_from_list
+            ["GETSET"; "key"; "now"])
+        @ [
             Script.WriteThisLine("$8");
             Script.WriteThisLine("previous")
-        ]
+        ])
         test_func;;
 
 let test_mget () =
