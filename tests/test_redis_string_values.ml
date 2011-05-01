@@ -96,41 +96,12 @@ let test_mset () =
         Redis.mset [("rory", "cool"); ("tim", "not cool")] connection
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*5");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("MSET");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("tim");
-            Script.ReadThisLine("$8");
-            Script.ReadThisLine("not cool");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
+        ((Script.read_lines_from_list
+            (* These values come out backwards because of the way the list is unwrapped *)
+            ["MSET"; "tim"; "not cool"; "rory"; "cool"])
+        @ [
             Script.WriteThisLine("+OK");
-        ]
-        test_func;;
-
-let test_mset () =
-    let test_func connection =
-        assert(Redis.msetnx [("rory", "cool"); ("tim", "not cool")] connection)
-    in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("*5");
-            Script.ReadThisLine("$6");
-            Script.ReadThisLine("MSETNX");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("tim");
-            Script.ReadThisLine("$8");
-            Script.ReadThisLine("not cool");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-        ]
+        ])
         test_func;;
 
 let test_incr () =
