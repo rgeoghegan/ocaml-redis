@@ -161,12 +161,12 @@ let test_decr () =
         end
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("DECR key");
-            Script.WriteThisLine(":-1");
-            Script.ReadThisLine("DECR key");
-            Script.WriteThisLine(":-2")
-        ]
+        ((Script.read_lines_from_list
+            ["DECR"; "key"])
+        @ [Script.WriteThisLine(":-1")]
+        @ (Script.read_lines_from_list
+            ["DECR"; "key"])
+        @ [Script.WriteThisLine(":-2")])
         test_func;;
 
 let test_decrby () =
