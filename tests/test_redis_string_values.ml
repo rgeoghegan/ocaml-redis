@@ -83,11 +83,13 @@ let test_setex () =
     let test_func connection =
         Redis.setex "key" 10 "aaa" connection
     in
-    Script.use_test_script [
-        Script.ReadThisLine("SETEX key 10 3");
-        Script.ReadThisLine("aaa");
-        Script.WriteThisLine("+OK")
-    ] test_func;;
+    Script.use_test_script
+        ((Script.read_lines_from_list
+            ["SETEX"; "key"; "10"; "aaa"])
+        @ [ 
+            Script.WriteThisLine("+OK")
+        ])
+        test_func;;
 
 let test_mset () =
     let test_func connection =

@@ -58,8 +58,12 @@ let setnx key value connection =
 let setex key timeout value connection =
     (* SETEX *)
     handle_status
-        (send_with_value_and_receive_command_safely
-            (Printf.sprintf "SETEX %s %d" key timeout) value connection);;
+        (send_multibulk_and_receive_command_safely [
+                "SETEX";
+                key;
+                (string_of_int timeout);
+                value
+            ] connection);;
 
 let mset key_value_pairs connection =
     (* MSET *)
