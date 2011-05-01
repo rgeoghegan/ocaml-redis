@@ -145,12 +145,12 @@ let test_incrby () =
         end
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("INCRBY key 2");
-            Script.WriteThisLine(":2");
-            Script.ReadThisLine("INCRBY key 2");
-            Script.WriteThisLine(":4")
-        ]
+        ((Script.read_lines_from_list
+            ["INCRBY"; "key"; "2"])
+        @ [Script.WriteThisLine(":2")]
+        @ (Script.read_lines_from_list
+            ["INCRBY"; "key"; "2"])
+        @ [Script.WriteThisLine(":4")])
         test_func;;
 
 let test_decr () =

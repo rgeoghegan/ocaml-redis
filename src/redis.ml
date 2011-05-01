@@ -91,9 +91,10 @@ let incr key connection =
 
 let incrby key value connection =
     (* INCRBY *)
-    match send_and_receive_command_safely (Printf.sprintf "INCRBY %s %d" key value) connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["INCRBY"; key; string_of_int value] connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let decr key connection =
     (* DECR *)
