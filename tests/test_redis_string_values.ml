@@ -177,12 +177,12 @@ let test_decrby () =
         end
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("DECRBY key 2");
-            Script.WriteThisLine(":-2");
-            Script.ReadThisLine("DECRBY key 2");
-            Script.WriteThisLine(":-4")
-        ]
+        ((Script.read_lines_from_list
+            ["DECRBY"; "key"; "2"])
+        @ [Script.WriteThisLine(":-2")]
+        @ (Script.read_lines_from_list
+            ["DECRBY"; "key"; "2"])
+        @ [Script.WriteThisLine(":-4")])
         test_func;;
 
 let test_exists () =

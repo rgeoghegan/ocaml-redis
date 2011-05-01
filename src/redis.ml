@@ -104,9 +104,10 @@ let decr key connection =
 
 let decrby key value connection =
     (* DECRBY *)
-    match send_and_receive_command_safely (Printf.sprintf "DECRBY %s %d" key value) connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["DECRBY"; key; string_of_int value] connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let append key value connection =
     (* APPEND *)
