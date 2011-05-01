@@ -35,7 +35,7 @@ let set key value connection =
 
 let get key connection =
     (* GET *)
-    match send_and_receive_command_safely ("GET " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["GET"; key] connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

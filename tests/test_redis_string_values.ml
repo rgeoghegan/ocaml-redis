@@ -22,11 +22,12 @@ let test_get () =
         )
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("GET key");
+        ((Script.read_lines_from_list
+            ["GET"; "key"])
+        @ [
             Script.WriteThisLine("$3");
             Script.WriteThisLine("aaa")
-        ]
+        ])
         test_func;;
 
 let test_getset () =
