@@ -52,14 +52,15 @@ let test_mget () =
         )
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("MGET rory tim");
+        ((Script.read_lines_from_list
+            ["MGET"; "rory"; "tim"])
+        @ [
             Script.WriteThisLine("*2");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("cool");
             Script.WriteThisLine("$8");
             Script.WriteThisLine("not cool")
-        ]
+        ])
         test_func;;
 
 let test_setnx () =

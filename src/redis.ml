@@ -48,7 +48,7 @@ let getset key new_value connection =
 let mget keys connection = 
     (* MGET *)
     expect_non_nil_multibulk 
-        (send_and_receive_command_safely (aggregate_command "MGET" keys) connection);;
+        (send_multibulk_and_receive_command_safely ("MGET" :: keys) connection);;
 
 let setnx key value connection =
     (* SETNX *)
