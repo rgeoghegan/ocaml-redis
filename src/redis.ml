@@ -85,7 +85,7 @@ let msetnx key_value_pairs connection =
 
 let incr key connection =
     (* INCR *)
-    match send_and_receive_command_safely (Printf.sprintf "INCR %s" key) connection with
+    match send_multibulk_and_receive_command_safely ["INCR"; key] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

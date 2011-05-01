@@ -112,12 +112,11 @@ let test_incr () =
         end
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("INCR key");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("INCR key");
-            Script.WriteThisLine(":2")
-        ]
+        ((Script.read_lines_from_list
+            ["INCR"; "key"])
+        @ [ Script.WriteThisLine(":1")]
+        @ (Script.read_lines_from_list ["INCR"; "key"])
+        @ [ Script.WriteThisLine(":2")])
         test_func;;
 
 let test_incrby () =
