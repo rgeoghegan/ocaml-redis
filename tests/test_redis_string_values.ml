@@ -71,14 +71,12 @@ let test_setnx () =
         end
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("SETNX key 3");
-            Script.ReadThisLine("aaa");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SETNX key 3");
-            Script.ReadThisLine("aaa");
-            Script.WriteThisLine(":0")
-        ]
+        ((Script.read_lines_from_list
+            ["SETNX"; "key"; "aaa"])
+        @ [ Script.WriteThisLine(":1") ]
+        @ (Script.read_lines_from_list
+            ["SETNX"; "key"; "aaa"])
+        @ [Script.WriteThisLine(":0")])
         test_func;;
 
 let test_setex () =

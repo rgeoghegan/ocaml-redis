@@ -53,7 +53,7 @@ let mget keys connection =
 let setnx key value connection =
     (* SETNX *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("SETNX " ^ key) value connection);;
+        (send_multibulk_and_receive_command_safely ["SETNX"; key; value] connection);;
 
 let setex key timeout value connection =
     (* SETEX *)
