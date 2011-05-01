@@ -104,6 +104,24 @@ let test_mset () =
         ])
         test_func;;
 
+let test_msetnx () =
+    let test_func connection =
+        begin
+            assert(Redis.msetnx [("rory", "cool"); ("tim", "not cool")] connection);
+            assert(false = Redis.msetnx [("rory", "cool"); ("tim", "not cool")] connection)
+        end
+    in
+    Script.use_test_script
+        ((Script.read_lines_from_list
+            (* These values come out backwards because of the way the list is unwrapped *)
+            ["MSETNX"; "tim"; "not cool"; "rory"; "cool"])
+        @ [Script.WriteThisLine(":1")]
+        @ (Script.read_lines_from_list
+            ["MSETNX"; "tim"; "not cool"; "rory"; "cool"])
+        @ [Script.WriteThisLine(":0")]
+        )
+        test_func;;
+
 let test_incr () =
     let test_func connection =
         begin
