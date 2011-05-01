@@ -123,7 +123,7 @@ let substr key start stop connection =
 
 let exists key connection =
     (* EXISTS *)
-    handle_integer_as_boolean (send_and_receive_command ("EXISTS " ^ key) connection)
+    handle_integer_as_boolean (send_multibulk_and_receive_command_safely ["EXISTS"; key] connection);;
 
 let del keys connection =
     (* DEL *)

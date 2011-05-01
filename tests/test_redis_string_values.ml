@@ -195,12 +195,12 @@ let test_exists () =
         )
     end in
     Script.use_test_script
-        [
-            Script.ReadThisLine("EXISTS real_key");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("EXISTS fake_key");
-            Script.WriteThisLine(":0")
-        ]
+        ((Script.read_lines_from_list
+            ["EXISTS"; "real_key"])
+        @ [Script.WriteThisLine(":1")]
+        @ (Script.read_lines_from_list
+            ["EXISTS"; "fake_key"])
+        @ [Script.WriteThisLine(":0")])
         test_func;;
 
 let test_del () =
