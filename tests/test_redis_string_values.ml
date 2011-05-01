@@ -8,16 +8,11 @@ let test_set () =
         Redis.set "key" "aaa" connection
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("key");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("aaa");
+        ((Script.read_lines_from_list
+            ["SET"; "key"; "aaa"])
+        @ [
             Script.WriteThisLine("+OK")
-        ]
+        ])
         test_func;;
 
 let test_get () =

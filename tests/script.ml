@@ -75,3 +75,19 @@ let use_test_script script test_function =
                     (_, Unix.WEXITED(0)) -> () |
                     (_, _) -> exit 1
             end;;
+
+let read_lines_from_list tokens =
+    (* Given a list of tokens, produces a list of 'ReadThisLine' elements with the given tokens serialized
+    as per the unified request protocol *)
+    let readify x =
+        [
+            ReadThisLine("$" ^ (string_of_int (String.length x)));
+            ReadThisLine(x)
+        ]
+    in
+    let header = ReadThisLine("*" ^ (string_of_int (List.length tokens)))
+    in
+    let body = List.map readify tokens
+    in
+    [ header ] @ (List.flatten body);;
+    
