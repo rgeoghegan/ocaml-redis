@@ -156,7 +156,7 @@ let keys pattern connection =
 
 let randomkey connection =
     (* RANDOMKEY *)
-    match send_and_receive_command_safely "RANDOMKEY" connection with
+    match send_multibulk_and_receive_command_safely ["RANDOMKEY"] connection with
         Bulk(x) -> string_of_bulk_data x |
         _ -> failwith "Did not recognize what I got back";;
         

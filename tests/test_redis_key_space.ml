@@ -33,19 +33,16 @@ let test_randomkey () =
         assert("rory" = Redis.randomkey connection)
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [
             Script.WriteThisLine("+OK");
+            Script.ReadThisLine("*1");
+            Script.ReadThisLine("$9");
             Script.ReadThisLine("RANDOMKEY");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("rory")
-        ]
+        ])
         test_func;;
 
 let test_rename () =
