@@ -134,9 +134,8 @@ let test_ttl () =
         @ [Script.WriteThisLine("+OK")]
         @ (Script.read_lines_from_list
             ["EXPIRE"; "rory"; "10"])
-        @ [
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("TTL rory");
-            Script.WriteThisLine(":10")
-        ])
+        @ [Script.WriteThisLine(":1")]
+        @ (Script.read_lines_from_list
+            ["TTL"; "rory"])
+        @ [Script.WriteThisLine(":10")])
         test_func;;

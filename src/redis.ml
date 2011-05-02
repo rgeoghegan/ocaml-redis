@@ -187,7 +187,7 @@ let expireat key time connection =
 
 let ttl key connection =
     (* TTL *)
-    match send_and_receive_command_safely ("TTL " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["TTL"; key] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
