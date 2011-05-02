@@ -256,7 +256,7 @@ let rpop key connection =
 
 let rpoplpush src_key dest_key connection =
     (* RPOPLPUSH *)
-    match send_and_receive_command_safely ("RPOPLPUSH " ^ src_key ^ " " ^ dest_key) connection with
+    match send_multibulk_and_receive_command_safely ["RPOPLPUSH"; src_key; dest_key] connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
