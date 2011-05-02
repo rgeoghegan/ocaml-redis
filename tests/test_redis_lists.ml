@@ -43,6 +43,29 @@ let test_lpush () =
 let test_llen () =
     let test_func connection =
         assert (1 = Redis.rpush "rory" "cool" connection);
+        assert (1 = Redis.llen "rory" connection);
+        assert (2 = Redis.rpush "rory" "still cool" connection);
+        assert (2 = Redis.llen "rory" connection)
+    in
+    use_test_script
+        ((read_lines_from_list
+            ["RPUSH"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["LLEN"; "rory"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["RPUSH"; "rory"; "still cool"])
+        @ [WriteThisLine(":2")]
+        @ (read_lines_from_list
+            ["LLEN"; "rory"])
+        @ [WriteThisLine(":2")])
+        test_func;;
+    
+
+let test_lrange ()=
+    let test_func connection =
+        assert (1 = Redis.rpush "rory" "cool" connection);
         assert (2 = Redis.rpush "rory" "still cool" connection);
         assert ( [Redis.String("cool"); Redis.String("still cool")] = (Redis.lrange "rory" 0 1 connection))
     in
