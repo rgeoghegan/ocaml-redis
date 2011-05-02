@@ -229,6 +229,24 @@ let test_del () =
         @ [Script.WriteThisLine(":2")]
         )
         test_func;;
+
+let test_del_one () =
+    let test_func connection = begin
+        Redis.set "rory" "cool" connection;
+        assert(Redis.del_one "rory" connection);
+        assert(false = Redis.del_one "rory" connection)
+    end in
+    Script.use_test_script
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["DEL"; "rory"])
+        @ [Script.WriteThisLine(":1")]
+        @ (Script.read_lines_from_list
+            ["DEL"; "rory"])
+        @ [Script.WriteThisLine(":0")])
+        test_func;;
     
 let test_value_type () =
     let test_func connection = begin

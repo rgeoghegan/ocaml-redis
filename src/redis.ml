@@ -134,7 +134,7 @@ let del keys connection =
 
 let del_one key connection =
     (* Exactly like "del", except you do not need to provide a list, just one key. Not in spec *)
-    handle_integer_as_boolean (send_and_receive_command ("DEL " ^ key) connection);;
+    handle_integer_as_boolean (send_multibulk_and_receive_command_safely ["DEL"; key] connection);;
 
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
