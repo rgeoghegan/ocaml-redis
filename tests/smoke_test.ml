@@ -70,23 +70,24 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.rpush "rory" "cool" conn);
     assert (1 = Redis.lrem "rory" 0 "cool" conn);
 
-(*
     ignore (Redis.rpush "rory" "cool" conn);
     ignore (Redis.rpush "rory" "even cooler" conn);
 
-*)
-(*
     assert ( (Redis.string_of_bulk_data (Redis.lpop "rory" conn)) = "just cool");
     assert ( (Redis.string_of_bulk_data (Redis.rpop "rory" conn)) = "even cooler");
 
     ignore (Redis.rpush "cool" "rory" conn);
     ignore (Redis.rpush "cool" "tim" conn);
     assert ( (Redis.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
+(* *)
 
     (* Set operations *)
     ignore (Redis.del_one "tim" conn);
     assert ( Redis.sadd "tim" "not cool" conn);
+(*
     assert ( Redis.sadd "tim" "smells" conn);
+*)
+(*
 
     assert ( Redis.srem "tim" "smells" conn);
     
@@ -95,6 +96,8 @@ let smoke_test_with_quit conn = begin
     ignore ( Redis.del_one "rory" conn);
     assert ( Redis.sadd "rory" "cool" conn);
     assert ( Redis.sadd "tim" "even cooler" conn);
+*)
+(*
     assert ( Redis.smove "tim" "rory" "even cooler" conn );
     
     assert ( 2 = Redis.scard "rory" conn );
@@ -111,6 +114,8 @@ let smoke_test_with_quit conn = begin
 
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sunionstore "bob" ["rory"; "tim"] conn );
+*)
+(*
     ignore ( Redis.srem "tim" "even cooler" conn );
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sdiff "rory" ["tim"] conn)) );
     assert ( 1 = Redis.sdiffstore "bob" "rory" ["tim"] conn);
@@ -142,6 +147,8 @@ let smoke_test_with_quit conn = begin
         = List.map
             Redis.string_of_bulk_data
             (Redis.zrange "coolest" 0 1 conn));
+*)
+(*
 
     assert (
         [("rory", 1.0); ("tim", 99.0)]
@@ -204,6 +211,8 @@ let smoke_test_with_quit conn = begin
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Sum conn);
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Min conn);
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Max conn);
+*)
+(*
 
     assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] conn);
     assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Sum conn);

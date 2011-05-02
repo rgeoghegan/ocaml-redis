@@ -161,9 +161,10 @@ let test_lpop () =
     use_test_script
         ((read_lines_from_list
             ["LPUSH"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["LPOP"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("LPOP rory");
             WriteThisLine("$4");
             WriteThisLine("cool")
         ])
