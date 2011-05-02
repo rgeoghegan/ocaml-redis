@@ -3,6 +3,8 @@
 
    Tests for "Commands operating on lists" *)
 
+open Script;;
+
 let test_rpush () =
     let test_func connection =
         assert( 1 == (Redis.rpush "rory" "cool" connection));
@@ -14,28 +16,28 @@ let test_rpush () =
             end
         with Redis.RedisServerError(_) -> ()
     in
-    Script.use_test_script
-        ((Script.read_lines_from_list
+    use_test_script
+        ((read_lines_from_list
             ["RPUSH"; "rory"; "cool"])
-        @ [Script.WriteThisLine(":1")]
-        @ (Script.read_lines_from_list
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
             ["SET"; "rory"; "cool"])
-        @ [Script.WriteThisLine("+OK")]
-        @ (Script.read_lines_from_list
+        @ [WriteThisLine("+OK")]
+        @ (read_lines_from_list
             ["RPUSH"; "rory"; "cool"])
-        @ [Script.WriteThisLine("-ERR Operation against a key holding the wrong kind of value")])
+        @ [WriteThisLine("-ERR Operation against a key holding the wrong kind of value")])
         test_func;;
 
 let test_lpush () =
     let test_func connection =
         Redis.lpush "rory" "cool" connection
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1")
+        ])
         test_func;;
 
 let test_llen () =
@@ -44,20 +46,20 @@ let test_llen () =
         assert (2 = Redis.rpush "rory" "still cool" connection);
         assert ( [Redis.String("cool"); Redis.String("still cool")] = (Redis.lrange "rory" 0 1 connection))
     in
-    Script.use_test_script
-        ((Script.read_lines_from_list
+    use_test_script
+        ((read_lines_from_list
             ["RPUSH"; "rory"; "cool"])
-        @ [Script.WriteThisLine(":1")]
-        @ (Script.read_lines_from_list
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
             ["RPUSH"; "rory"; "still cool"])
         @ [
-            Script.WriteThisLine(":2");
-            Script.ReadThisLine("LRANGE rory 0 1");
-            Script.WriteThisLine("*2");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-            Script.WriteThisLine("$10");
-            Script.WriteThisLine("still cool")
+            WriteThisLine(":2");
+            ReadThisLine("LRANGE rory 0 1");
+            WriteThisLine("*2");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+            WriteThisLine("$10");
+            WriteThisLine("still cool")
         ])
         test_func;;
 
@@ -67,16 +69,16 @@ let test_ltrim () =
         assert (2 = Redis.rpush "rory" "still cool" connection);
         Redis.ltrim "rory" 0 1 connection
     in
-    Script.use_test_script
-        ((Script.read_lines_from_list
+    use_test_script
+        ((read_lines_from_list
             ["RPUSH"; "rory"; "cool"])
-        @ [Script.WriteThisLine(":1")]
-        @ (Script.read_lines_from_list
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
             ["RPUSH"; "rory"; "still cool"])
         @ [
-            Script.WriteThisLine(":2");
-            Script.ReadThisLine("LTRIM rory 0 1");
-            Script.WriteThisLine("+OK")
+            WriteThisLine(":2");
+            ReadThisLine("LTRIM rory 0 1");
+            WriteThisLine("+OK")
         ])
         test_func;;
 
@@ -85,15 +87,15 @@ let test_lset () =
         assert (1 = Redis.lpush "rory" "cool" connection);
         Redis.lset "rory" 0 "even cooler" connection
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("LSET rory 0 11");
-            Script.ReadThisLine("even cooler");
-            Script.WriteThisLine("+OK");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("LSET rory 0 11");
+            ReadThisLine("even cooler");
+            WriteThisLine("+OK");
+        ])
         test_func;;
 
 let test_lrem () =
@@ -102,18 +104,18 @@ let test_lrem () =
         assert (2 = Redis.lpush "rory" "even cooler" connection);
         assert (1 == Redis.lrem "rory" 0 "cool" connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("LPUSH rory 11");
-            Script.ReadThisLine("even cooler");
-            Script.WriteThisLine(":2");
-            Script.ReadThisLine("LREM rory 0 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["LPUSH"; "rory"; "even cooler"])
+        @ [
+            WriteThisLine(":2");
+            ReadThisLine("LREM rory 0 4");
+            ReadThisLine("cool");
+            WriteThisLine(":1");
+        ])
         test_func;;
 
 let test_lpop () =
@@ -121,15 +123,15 @@ let test_lpop () =
         assert (1 = Redis.lpush "rory" "cool" connection);
         assert (Redis.String("cool") = Redis.lpop "rory" connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("LPOP rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("LPOP rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool")
+        ])
         test_func;;
 
 let test_rpop () =
@@ -137,31 +139,31 @@ let test_rpop () =
         assert (1 = Redis.lpush "rory" "cool" connection);
         assert (Redis.String("cool") = Redis.rpop "rory" connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("RPOP rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("RPOP rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+        ])
         test_func;;
 
 let test_rpoplpush () =
     let test_func connection =
-        assert (1 = Redis.lpush "cool" "rory" connection);
+        assert (1 = Redis.lpush "rory" "cool" connection);
         assert (Redis.String("rory") = (Redis.rpoplpush "cool" "not_cool" connection))
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH cool 4");
-            Script.ReadThisLine("rory");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("RPOPLPUSH cool not_cool");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("RPOPLPUSH cool not_cool");
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+        ])
         test_func;;
 
 let test_blpop () =
@@ -170,20 +172,20 @@ let test_blpop () =
         assert (Redis.String("cool") = Redis.blpop "rory" connection);
         assert (Redis.Nil = Redis.blpop "rory" ~timeout:(`Seconds(3)) connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("BLPOP rory 0");
-            Script.WriteThisLine("*2");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-            Script.ReadThisLine("BLPOP rory 3");
-            Script.WriteThisLine("*-1")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("BLPOP rory 0");
+            WriteThisLine("*2");
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+            ReadThisLine("BLPOP rory 3");
+            WriteThisLine("*-1")
+        ])
         test_func;;
 
 let test_blpop_many () =
@@ -192,20 +194,20 @@ let test_blpop_many () =
         assert (("rory", Redis.String("cool")) = Redis.blpop_many ["rory"; "tim"; "bob"] connection);
         assert (("", Redis.Nil) = Redis.blpop_many ["rory"; "tim"; "bob"] ~timeout:(`Seconds(3)) connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("BLPOP rory tim bob 0");
-            Script.WriteThisLine("*2");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-            Script.ReadThisLine("BLPOP rory tim bob 3");
-            Script.WriteThisLine("*-1")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("BLPOP rory tim bob 0");
+            WriteThisLine("*2");
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+            ReadThisLine("BLPOP rory tim bob 3");
+            WriteThisLine("*-1")
+        ])
         test_func;;
 
 let test_brpop () =
@@ -214,20 +216,20 @@ let test_brpop () =
         assert (Redis.String("cool") = Redis.brpop "rory" connection);
         assert (Redis.Nil = Redis.brpop "rory" ~timeout:(`Seconds(3)) connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("BRPOP rory 0");
-            Script.WriteThisLine("*2");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-            Script.ReadThisLine("BRPOP rory 3");
-            Script.WriteThisLine("*-1")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("BRPOP rory 0");
+            WriteThisLine("*2");
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+            ReadThisLine("BRPOP rory 3");
+            WriteThisLine("*-1")
+        ])
         test_func;;
 
 let test_brpop_many () =
@@ -236,18 +238,18 @@ let test_brpop_many () =
         assert (("rory", Redis.String("cool")) = Redis.brpop_many ["rory"; "tim"; "bob"] connection);
         assert (("", Redis.Nil) = Redis.brpop_many ["rory"; "tim"; "bob"] ~timeout:(`Seconds(3)) connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("LPUSH rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("BRPOP rory tim bob 0");
-            Script.WriteThisLine("*2");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-            Script.ReadThisLine("BRPOP rory tim bob 3");
-            Script.WriteThisLine("*-1")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("BRPOP rory tim bob 0");
+            WriteThisLine("*2");
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+            ReadThisLine("BRPOP rory tim bob 3");
+            WriteThisLine("*-1")
+        ])
         test_func;;

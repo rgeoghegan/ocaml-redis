@@ -200,7 +200,7 @@ let rpush key value connection =
 
 let lpush key value connection =
     (* LPUSH *)
-    match send_with_value_and_receive_command_safely ("LPUSH " ^ key) value connection with
+    match send_multibulk_and_receive_command_safely ["LPUSH"; key; value] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

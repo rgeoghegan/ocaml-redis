@@ -10,15 +10,15 @@ let test_default () =
         assert ([Redis.String("1")] = Redis.sort "rory" connection )
     in
     use_test_script
-        [
-            ReadThisLine("LPUSH rory 1");
-            ReadThisLine("1");
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "1"])
+        @ [
             WriteThisLine(":1");
             ReadThisLine("SORT rory");
             WriteThisLine("*1");
             WriteThisLine("$1");
-            WriteThisLine("1");
-        ]
+            WriteThisLine("1")
+        ])
         test_func;;
 
 let test_sort_all_combos () =
