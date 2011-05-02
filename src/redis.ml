@@ -286,13 +286,11 @@ let blpop_many key_list ?(timeout=`None) connection =
 
 let brpop key ?(timeout=`None) connection =
     (* BRPOP, but for only one key *)
-    match send_and_receive_command_safely
-            (Printf.sprintf
-                "BRPOP %s %d"
-                key
-                (match timeout with
-                    `None -> 0 |
-                    `Seconds(s) -> s)) connection
+    match send_multibulk_and_receive_command_safely
+        ["BRPOP"; key;
+            match timeout with
+                `None -> "0" |
+                `Seconds(s) -> string_of_int s] connection
         with
             Multibulk(MultibulkValue([key; v])) -> v |
             Multibulk(MultibulkNil) -> Nil |
