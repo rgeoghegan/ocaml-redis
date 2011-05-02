@@ -138,7 +138,7 @@ let del_one key connection =
 
 let value_type key connection =
     (* TYPE, unfortunately type is an ocaml keyword, so it cannot be used as a function name *)
-    match send_and_receive_command_safely ("TYPE " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["TYPE"; key] connection with
         Status("string") -> RedisString |
         Status("set") -> RedisSet |
         Status("zset") -> RedisZSet |

@@ -257,25 +257,23 @@ let test_value_type () =
         assert (Redis.RedisNil = Redis.value_type "bob" connection);
     end in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [
             Script.WriteThisLine("+OK");
             Script.ReadThisLine("ZADD tim 1.000000 8");
             Script.ReadThisLine("not cool");
             Script.WriteThisLine(":1");
-            Script.ReadThisLine("TYPE rory");
-            Script.WriteThisLine("+string");
-            Script.ReadThisLine("TYPE tim");
-            Script.WriteThisLine("+zset");
-            Script.ReadThisLine("TYPE bob");
-            Script.WriteThisLine("+none");
         ]
+        @ (Script.read_lines_from_list
+            ["TYPE"; "rory"])
+        @ [Script.WriteThisLine("+string")]
+        @ (Script.read_lines_from_list
+            ["TYPE"; "tim"])
+        @ [Script.WriteThisLine("+zset")]
+        @ (Script.read_lines_from_list
+            ["TYPE"; "bob"])
+        @ [Script.WriteThisLine("+none")])
         test_func;;
 
 let test_append () =
