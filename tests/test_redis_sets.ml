@@ -3,16 +3,16 @@
 
    Tests for "Commands operating on sets" *)
 
+open Script;;
+
 let test_sadd () =
     let test_func connection =
         assert (Redis.sadd "rory" "cool" connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_srem () =
@@ -20,15 +20,15 @@ let test_srem () =
         ignore (Redis.sadd "rory" "cool" connection);
         assert (Redis.srem "rory" "cool" connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SREM rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SREM rory 4");
+            ReadThisLine("cool");
+            WriteThisLine(":1");
+        ])
         test_func;;
 
 let test_spop () =
@@ -36,15 +36,15 @@ let test_spop () =
         ignore (Redis.sadd "rory" "cool" connection);
         assert (Redis.String("cool") = Redis.spop "rory" connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SPOP rory");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SPOP rory");
+            WriteThisLine("$4");
+            WriteThisLine("cool");
+        ])
         test_func;;
 
 let test_smove () =
@@ -53,18 +53,18 @@ let test_smove () =
         ignore (Redis.sadd "tim" "even cooler" connection);
         assert ( Redis.smove "tim" "rory" "even cooler" connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SADD tim 11");
-            Script.ReadThisLine("even cooler");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SMOVE tim rory 11");
-            Script.ReadThisLine("even cooler");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SADD"; "tim"; "even cooler"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SMOVE tim rory 11");
+            ReadThisLine("even cooler");
+            WriteThisLine(":1");
+        ])
         test_func;;
 
 let test_scard () =
@@ -73,17 +73,17 @@ let test_scard () =
         ignore (Redis.sadd "rory" "even cooler" connection);
         assert ( 2 = Redis.scard "rory" connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SADD rory 11");
-            Script.ReadThisLine("even cooler");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SCARD rory");
-            Script.WriteThisLine(":2");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SADD"; "rory"; "even cooler"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SCARD rory");
+            WriteThisLine(":2");
+        ])
         test_func;;
 
 let test_sismember () =
@@ -91,15 +91,15 @@ let test_sismember () =
         ignore (Redis.sadd "rory" "cool" connection);
         assert ( Redis.sismember "rory" "cool" connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SISMEMBER rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SISMEMBER rory 4");
+            ReadThisLine("cool");
+            WriteThisLine(":1");
+        ])
         test_func;;
 
 let test_smembers () =
@@ -107,16 +107,16 @@ let test_smembers () =
         ignore (Redis.sadd "rory" "cool" connection);
         assert ( [Redis.String("cool")] = Redis.smembers "rory" connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SMEMBERS rory");
-            Script.WriteThisLine("*1");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SMEMBERS rory");
+            WriteThisLine("*1");
+            WriteThisLine("$4");
+            WriteThisLine("cool")
+        ])
         test_func;;
 
 let test_sinter () =
@@ -125,19 +125,19 @@ let test_sinter () =
         ignore (Redis.sadd "tim" "cool" connection);
         assert ( [Redis.String("cool")] = Redis.sinter ["rory"; "tim"] connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SADD tim 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SINTER rory tim");
-            Script.WriteThisLine("*1");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SADD"; "tim"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ [
+            ReadThisLine("SINTER rory tim");
+            WriteThisLine("*1");
+            WriteThisLine("$4");
+            WriteThisLine("cool")
+        ])
         test_func;;
 
 let test_sinterstore () =
@@ -146,17 +146,17 @@ let test_sinterstore () =
         ignore (Redis.sadd "tim" "cool" connection);
         assert (1 == Redis.sinterstore "bob" ["rory"; "tim"] connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SADD tim 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SINTERSTORE bob rory tim");
-            Script.WriteThisLine(":1")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SADD"; "tim"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SINTERSTORE bob rory tim");
+            WriteThisLine(":1")
+        ])
         test_func;;
 
 let test_sunion () =
@@ -165,19 +165,19 @@ let test_sunion () =
         ignore (Redis.sadd "tim" "cool" connection);
         assert ([Redis.String("cool")] = Redis.sunion ["rory"; "tim"] connection)
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SADD tim 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SUNION rory tim");
-            Script.WriteThisLine("*1");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SADD"; "tim"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SUNION rory tim");
+            WriteThisLine("*1");
+            WriteThisLine("$4");
+            WriteThisLine("cool")
+        ])
         test_func;;
 
 let test_sunionstore () =
@@ -186,17 +186,17 @@ let test_sunionstore () =
         ignore (Redis.sadd "tim" "not so cool" connection);
         assert ( 2 = Redis.sunionstore "bob" ["rory"; "tim"] connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SADD tim 11");
-            Script.ReadThisLine("not so cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SUNIONSTORE bob rory tim");
-            Script.WriteThisLine(":2")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SADD"; "tim"; "not so cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SUNIONSTORE bob rory tim");
+            WriteThisLine(":2")
+        ])
         test_func;;
 
 let test_sdiff () =
@@ -204,16 +204,16 @@ let test_sdiff () =
         ignore (Redis.sadd "rory" "cool" connection);
         assert ( [Redis.String("cool")] = Redis.sdiff "rory" ["tim"] connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SDIFF rory tim");
-            Script.WriteThisLine("*1");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("cool")
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SDIFF rory tim");
+            WriteThisLine("*1");
+            WriteThisLine("$4");
+            WriteThisLine("cool")
+        ])
         test_func;;
 
 let test_sdiffstore () =
@@ -221,28 +221,28 @@ let test_sdiffstore () =
         ignore (Redis.sadd "rory" "cool" connection);
         assert ( 1 = Redis.sdiffstore "bob" "rory" ["tim"] connection )
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SDIFFSTORE bob rory tim");
-            Script.WriteThisLine(":1");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SDIFFSTORE bob rory tim");
+            WriteThisLine(":1");
+        ])
         test_func;;
 
 let test_srandmember () =
     let test_func connection =
-        ignore (Redis.sadd "cool" "rory" connection);
+        ignore (Redis.sadd "rory" "cool" connection);
         assert ( Redis.String("rory") = (Redis.srandmember "cool" connection))
     in
-    Script.use_test_script
-        [
-            Script.ReadThisLine("SADD cool 4");
-            Script.ReadThisLine("rory");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("SRANDMEMBER cool");
-            Script.WriteThisLine("$4");
-            Script.WriteThisLine("rory");
-        ]
+    use_test_script
+        ((read_lines_from_list
+            ["SADD"; "rory"; "cool"])
+        @ [
+            WriteThisLine(":1");
+            ReadThisLine("SRANDMEMBER cool");
+            WriteThisLine("$4");
+            WriteThisLine("rory");
+        ])
         test_func;;
