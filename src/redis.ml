@@ -225,9 +225,10 @@ let ltrim key start stop connection =
 
 let lindex key index connection =
     (* LINDEX *)
-    match send_and_receive_command_safely (Printf.sprintf "LINDEX %s %d" key index) connection with
-        Bulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["LINDEX"; key; string_of_int index] connection with
+            Bulk(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let lset key index value connection =
     (* LSET *)

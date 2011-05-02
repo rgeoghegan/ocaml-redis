@@ -104,7 +104,24 @@ let test_ltrim () =
         @ [WriteThisLine("+OK")])
         test_func;;
 
-let test_lset () =
+let test_lindex () =
+    let test_func connection =
+        assert (1 = Redis.lpush "rory" "cool" connection);
+        assert (Redis.String("cool") = Redis.lindex "rory" 0 connection);
+    in
+    use_test_script
+        ((read_lines_from_list
+            ["LPUSH"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["LINDEX"; "rory"; "0"])
+        @ [
+            WriteThisLine("$4");
+            WriteThisLine("cool")
+        ])
+        test_func;;
+
+(* let test_lset () =
     let test_func connection =
         assert (1 = Redis.lpush "rory" "cool" connection);
         Redis.lset "rory" 0 "even cooler" connection
@@ -112,13 +129,12 @@ let test_lset () =
     use_test_script
         ((read_lines_from_list
             ["LPUSH"; "rory"; "cool"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("LSET rory 0 11");
-            ReadThisLine("even cooler");
-            WriteThisLine("+OK");
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["LSET"; "rory"; "0"; "even cooler"])
+        @ [WriteThisLine("+OK")])
         test_func;;
+*)
 
 let test_lrem () =
     let test_func connection =
