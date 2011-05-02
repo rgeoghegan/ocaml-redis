@@ -250,7 +250,7 @@ let lpop key connection =
 
 let rpop key connection =
     (* RPOP *)
-    match send_and_receive_command_safely ("RPOP " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["RPOP"; key] connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

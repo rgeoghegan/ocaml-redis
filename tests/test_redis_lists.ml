@@ -178,11 +178,12 @@ let test_rpop () =
     use_test_script
         ((read_lines_from_list
             ["LPUSH"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["RPOP"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("RPOP rory");
             WriteThisLine("$4");
-            WriteThisLine("cool");
+            WriteThisLine("cool")
         ])
         test_func;;
 
