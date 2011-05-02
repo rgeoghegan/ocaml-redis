@@ -280,11 +280,11 @@ let test_append () =
         assert (4 = Redis.append "rory" "cool" connection);
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("APPEND rory 4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine(":4");
-        ]
+        ((Script.read_lines_from_list
+            ["APPEND"; "rory"; "cool"])
+        @ [
+            Script.WriteThisLine(":4")
+        ])
         test_func;;
     
 let test_substr () =

@@ -111,7 +111,7 @@ let decrby key value connection =
 
 let append key value connection =
     (* APPEND *)
-    match send_with_value_and_receive_command_safely ("APPEND " ^ key) value connection with
+    match send_multibulk_and_receive_command_safely ["APPEND"; key; value] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
