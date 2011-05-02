@@ -1,4 +1,7 @@
 (**
+Copyright (C) 2011 Rory Geoghegan - r.geoghegan@gmail.com
+Released under the BSD license. See the LICENSE.txt file for more info.
+
 Redis is a module used to interact with a redis-key value store server. For a full description of all the redis keywords, refer to the redis docs linked below.
 
 @see <http://code.google.com/p/redis/> the redis project.

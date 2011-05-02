@@ -1,3 +1,8 @@
+(* Copyright (C) 2011 Rory Geoghegan - r.geoghegan@gmail.com
+   Released under the BSD license. See the LICENSE.txt file for more info.
+
+   Utility code used mostly internally to the library. *)
+
 type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
 type bulk_data = Nil | String of string
 type rank = NilRank | Rank of int
