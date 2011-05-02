@@ -262,20 +262,18 @@ let rpoplpush src_key dest_key connection =
 
 let blpop key ?(timeout=`None) connection =
     (* BLPOP, but for only one key *)
-    match send_and_receive_command_safely
-            (Printf.sprintf
-                "BLPOP %s %d"
-                key
-                (match timeout with
-                    `None -> 0 |
-                    `Seconds(s) -> s)) connection
+    match send_multibulk_and_receive_command_safely
+            ["BLPOP"; key;
+                match timeout with
+                    `None -> "0" |
+                    `Seconds(s) -> string_of_int s] connection
         with
             Multibulk(MultibulkValue([key; v])) -> v |
             Multibulk(MultibulkNil) -> Nil |
             _ -> failwith "Did not recognize what I got back";;
 
 let blpop_many key_list ?(timeout=`None) connection =
-    (* BLPOP *)
+    (* BLPOP, but for many keys *)
     match send_and_receive_command_safely
             (Printf.sprintf
                 "BLPOP %s %d"
