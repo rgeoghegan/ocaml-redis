@@ -62,8 +62,7 @@ let test_llen () =
         @ [WriteThisLine(":2")])
         test_func;;
     
-
-let test_lrange ()=
+let test_lrange () =
     let test_func connection =
         assert (1 = Redis.rpush "rory" "cool" connection);
         assert (2 = Redis.rpush "rory" "still cool" connection);
@@ -75,9 +74,10 @@ let test_lrange ()=
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["RPUSH"; "rory"; "still cool"])
+        @ [WriteThisLine(":2")]
+        @ (read_lines_from_list
+            ["LRANGE"; "rory"; "0"; "1"])
         @ [
-            WriteThisLine(":2");
-            ReadThisLine("LRANGE rory 0 1");
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("cool");

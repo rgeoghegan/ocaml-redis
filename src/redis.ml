@@ -213,7 +213,8 @@ let llen key connection =
 let lrange key start stop connection =
     (* LRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely (Printf.sprintf "LRANGE %s %d %d" key start stop) connection);;
+        (send_multibulk_and_receive_command_safely
+            ["LRANGE"; key; string_of_int start; string_of_int stop] connection);;
 
 let ltrim key start stop connection =
     (* LTRIM, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
