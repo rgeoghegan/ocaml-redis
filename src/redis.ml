@@ -182,7 +182,8 @@ let expire key seconds connection =
 
 let expireat key time connection =
     (* EXPIREAT *)
-    handle_integer_as_boolean (send_and_receive_command (Printf.sprintf "EXPIREAT %s %.f" key time) connection);;
+    handle_integer_as_boolean (send_multibulk_and_receive_command_safely
+        ["EXPIREAT"; key; Printf.sprintf "%.f" time] connection);;
 
 let ttl key connection =
     (* TTL *)

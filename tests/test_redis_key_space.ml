@@ -114,18 +114,12 @@ let test_expireat () =
         Redis.expireat "rory" 946765012. connection
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("EXPIREAT rory 946765012");
-            Script.WriteThisLine(":1")
-        ]
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["EXPIREAT"; "rory"; "946765012"])
+        @ [Script.WriteThisLine(":1")])
         test_func;;
 
 let test_ttl () =
