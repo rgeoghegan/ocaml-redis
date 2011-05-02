@@ -147,12 +147,10 @@ let test_lrem () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["LPUSH"; "rory"; "even cooler"])
-        @ [
-            WriteThisLine(":2");
-            ReadThisLine("LREM rory 0 4");
-            ReadThisLine("cool");
-            WriteThisLine(":1");
-        ])
+        @ [WriteThisLine(":2")]
+        @ (read_lines_from_list
+            ["LREM"; "rory"; "0"; "cool"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_lpop () =

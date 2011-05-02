@@ -237,9 +237,10 @@ let lset key index value connection =
 
 let lrem key count value connection =
     (* LREM *)
-    match send_with_value_and_receive_command_safely (Printf.sprintf "LREM %s %d" key count) value connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["LREM"; key; string_of_int count; value] connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let lpop key connection =
     (* LPOP *)
