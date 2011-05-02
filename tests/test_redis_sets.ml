@@ -23,11 +23,11 @@ let test_srem () =
     use_test_script
         ((read_lines_from_list
             ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SREM"; "rory"; "cool"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("SREM rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":1");
+            WriteThisLine(":1")
         ])
         test_func;;
 

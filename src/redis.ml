@@ -317,7 +317,7 @@ let sadd key member connection =
 let srem key member connection =
     (* SREM *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("SREM " ^ key) member connection);;
+        (send_multibulk_and_receive_command_safely ["SREM"; key; member] connection);;
 
 let spop key connection =
     (* SPOP *)

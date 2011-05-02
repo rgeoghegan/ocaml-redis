@@ -79,34 +79,30 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.rpush "cool" "rory" conn);
     ignore (Redis.rpush "cool" "tim" conn);
     assert ( (Redis.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn)) = "tim");
-(* *)
 
     (* Set operations *)
     ignore (Redis.del_one "tim" conn);
     assert ( Redis.sadd "tim" "not cool" conn);
-(*
     assert ( Redis.sadd "tim" "smells" conn);
-*)
-(*
 
     assert ( Redis.srem "tim" "smells" conn);
-    
     assert ( "not cool" = Redis.string_of_bulk_data (Redis.spop "tim" conn) );
 
     ignore ( Redis.del_one "rory" conn);
     assert ( Redis.sadd "rory" "cool" conn);
     assert ( Redis.sadd "tim" "even cooler" conn);
-*)
-(*
+
+(* *)
     assert ( Redis.smove "tim" "rory" "even cooler" conn );
-    
+(*
     assert ( 2 = Redis.scard "rory" conn );
 
     assert ( Redis.sismember "rory" "cool" conn );
 
     ignore ( Redis.srem "rory" "cool" conn );
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
-
+*)
+(*
     ignore (Redis.sadd "tim" "even cooler" conn);
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sinter ["rory"; "tim"] conn)) );
     
