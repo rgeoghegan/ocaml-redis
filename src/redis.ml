@@ -171,7 +171,7 @@ let renamenx oldkey newkey connection =
 
 let dbsize connection =
     (* DBSIZE *)
-    match send_and_receive_command_safely  "DBSIZE" connection with
+    match send_multibulk_and_receive_command_safely ["DBSIZE"] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

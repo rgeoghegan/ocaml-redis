@@ -87,6 +87,8 @@ let test_dbsize () =
     in
     Script.use_test_script
         [
+            Script.ReadThisLine("*1");
+            Script.ReadThisLine("$6");
             Script.ReadThisLine("DBSIZE");
             Script.WriteThisLine(":0")
         ]
