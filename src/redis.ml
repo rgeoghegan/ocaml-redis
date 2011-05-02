@@ -218,9 +218,10 @@ let lrange key start stop connection =
 
 let ltrim key start stop connection =
     (* LTRIM, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command_safely (Printf.sprintf "LTRIM %s %d %d" key start stop) connection with
-        Status("OK") -> () |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["LTRIM"; key; string_of_int start; string_of_int stop] connection with
+            Status("OK") -> () |
+            _ -> failwith "Did not recognize what I got back";;
 
 let lindex key index connection =
     (* LINDEX *)

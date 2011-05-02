@@ -98,11 +98,10 @@ let test_ltrim () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["RPUSH"; "rory"; "still cool"])
-        @ [
-            WriteThisLine(":2");
-            ReadThisLine("LTRIM rory 0 1");
-            WriteThisLine("+OK")
-        ])
+        @ [WriteThisLine(":2")]
+        @ (read_lines_from_list
+            ["LTRIM"; "rory"; "0"; "1"])
+        @ [WriteThisLine("+OK")])
         test_func;;
 
 let test_lset () =
