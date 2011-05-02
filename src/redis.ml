@@ -232,8 +232,8 @@ let lindex key index connection =
 
 let lset key index value connection =
     (* LSET *)
-    handle_status
-        (send_with_value_and_receive_command_safely (Printf.sprintf "LSET %s %d" key index) value connection);;
+    handle_status (send_multibulk_and_receive_command_safely
+        ["LSET"; key; string_of_int index; value] connection);;
 
 let lrem key count value connection =
     (* LREM *)

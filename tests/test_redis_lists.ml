@@ -121,7 +121,7 @@ let test_lindex () =
         ])
         test_func;;
 
-(* let test_lset () =
+let test_lset () =
     let test_func connection =
         assert (1 = Redis.lpush "rory" "cool" connection);
         Redis.lset "rory" 0 "even cooler" connection
@@ -134,7 +134,6 @@ let test_lindex () =
             ["LSET"; "rory"; "0"; "even cooler"])
         @ [WriteThisLine("+OK")])
         test_func;;
-*)
 
 let test_lrem () =
     let test_func connection =

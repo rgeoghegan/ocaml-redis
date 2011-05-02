@@ -67,10 +67,10 @@ let smoke_test_with_quit conn = begin
     Redis.ltrim "rory" 0 0 conn;
     assert ( (Redis.string_of_bulk_data (Redis.lindex "rory" 0 conn)) = "even cooler");
     Redis.lset "rory" 0 "just cool" conn;
-(*
     ignore (Redis.rpush "rory" "cool" conn);
     assert (1 = Redis.lrem "rory" 0 "cool" conn);
 
+(*
     ignore (Redis.rpush "rory" "cool" conn);
     ignore (Redis.rpush "rory" "even cooler" conn);
 
