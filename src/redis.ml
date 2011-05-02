@@ -117,9 +117,10 @@ let append key value connection =
 
 let substr key start stop connection =
     (* SUBSTR, note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    match send_and_receive_command_safely (Printf.sprintf "SUBSTR %s %d %d" key start stop) connection with
-        Bulk(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["SUBSTR"; key; string_of_int start; string_of_int stop] connection with
+            Bulk(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let exists key connection =
     (* EXISTS *)
@@ -127,7 +128,7 @@ let exists key connection =
 
 let del keys connection =
     (* DEL *)
-    match send_and_receive_command_safely (aggregate_command "DEL" keys) connection with
+    match send_multibulk_and_receive_command_safely ("DEL" :: keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 

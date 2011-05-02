@@ -212,37 +212,22 @@ let test_del () =
         assert (2 == Redis.del ["rory"; "tim"; "bob"] connection);
     end in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("tim");
-            Script.ReadThisLine("$6");
-            Script.ReadThisLine("uncool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("bob");
-            Script.ReadThisLine("$7");
-            Script.ReadThisLine("unknown");
-            Script.WriteThisLine("+OK");
-
-            Script.ReadThisLine("DEL bob");
-            Script.WriteThisLine(":1");
-            Script.ReadThisLine("DEL rory tim bob");
-            Script.WriteThisLine(":2")
-        ]
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["SET"; "tim"; "uncool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["SET"; "bob"; "unknown"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["DEL"; "bob"])
+        @ [Script.WriteThisLine(":1")]
+        @ (Script.read_lines_from_list
+            ["DEL"; "rory"; "tim"; "bob"])
+        @ [Script.WriteThisLine(":2")]
+        )
         test_func;;
     
 let test_value_type () =
@@ -292,16 +277,14 @@ let test_substr () =
         Redis.set "rory" "cool" connection;
         assert (Redis.String("ol") = Redis.substr "rory" 2 4 connection)
     in
-    Script.use_test_script [
-        Script.ReadThisLine("*3");
-        Script.ReadThisLine("$3");
-        Script.ReadThisLine("SET");
-        Script.ReadThisLine("$4");
-        Script.ReadThisLine("rory");
-        Script.ReadThisLine("$4");
-        Script.ReadThisLine("cool");
-        Script.WriteThisLine("+OK");
-        Script.ReadThisLine("SUBSTR rory 2 4");
-        Script.WriteThisLine("$2");
-        Script.WriteThisLine("ol")
-    ] test_func;;
+    Script.use_test_script 
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["SUBSTR"; "rory"; "2"; "4"])
+        @ [
+            Script.WriteThisLine("$2");
+            Script.WriteThisLine("ol")
+        ])
+    test_func;;
