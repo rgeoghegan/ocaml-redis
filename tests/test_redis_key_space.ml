@@ -10,30 +10,21 @@ let test_keys () =
         assert(["rory"; "tim"] = Redis.keys "*" connection)
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("tim");
-            Script.ReadThisLine("$6");
-            Script.ReadThisLine("uncool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("KEYS *");
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["SET"; "tim"; "uncool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["KEYS"; "*"])
+        @ [
             Script.WriteThisLine("*2");
             Script.WriteThisLine("$4");
             Script.WriteThisLine("rory");
             Script.WriteThisLine("$3");
             Script.WriteThisLine("tim")
-        ]
+        ])
         test_func;;
 
 let test_randomkey () =
