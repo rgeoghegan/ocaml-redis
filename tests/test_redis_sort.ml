@@ -99,51 +99,25 @@ let test_sort_get_many_get_one () =
         end
     in
         use_test_script
-            [
-                ReadThisLine("RPUSH people 1");
-                ReadThisLine("1");
-                WriteThisLine(":1");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$5");
-                ReadThisLine("age_1");
-                ReadThisLine("$2");
-                ReadThisLine("25");
-                WriteThisLine("+OK");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$6");
-                ReadThisLine("name_1");
-                ReadThisLine("$4");
-                ReadThisLine("rory");
-                WriteThisLine("+OK");
-
-                ReadThisLine("RPUSH people 1");
-                ReadThisLine("2");
-                WriteThisLine(":2");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$5");
-                ReadThisLine("age_2");
-                ReadThisLine("$2");
-                ReadThisLine("20");
-                WriteThisLine("+OK");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$6");
-                ReadThisLine("name_2");
-                ReadThisLine("$3");
-                ReadThisLine("tim");
-                WriteThisLine("+OK");
-
+            ((read_lines_from_list
+                ["RPUSH"; "people"; "1"])
+            @ [WriteThisLine(":1")]
+            @ (read_lines_from_list
+                ["SET"; "age_1"; "25"])
+            @ [WriteThisLine("+OK")]
+            @ (read_lines_from_list
+                ["SET"; "name_1"; "rory"])
+            @ [WriteThisLine("+OK")]
+            @ (read_lines_from_list
+                ["RPUSH"; "people"; "2"])
+            @ [WriteThisLine(":2")]
+            @ (read_lines_from_list
+                ["SET"; "age_2"; "20"])
+            @ [WriteThisLine("+OK")]
+            @ (read_lines_from_list
+                ["SET"; "name_2"; "tim"])
+            @ [WriteThisLine("+OK")]
+            @ [
                 ReadThisLine("SORT people BY age_* GET age_* GET name_*");
                 WriteThisLine("*4");
                 WriteThisLine("$2");
@@ -154,7 +128,7 @@ let test_sort_get_many_get_one () =
                 WriteThisLine("25");
                 WriteThisLine("$4");
                 WriteThisLine("rory")
-            ]
+            ])
             test_func;;
 
 let test_sort_and_store () =
@@ -176,52 +150,26 @@ let test_sort_and_store () =
         end
     in
         use_test_script
-            [
-                ReadThisLine("RPUSH people 1");
-                ReadThisLine("1");
-                WriteThisLine(":1");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$5");
-                ReadThisLine("age_1");
-                ReadThisLine("$2");
-                ReadThisLine("25");
+            ((read_lines_from_list
+                ["RPUSH"; "people"; "1"])
+            @ [WriteThisLine(":1")]
+            @ (read_lines_from_list
+                ["SET"; "age_1"; "25"])
+            @ [WriteThisLine("+OK")]
+            @ (read_lines_from_list
+                ["SET"; "name_1"; "rory"])
+            @ [WriteThisLine("+OK")]
+            @ (read_lines_from_list
+                ["RPUSH"; "people"; "2"])
+            @ [WriteThisLine(":2")]
+            @ (read_lines_from_list
+                ["SET"; "age_2"; "20"])
+            @ [WriteThisLine("+OK")]
+            @ (read_lines_from_list
+                ["SET"; "name_2"; "tim"])
+            @ [
                 WriteThisLine("+OK");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$6");
-                ReadThisLine("name_1");
-                ReadThisLine("$4");
-                ReadThisLine("rory");
-                WriteThisLine("+OK");
-
-                ReadThisLine("RPUSH people 1");
-                ReadThisLine("2");
-                WriteThisLine(":2");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$5");
-                ReadThisLine("age_2");
-                ReadThisLine("$2");
-                ReadThisLine("20");
-                WriteThisLine("+OK");
-
-                ReadThisLine("*3");
-                ReadThisLine("$3");
-                ReadThisLine("SET");
-                ReadThisLine("$6");
-                ReadThisLine("name_2");
-                ReadThisLine("$3");
-                ReadThisLine("tim");
-                WriteThisLine("+OK");
-
                 ReadThisLine("SORT people BY age_* GET age_* GET name_* STORE results");
-                WriteThisLine(":4");
-            ]
+                WriteThisLine(":4")
+            ])
             test_func;;

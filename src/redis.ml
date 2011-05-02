@@ -194,7 +194,7 @@ let ttl key connection =
 (* Commands operating on lists *)
 let rpush key value connection =
     (* RPUSH *)
-    match send_with_value_and_receive_command_safely ("RPUSH " ^ key) value connection with
+    match send_multibulk_and_receive_command_safely ["RPUSH"; key; value] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
