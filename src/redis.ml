@@ -177,7 +177,8 @@ let dbsize connection =
 
 let expire key seconds connection =
     (* EXPIRE *)
-    handle_integer_as_boolean (send_and_receive_command (Printf.sprintf "EXPIRE %s %d" key seconds) connection);;
+    handle_integer_as_boolean (send_multibulk_and_receive_command_safely
+        ["EXPIRE"; key; string_of_int seconds] connection);;
 
 let expireat key time connection =
     (* EXPIREAT *)

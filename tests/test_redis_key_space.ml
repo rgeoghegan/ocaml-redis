@@ -100,18 +100,12 @@ let test_expire () =
         assert( Redis.expire "rory" 10 connection)
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("EXPIRE rory 10");
-            Script.WriteThisLine(":1")
-        ]
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["EXPIRE"; "rory"; "10"])
+        @ [Script.WriteThisLine(":1")])
         test_func;;
 
 let test_expireat () =
@@ -141,18 +135,14 @@ let test_ttl () =
         assert( 10 == Redis.ttl "rory" connection)
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("EXPIRE rory 10");
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["EXPIRE"; "rory"; "10"])
+        @ [
             Script.WriteThisLine(":1");
             Script.ReadThisLine("TTL rory");
             Script.WriteThisLine(":10")
-        ]
+        ])
         test_func;;
