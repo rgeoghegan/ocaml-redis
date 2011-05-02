@@ -51,18 +51,12 @@ let test_rename () =
         Redis.rename "rory" "tim" connection
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("RENAME rory tim");
-            Script.WriteThisLine("+OK")
-        ]
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["RENAME"; "rory"; "tim"])
+        @ [Script.WriteThisLine("+OK")])
         test_func;;
 
 let test_renamenx () =

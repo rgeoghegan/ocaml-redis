@@ -162,7 +162,7 @@ let randomkey connection =
         
 let rename oldkey newkey connection =
     (* RENAME *)
-    handle_status (send_and_receive_command (Printf.sprintf "RENAME %s %s" oldkey newkey) connection);;
+    handle_status (send_multibulk_and_receive_command_safely ["RENAME"; oldkey; newkey] connection);;
 
 let renamenx oldkey newkey connection =
     (* RENAMENX *)
