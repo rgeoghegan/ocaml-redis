@@ -274,16 +274,11 @@ let blpop key ?(timeout=`None) connection =
 
 let blpop_many key_list ?(timeout=`None) connection =
     (* BLPOP, but for many keys *)
-    match send_and_receive_command_safely
-            (Printf.sprintf
-                "BLPOP %s %d"
-                (List.fold_left
-                    (fun rest n -> rest ^ " " ^ n)
-                    (List.hd key_list)
-                    (List.tl key_list))
-                (match timeout with
-                    `None -> 0 |
-                    `Seconds(s) -> s)) connection
+    match send_multibulk_and_receive_command_safely
+        (("BLPOP" :: key_list)
+        @ [match timeout with
+            `None -> "0" |
+            `Seconds(s) -> string_of_int s]) connection
         with
             Multibulk(MultibulkValue([key; v])) -> ((string_of_bulk_data key), v) |
             Multibulk(MultibulkNil) -> ("", Nil) |

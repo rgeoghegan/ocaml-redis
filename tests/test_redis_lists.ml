@@ -237,17 +237,19 @@ let test_blpop_many () =
     use_test_script
         ((read_lines_from_list
             ["LPUSH"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["BLPOP"; "rory"; "tim"; "bob"; "0"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("BLPOP rory tim bob 0");
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("rory");
             WriteThisLine("$4");
             WriteThisLine("cool");
-            ReadThisLine("BLPOP rory tim bob 3");
-            WriteThisLine("*-1")
-        ])
+        ]
+        @ (read_lines_from_list
+            ["BLPOP"; "rory"; "tim"; "bob"; "3"])
+        @ [WriteThisLine("*-1")])
         test_func;;
 
 let test_brpop () =
