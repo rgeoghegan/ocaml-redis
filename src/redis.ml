@@ -166,7 +166,8 @@ let rename oldkey newkey connection =
 
 let renamenx oldkey newkey connection =
     (* RENAMENX *)
-    handle_integer_as_boolean (send_and_receive_command (Printf.sprintf "RENAMENX %s %s" oldkey newkey) connection);;
+    handle_integer_as_boolean (send_multibulk_and_receive_command_safely
+        ["RENAMENX"; oldkey; newkey] connection);;
 
 let dbsize connection =
     (* DBSIZE *)

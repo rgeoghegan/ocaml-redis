@@ -63,29 +63,22 @@ let test_renamenx () =
     let test_func connection = 
         Redis.set "rory" "cool" connection;
         Redis.set "tim" "not cool" connection;
-        assert( false == Redis.renamenx "rory" "tim" connection)
+        assert( false == Redis.renamenx "rory" "tim" connection);
+        assert(Redis.renamenx "rory" "bob" connection)
     in
     Script.use_test_script
-        [
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("rory");
-            Script.ReadThisLine("$4");
-            Script.ReadThisLine("cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("*3");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("SET");
-            Script.ReadThisLine("$3");
-            Script.ReadThisLine("tim");
-            Script.ReadThisLine("$8");
-            Script.ReadThisLine("not cool");
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("RENAMENX rory tim");
-            Script.WriteThisLine(":0")
-        ]
+        ((Script.read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["SET"; "tim"; "not cool"])
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["RENAMENX"; "rory"; "tim"])
+        @ [Script.WriteThisLine(":0")]
+        @ (Script.read_lines_from_list
+            ["RENAMENX"; "rory"; "bob"])
+        @ [Script.WriteThisLine(":1")])
         test_func;;
 
 let test_dbsize () =
