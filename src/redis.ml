@@ -344,7 +344,7 @@ let sismember key member connection =
 let smembers key connection =
     (* SMEMBERS *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely ("SMEMBERS " ^ key) connection);;
+        (send_multibulk_and_receive_command_safely ["SMEMBERS"; key] connection);;
 
 let sinter keys connection =
     (* SINTER *)

@@ -106,9 +106,10 @@ let test_smembers () =
     use_test_script
         ((read_lines_from_list
             ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SMEMBERS"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("SMEMBERS rory");
             WriteThisLine("*1");
             WriteThisLine("$4");
             WriteThisLine("cool")
