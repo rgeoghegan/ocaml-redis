@@ -190,11 +190,10 @@ let test_sunionstore () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["SADD"; "tim"; "not so cool"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("SUNIONSTORE bob rory tim");
-            WriteThisLine(":2")
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SUNIONSTORE"; "bob"; "rory"; "tim"])
+        @ [WriteThisLine(":2")])
         test_func;;
 
 let test_sdiff () =

@@ -360,11 +360,11 @@ let sinterstore dstkey keys connection =
 let sunion keys connection =
     (* SUNION *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely (aggregate_command "SUNION" keys) connection);;
+        (send_multibulk_and_receive_command_safely ("SUNION" :: keys) connection);;
 
 let sunionstore dstkey keys connection =
     (* SUNIONSTORE *)
-    match send_and_receive_command_safely (aggregate_command "SUNIONSTORE" (dstkey :: keys)) connection with
+    match send_multibulk_and_receive_command_safely ("SUNIONSTORE" :: dstkey :: keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
