@@ -482,91 +482,94 @@ let zincrby key increment member connection =
 
 let zrank key member connection =
     (* ZRANK *)
-    match send_with_value_and_receive_command_safely ("ZRANK " ^ key) member connection with
+    match send_multibulk_and_receive_command_safely ["ZRANK"; key; member] connection with
         Integer(x) -> Rank(x) |
         Bulk(Nil) -> NilRank |
         _ -> failwith "Did not recognize what I got back";;
 
 let zrevrank key member connection =
     (* ZREVRANK *)
-    match send_with_value_and_receive_command_safely ("ZREVRANK " ^ key) member connection with
+    match send_multibulk_and_receive_command_safely ["ZREVRANK"; key; member] connection with
         Integer(x) -> Rank(x) |
         Bulk(Nil) -> NilRank |
         _ -> failwith "Did not recognize what I got back";;
         
 let zcard key connection =
     (* ZCARD *)
-    match (send_and_receive_command_safely ("ZCARD " ^ key) connection) with
+    match (send_multibulk_and_receive_command_safely ["ZCARD"; key] connection) with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let zscore key member connection =
     (* ZSCORE *)
     handle_float
-        (send_with_value_and_receive_command_safely ("ZSCORE " ^ key) member connection);;
+        (send_multibulk_and_receive_command_safely ["ZSCORE"; key; member] connection);;
 
 let zremrangebyrank key start stop connection =
     (* ZREMRANGEBYRANK *)
-    match send_and_receive_command_safely
-        (Printf.sprintf "ZREMRANGEBYRANK %s %d %d" key start stop) connection with
+    match send_multibulk_and_receive_command_safely
+        ["ZREMRANGEBYRANK"; key; string_of_int start; string_of_int stop] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let zremrangebyscore key min max connection =
     (* ZREMRANGEBYSCORE *)
-    match send_and_receive_command_safely (Printf.sprintf "ZREMRANGEBYSCORE %s %f %f" key min max) connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    match send_multibulk_and_receive_command_safely
+        ["ZREMRANGEBYSCORE"; key; format_float min; format_float max] connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let zunionstore dstkey key_list ?(aggregate=`Sum) connection =
-    match send_and_receive_command_safely
-        (Printf.sprintf "ZUNIONSTORE %s %d%s AGGREGATE %s" dstkey
-            (List.length key_list)
-            (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
-            (match aggregate with
-                `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
+    let aggregate = ["AGGREGATE"; match aggregate with
+        `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"]
+    in
+    match send_multibulk_and_receive_command_safely
+        (("ZUNIONSTORE" :: dstkey :: string_of_int (List.length key_list) :: key_list)
+        @ aggregate)
         connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let zunionstore_withweights dstkey key_list weight_list ?(aggregate=`Sum) connection =
     if List.length key_list != List.length weight_list
     then raise (RedisInvalidArgumentError("Not as many weights were given as keys to zunionstore_withweights"))
-    else match send_and_receive_command_safely
-        (Printf.sprintf "ZUNIONSTORE %s %d%s WEIGHTS%s AGGREGATE %s" dstkey
-            (List.length key_list)
-            (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
-            (List.fold_left (fun rest x -> Printf.sprintf "%s %f" rest x) "" weight_list)
-            (match aggregate with
-                `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
-        connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    else let aggregate = ["AGGREGATE"; match aggregate with
+        `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"]
+    in
+    let weights = List.map format_float weight_list
+    in
+        match send_multibulk_and_receive_command_safely
+            (("ZUNIONSTORE" :: dstkey :: string_of_int (List.length key_list) :: key_list)
+            @ ("WEIGHTS" :: weights)
+            @ aggregate) connection with
+                Integer(x) -> x |
+                _ -> failwith "Did not recognize what I got back";;
 
 let zinterstore dstkey key_list ?(aggregate=`Sum) connection =
-    match send_and_receive_command_safely
-        (Printf.sprintf "ZINTERSTORE %s %d%s AGGREGATE %s" dstkey
-            (List.length key_list)
-            (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
-            (match aggregate with
-                `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
-        connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    let aggregate = ["AGGREGATE"; match aggregate with
+        `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"]
+    in
+    match send_multibulk_and_receive_command_safely
+        (("ZINTERSTORE" :: dstkey :: string_of_int (List.length key_list) :: key_list)
+        @ aggregate) connection with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let zinterstore_withweights dstkey key_list weight_list ?(aggregate=`Sum) connection =
     if List.length key_list != List.length weight_list
     then raise (RedisInvalidArgumentError("Not as many weights were given as keys to zinterstore_withweights"))
-    else match send_and_receive_command_safely
-        (Printf.sprintf "ZINTERSTORE %s %d%s WEIGHTS%s AGGREGATE %s" dstkey
-            (List.length key_list)
-            (List.fold_left (fun rest x -> rest ^ " " ^ x) "" key_list)
-            (List.fold_left (fun rest x -> Printf.sprintf "%s %f" rest x) "" weight_list)
-            (match aggregate with
-                `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"))
-        connection with
-        Integer(x) -> x |
-        _ -> failwith "Did not recognize what I got back";;
+    else let aggregate = ["AGGREGATE"; match aggregate with
+        `Sum -> "SUM" | `Min -> "MIN" | `Max -> "MAX"]
+    in
+    let weights = List.map format_float weight_list
+    in
+    match send_multibulk_and_receive_command_safely
+        (("ZINTERSTORE" :: dstkey :: string_of_int (List.length key_list) :: key_list)
+        @ ("WEIGHTS" :: weights)
+        @ aggregate) connection
+        with
+            Integer(x) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 (* Commands operating on hashes *)
 

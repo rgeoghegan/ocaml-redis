@@ -201,14 +201,12 @@ let test_zrank () =
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZRANK rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":0");
-            ReadThisLine("ZRANK rory 6");
-            ReadThisLine("boring");
-            WriteThisLine("$-1")
-        ])
+        @ (read_lines_from_list
+            ["ZRANK"; "rory"; "cool"])
+        @ [WriteThisLine(":0")]
+        @ (read_lines_from_list
+            ["ZRANK"; "rory"; "boring"])
+        @ [WriteThisLine("$-1")])
         test_func;;
 
 let test_zrevrank () =
@@ -221,14 +219,12 @@ let test_zrevrank () =
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZREVRANK rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":0");
-            ReadThisLine("ZREVRANK rory 6");
-            ReadThisLine("boring");
-            WriteThisLine("$-1")
-        ])
+        @ (read_lines_from_list
+            ["ZREVRANK"; "rory"; "cool"])
+        @ [WriteThisLine(":0")]
+        @ (read_lines_from_list
+            ["ZREVRANK"; "rory"; "boring"])
+        @ [WriteThisLine("$-1")])
         test_func;;
 
 let test_zcard () =
@@ -236,10 +232,9 @@ let test_zcard () =
         assert (0 = Redis.zcard "rory" connection)
     in
     use_test_script
-        [
-            ReadThisLine("ZCARD rory");
-            WriteThisLine(":0")
-        ]
+        ((read_lines_from_list
+            ["ZCARD"; "rory"])
+        @ [WriteThisLine(":0")])
         test_func;;
 
 let test_zscore () =
@@ -251,9 +246,9 @@ let test_zscore () =
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZSCORE"; "rory"; "cool"])
         @ [
-            ReadThisLine("ZSCORE rory 4");
-            ReadThisLine("cool");
             WriteThisLine("$2");
             WriteThisLine("42")
         ])
@@ -268,10 +263,9 @@ let test_zremrangebyrank () =
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZREMRANGEBYRANK rory 0 0");
-            WriteThisLine(":1")
-        ])
+        @ (read_lines_from_list
+            ["ZREMRANGEBYRANK"; "rory"; "0"; "0"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_zremrangebyscore () =
@@ -283,10 +277,9 @@ let test_zremrangebyscore () =
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZREMRANGEBYSCORE rory 30.000000 50.000000");
-            WriteThisLine(":1");
-        ])
+        @ (read_lines_from_list
+            ["ZREMRANGEBYSCORE"; "rory"; "30.000000"; "50.000000"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_zunionstore () =
@@ -305,16 +298,18 @@ let test_zunionstore () =
         @ (read_lines_from_list
             ["ZADD"; "tim"; "10.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZUNIONSTORE union 2 rory tim AGGREGATE SUM");
-            WriteThisLine(":1");
-            ReadThisLine("ZUNIONSTORE union 2 rory tim AGGREGATE MIN");
-            WriteThisLine(":1");
-            ReadThisLine("ZUNIONSTORE union 2 rory tim AGGREGATE MAX");
-            WriteThisLine(":1");
-            ReadThisLine("ZUNIONSTORE union 1 rory AGGREGATE SUM");
-            WriteThisLine(":1")
-        ])
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "2"; "rory"; "tim"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "2"; "rory"; "tim"; "AGGREGATE"; "MIN"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "2"; "rory"; "tim"; "AGGREGATE"; "MAX"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "1"; "rory"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")])
         test_func;;
         
 let test_zunionstore_withweights () =
@@ -339,17 +334,53 @@ let test_zunionstore_withweights () =
         @ (read_lines_from_list
             ["ZADD"; "tim"; "10.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZUNIONSTORE union 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE SUM");
-            WriteThisLine(":1");
-            ReadThisLine("ZUNIONSTORE union 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE MIN");
-            WriteThisLine(":1");
-            ReadThisLine("ZUNIONSTORE union 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE MAX");
-            WriteThisLine(":1");
-            ReadThisLine("ZUNIONSTORE union 1 rory WEIGHTS 1.000000 AGGREGATE SUM");
-            WriteThisLine(":1")
-        ])
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "2"; "rory"; "tim"; "WEIGHTS"; "1.000000"; "0.500000"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "2"; "rory"; "tim"; "WEIGHTS"; "1.000000"; "0.500000"; "AGGREGATE"; "MIN"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "2"; "rory"; "tim"; "WEIGHTS"; "1.000000"; "0.500000"; "AGGREGATE"; "MAX"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZUNIONSTORE"; "union"; "1"; "rory"; "WEIGHTS"; "1.000000"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")])
     test_func;;
+
+let test_zinterstore () =
+    let test_func connection =
+        ignore (Redis.zadd "rory" 42.0 "cool" connection);
+        ignore (Redis.zadd "tim" 10.0 "cool" connection);
+        assert (1 = Redis.zinterstore "inter" ["rory"; "tim"] connection);
+        assert (1 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Min connection);
+        assert (1 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Max connection);
+        assert (1 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Sum connection);
+        assert (1 = Redis.zinterstore "inter" ["rory"] connection)
+    in
+    use_test_script
+        ((read_lines_from_list
+            ["ZADD"; "rory"; "42.000000"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZADD"; "tim"; "10.000000"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "AGGREGATE"; "MIN"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "AGGREGATE"; "MAX"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "1"; "rory"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")])
+        test_func;;
 
 let test_zinterstore_withweights () =
     let test_func connection =
@@ -365,7 +396,7 @@ let test_zinterstore_withweights () =
         assert (1 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Min connection);
         assert (1 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Max connection);
         assert (1 = Redis.zinterstore_withweights "inter" ["rory"] [1.0] connection)
-    in
+   in
    use_test_script
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
@@ -373,14 +404,16 @@ let test_zinterstore_withweights () =
         @ (read_lines_from_list
             ["ZADD"; "tim"; "10.000000"; "cool"])
         @ [WriteThisLine(":1")]
-        @ [
-            ReadThisLine("ZINTERSTORE inter 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE SUM");
-            WriteThisLine(":1");
-            ReadThisLine("ZINTERSTORE inter 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE MIN");
-            WriteThisLine(":1");
-            ReadThisLine("ZINTERSTORE inter 2 rory tim WEIGHTS 1.000000 0.500000 AGGREGATE MAX");
-            WriteThisLine(":1");
-            ReadThisLine("ZINTERSTORE inter 1 rory WEIGHTS 1.000000 AGGREGATE SUM");
-            WriteThisLine(":1")
-        ])
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "WEIGHTS"; "1.000000"; "0.500000"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "WEIGHTS"; "1.000000"; "0.500000"; "AGGREGATE"; "MIN"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "2"; "rory"; "tim"; "WEIGHTS"; "1.000000"; "0.500000"; "AGGREGATE"; "MAX"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINTERSTORE"; "inter"; "1"; "rory"; "WEIGHTS"; "1.000000"; "AGGREGATE"; "SUM"])
+        @ [WriteThisLine(":1")])
         test_func;;

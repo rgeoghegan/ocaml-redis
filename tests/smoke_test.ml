@@ -167,11 +167,9 @@ let smoke_test_with_quit conn = begin
         2.0
         = Redis.zincrby "coolest" 1.0 "rory" conn);
 
-(* *)
     assert (
         Redis.Rank(0) = Redis.zrank "coolest" "rory" conn
     );
-(*
     assert (
         Redis.Rank(1) = Redis.zrevrank "coolest" "rory" conn
     );
@@ -183,8 +181,6 @@ let smoke_test_with_quit conn = begin
     
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
-*)
-(*
     ignore (Redis.del_one "tim" conn);
     ignore (Redis.del_one "rory" conn);
     ignore (Redis.zadd "rory" 10.0 "cool" conn);
@@ -203,8 +199,6 @@ let smoke_test_with_quit conn = begin
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Sum conn);
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Min conn);
     assert (0 = Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:`Max conn);
-*)
-(*
 
     assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] conn);
     assert (0 = Redis.zinterstore_withweights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:`Sum conn);
@@ -244,6 +238,7 @@ let smoke_test_with_quit conn = begin
     in
     ignore (List.fold_left add_record 1 data);
     ignore (Redis.hset "hash_1" "yob" "1984" conn);
+(*
     ignore (Redis.hset "hash_2" "yob" "1980" conn);
 
     assert (
@@ -268,6 +263,8 @@ let smoke_test_with_quit conn = begin
     
     assert(2=
         Redis.sort_and_store "people" ["name_*"] "results" ~pattern:(Redis.KeyPattern("yob_*")) conn);
+*)
+(*
 
     (* Hashes *)
     ignore (Redis.del ["rory"] conn);
