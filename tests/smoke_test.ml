@@ -128,10 +128,8 @@ let smoke_test_with_quit conn = begin
 
     (* Sorted sets *)
     assert (Redis.zadd "coolest" 42.0 "rory" conn);
-(* *)
     assert (Redis.zrem "coolest" "rory" conn);
 
-(*
     ignore (Redis.zadd "coolest" 1.0 "rory" conn);
     ignore (Redis.zadd "coolest" 99.0 "tim" conn);
     assert (
@@ -139,8 +137,6 @@ let smoke_test_with_quit conn = begin
         = List.map
             Redis.string_of_bulk_data
             (Redis.zrange "coolest" 0 1 conn));
-*)
-(*
 
     assert (
         [("rory", 1.0); ("tim", 99.0)]
@@ -171,9 +167,11 @@ let smoke_test_with_quit conn = begin
         2.0
         = Redis.zincrby "coolest" 1.0 "rory" conn);
 
+(* *)
     assert (
         Redis.Rank(0) = Redis.zrank "coolest" "rory" conn
     );
+(*
     assert (
         Redis.Rank(1) = Redis.zrevrank "coolest" "rory" conn
     );
@@ -185,6 +183,8 @@ let smoke_test_with_quit conn = begin
     
     assert (1 = Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
 
+*)
+(*
     ignore (Redis.del_one "tim" conn);
     ignore (Redis.del_one "rory" conn);
     ignore (Redis.zadd "rory" 10.0 "cool" conn);

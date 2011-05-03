@@ -20,11 +20,9 @@ let test_zrem () =
         assert (not (Redis.zrem "rory" "cool" connection))
     in
     use_test_script
-        [
-            ReadThisLine("ZREM rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":0")
-        ]
+        ((read_lines_from_list
+            ["ZREM"; "rory"; "cool"])
+        @ [WriteThisLine(":0")])
         test_func;;
 
 let test_zrange () =
@@ -42,8 +40,9 @@ let test_zrange () =
         @ (read_lines_from_list
             ["ZADD"; "rory"; "13.000000"; "strong"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZRANGE"; "rory"; "0"; "1"])
         @ [
-            ReadThisLine("ZRANGE rory 0 1");
             WriteThisLine("*2");
             WriteThisLine("$6");
             WriteThisLine("strong");
@@ -67,8 +66,9 @@ let test_zrange_withscores () =
         @ (read_lines_from_list
             ["ZADD"; "rory"; "13.000000"; "strong"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZRANGE"; "rory"; "0"; "1"; "WITHSCORES"])
         @ [
-            ReadThisLine("ZRANGE rory 0 1 WITHSCORES");
             WriteThisLine("*4");
             WriteThisLine("$6");
             WriteThisLine("strong");
@@ -96,8 +96,9 @@ let test_zrevrange () =
         @ (read_lines_from_list
             ["ZADD"; "rory"; "13.000000"; "strong"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZREVRANGE"; "rory"; "0"; "1"])
         @ [
-            ReadThisLine("ZREVRANGE rory 0 1");
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("cool");
@@ -121,8 +122,9 @@ let test_zrevrange_withscores () =
         @ (read_lines_from_list
             ["ZADD"; "rory"; "13.000000"; "strong"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZREVRANGE"; "rory"; "0"; "1"; "WITHSCORES"])
         @ [
-            ReadThisLine("ZREVRANGE rory 0 1 WITHSCORES");
             WriteThisLine("*4");
             WriteThisLine("$4");
             WriteThisLine("cool");
@@ -154,15 +156,18 @@ let test_zrangebyscore () =
         @ (read_lines_from_list
             ["ZADD"; "rory"; "13.000000"; "strong"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZRANGEBYSCORE"; "rory"; "0.000000"; "100.000000"])
         @ [
-            ReadThisLine("ZRANGEBYSCORE rory 0.000000 100.000000");
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("cool");
             WriteThisLine("$6");
-            WriteThisLine("strong");
-
-            ReadThisLine("ZRANGEBYSCORE rory 0.000000 100.000000 LIMIT 1 1");
+            WriteThisLine("strong")
+        ]
+        @ (read_lines_from_list
+            ["ZRANGEBYSCORE"; "rory"; "0.000000"; "100.000000"; "LIMIT"; "1"; "1"])
+        @ [
             WriteThisLine("*1");
             WriteThisLine("$6");
             WriteThisLine("strong");
@@ -178,9 +183,9 @@ let test_zincrby () =
         ((read_lines_from_list
             ["ZADD"; "rory"; "42.000000"; "cool"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["ZINCRBY"; "rory"; "1.000000"; "cool"])
         @ [
-            ReadThisLine("ZINCRBY rory 1.000000 4");
-            ReadThisLine("cool");
             WriteThisLine("$2");
             WriteThisLine("43")
         ])

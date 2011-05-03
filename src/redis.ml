@@ -418,12 +418,13 @@ let zadd key score member connection =
 let zrem key member connection =
     (* ZREM *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("ZREM " ^ key) member connection);;
+        (send_multibulk_and_receive_command_safely ["ZREM"; key; member] connection);;
 
 let zrange key start stop connection =
     (* ZRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely (Printf.sprintf "ZRANGE %s %d %d" key start stop) connection);;
+        (send_multibulk_and_receive_command_safely
+            ["ZRANGE"; key; string_of_int start; string_of_int stop] connection);;
 
 let score_transformer value_and_scores_list =
     (* Takes a list of [v_1; s_1; v_2; s_2; ...; v_n; s_n] and
@@ -446,39 +447,38 @@ let zrange_withscores key start stop connection =
     (* ZRANGE, but with the WITHSCORES option added on. *)
     score_transformer
         (expect_non_nil_multibulk
-            (send_and_receive_command_safely
-                (Printf.sprintf "ZRANGE %s %d %d WITHSCORES" key start stop)
+            (send_multibulk_and_receive_command_safely
+                ["ZRANGE"; key; string_of_int start; string_of_int stop; "WITHSCORES"]
                 connection));;
 
 let zrevrange key start stop connection =
     (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely (Printf.sprintf "ZREVRANGE %s %d %d" key start stop) connection);;
+        (send_multibulk_and_receive_command_safely
+            ["ZREVRANGE"; key; string_of_int start; string_of_int stop] connection);;
 
 let zrevrange_withscores key start stop connection =
     (* ZRANGE, but with the WITHSCORES option added on. *)
     score_transformer
         (expect_non_nil_multibulk
-            (send_and_receive_command_safely
-                (Printf.sprintf "ZREVRANGE %s %d %d WITHSCORES" key start stop)
-                connection));;
+            (send_multibulk_and_receive_command_safely
+                ["ZREVRANGE"; key; string_of_int start; string_of_int stop; "WITHSCORES"] connection));;
 
 let zrangebyscore key start stop ?(limit=`Unlimited) connection =
     (* ZRANGEBYSCORE, please note that the word 'end' is a keyword in ocaml, so it has been replaced by 'stop' *)
-    let command =
-        let limit = match limit with
-            `Unlimited -> "" |
-            `Limit(x,y) -> (Printf.sprintf " LIMIT %d %d" x y)
-        in
-        Printf.sprintf "ZRANGEBYSCORE %s %f %f%s" key start stop limit
+    let limit = match limit with
+        `Unlimited -> [] |
+        `Limit(x,y) -> ["LIMIT"; string_of_int x; string_of_int y]
     in
     expect_non_nil_multibulk
-        (send_and_receive_command_safely command connection);;
+        (send_multibulk_and_receive_command_safely
+            ("ZRANGEBYSCORE" :: key :: format_float start :: format_float stop :: limit) connection);;
 
 let zincrby key increment member connection =
     (* ZINCRBY *)
     handle_float
-        (send_with_value_and_receive_command_safely (Printf.sprintf "ZINCRBY %s %f" key increment) member connection);;
+        (send_multibulk_and_receive_command_safely
+            ["ZINCRBY"; key; format_float increment; member] connection);;
 
 let zrank key member connection =
     (* ZRANK *)
