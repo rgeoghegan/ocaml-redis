@@ -78,11 +78,10 @@ let test_scard () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["SADD"; "rory"; "even cooler"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("SCARD rory");
-            WriteThisLine(":2");
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SCARD"; "rory"])
+        @ [WriteThisLine(":2")])
         test_func;;
 
 let test_sismember () =

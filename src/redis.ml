@@ -332,7 +332,7 @@ let smove srckey destkey member connection =
 
 let scard key connection =
     (* SCARD *)
-    match send_and_receive_command_safely ("SCARD " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["SCARD"; key] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
