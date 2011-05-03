@@ -389,22 +389,20 @@ let srandmember key connection =
 let select index connection =
     (* SELECT *)
     handle_status
-        (send_and_receive_command
-            ("SELECT " ^
-                (string_of_int index))
-            connection);;
+        (send_multibulk_and_receive_command_safely ["SELECT"; string_of_int index] connection);;
 
 let move key index connection =
     (* MOVE *)
-    handle_integer_as_boolean (send_and_receive_command ( Printf.sprintf "MOVE %s %d" key index ) connection)
+    handle_integer_as_boolean
+        (send_multibulk_and_receive_command_safely ["MOVE"; key; string_of_int index] connection)
 
 let flushdb connection =
     (* FLUSHDB *)
-    handle_status (send_and_receive_command "FLUSHDB" connection);;
+    handle_status (send_multibulk_and_receive_command_safely ["FLUSHDB"] connection);;
 
 let flushall connection =
     (* FLUSHALL *)
-    handle_status (send_and_receive_command "FLUSHALL" connection);;
+    handle_status (send_multibulk_and_receive_command_safely ["FLUSHALL"] connection);;
 
 (* Commands operating on sorted sets *)
 let zadd key score member connection =

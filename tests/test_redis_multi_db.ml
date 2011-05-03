@@ -9,10 +9,9 @@ let test_select () =
         Redis.select 1 connection
     in
     use_test_script
-        [
-            ReadThisLine("SELECT 1");
-            WriteThisLine("+OK");
-        ]
+        ((read_lines_from_list
+            ["SELECT"; "1"])
+        @ [WriteThisLine("+OK")])
         test_func;;
 
 let test_move () =
@@ -22,20 +21,15 @@ let test_move () =
         Redis.move "rory" 1 connection
     in
     use_test_script
-        [
-            ReadThisLine("SELECT 0");
-            WriteThisLine("+OK");
-            ReadThisLine("*3");
-            ReadThisLine("$3");
-            ReadThisLine("SET");
-            ReadThisLine("$4");
-            ReadThisLine("rory");
-            ReadThisLine("$4");
-            ReadThisLine("cool");
-            WriteThisLine("+OK");
-            ReadThisLine("MOVE rory 1");
-            WriteThisLine(":1");
-        ]
+        ((read_lines_from_list
+            ["SELECT"; "0"])
+        @ [WriteThisLine("+OK")]
+        @ (read_lines_from_list
+            ["SET"; "rory"; "cool"])
+        @ [WriteThisLine("+OK")]
+        @ (read_lines_from_list
+            ["MOVE"; "rory"; "1"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_flushdb () =
@@ -44,6 +38,8 @@ let test_flushdb () =
     in
     Script.use_test_script
         [
+            Script.ReadThisLine("*1");
+            Script.ReadThisLine("$7");
             Script.ReadThisLine("FLUSHDB");
             Script.WriteThisLine("+OK")
         ]
@@ -55,6 +51,8 @@ let test_flushall () =
     in
     Script.use_test_script
         [
+            Script.ReadThisLine("*1");
+            Script.ReadThisLine("$8");
             Script.ReadThisLine("FLUSHALL");
             Script.WriteThisLine("+OK")
         ]
