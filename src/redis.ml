@@ -576,7 +576,7 @@ let zinterstore_withweights dstkey key_list weight_list ?(aggregate=`Sum) connec
 let hset key field value connection =
     (* HSET *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely (Printf.sprintf "HSET %s %s" key field) value connection);;
+        (send_multibulk_and_receive_command_safely ["HSET"; key; field; value] connection);;
 
 let hdel key field connection =
     (* HDEL *)

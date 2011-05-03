@@ -238,7 +238,6 @@ let smoke_test_with_quit conn = begin
     in
     ignore (List.fold_left add_record 1 data);
     ignore (Redis.hset "hash_1" "yob" "1984" conn);
-(*
     ignore (Redis.hset "hash_2" "yob" "1980" conn);
 
     assert (
@@ -263,8 +262,6 @@ let smoke_test_with_quit conn = begin
     
     assert(2=
         Redis.sort_and_store "people" ["name_*"] "results" ~pattern:(Redis.KeyPattern("yob_*")) conn);
-*)
-(*
 
     (* Hashes *)
     ignore (Redis.del ["rory"] conn);
@@ -272,6 +269,7 @@ let smoke_test_with_quit conn = begin
     assert (not (Redis.hset "rory" "cool" "false" conn));
 
     assert (Redis.hdel "rory" "cool" conn);
+(*
     assert (not (Redis.hdel "rory" "cool" conn));
 
     assert (Redis.hset "rory" "handsome" "true" conn);
