@@ -39,9 +39,10 @@ let test_spop () =
     use_test_script
         ((read_lines_from_list
             ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SPOP"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("SPOP rory");
             WriteThisLine("$4");
             WriteThisLine("cool");
         ])
