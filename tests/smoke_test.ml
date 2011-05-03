@@ -95,14 +95,10 @@ let smoke_test_with_quit conn = begin
     assert ( Redis.smove "tim" "rory" "even cooler" conn );
     assert ( 2 = Redis.scard "rory" conn );
 
-(* *)
     assert ( Redis.sismember "rory" "cool" conn );
 
-(*
     ignore ( Redis.srem "rory" "cool" conn );
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
-*)
-(*
     ignore (Redis.sadd "tim" "even cooler" conn);
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sinter ["rory"; "tim"] conn)) );
     
@@ -110,8 +106,6 @@ let smoke_test_with_quit conn = begin
 
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
     assert ( 1 = Redis.sunionstore "bob" ["rory"; "tim"] conn );
-*)
-(*
     ignore ( Redis.srem "tim" "even cooler" conn );
     assert ( "even cooler" = Redis.string_of_bulk_data (List.hd (Redis.sdiff "rory" ["tim"] conn)) );
     assert ( 1 = Redis.sdiffstore "bob" "rory" ["tim"] conn);
@@ -132,10 +126,14 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.lpush "rory" "2" conn);
     ignore (Redis.lpush "rory" "11" conn);
 
+(* *)
     (* Sorted sets *)
     assert (Redis.zadd "coolest" 42.0 "rory" conn);
+(*
     assert (Redis.zrem "coolest" "rory" conn);
+*)
 
+(*
     ignore (Redis.zadd "coolest" 1.0 "rory" conn);
     ignore (Redis.zadd "coolest" 99.0 "tim" conn);
     assert (

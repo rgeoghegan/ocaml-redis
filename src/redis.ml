@@ -339,7 +339,7 @@ let scard key connection =
 let sismember key member connection =
     (* SISMEMBER *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("SISMEMBER " ^ key) member connection);;
+        (send_multibulk_and_receive_command_safely ["SISMEMBER"; key; member] connection);;
 
 let smembers key connection =
     (* SMEMBERS *)
