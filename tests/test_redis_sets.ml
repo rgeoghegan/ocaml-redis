@@ -204,9 +204,10 @@ let test_sdiff () =
     use_test_script
         ((read_lines_from_list
             ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SDIFF"; "rory"; "tim"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("SDIFF rory tim");
             WriteThisLine("*1");
             WriteThisLine("$4");
             WriteThisLine("cool")
@@ -221,11 +222,10 @@ let test_sdiffstore () =
     use_test_script
         ((read_lines_from_list
             ["SADD"; "rory"; "cool"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("SDIFFSTORE bob rory tim");
-            WriteThisLine(":1");
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SDIFFSTORE"; "bob"; "rory"; "tim"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_srandmember () =

@@ -371,11 +371,11 @@ let sunionstore dstkey keys connection =
 let sdiff from_key keys connection =
     (* SDIFF *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely (aggregate_command "SDIFF" (from_key :: keys)) connection);;
+        (send_multibulk_and_receive_command_safely ("SDIFF" :: from_key :: keys) connection);;
 
 let sdiffstore dstkey from_key keys connection =
     (* SDIFFSTORE *)
-    match send_and_receive_command_safely (aggregate_command "SDIFFSTORE" (dstkey :: from_key :: keys)) connection with
+    match send_multibulk_and_receive_command_safely ("SDIFFSTORE" :: dstkey :: from_key :: keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
