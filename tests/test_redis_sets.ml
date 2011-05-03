@@ -150,11 +150,10 @@ let test_sinterstore () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["SADD"; "tim"; "cool"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("SINTERSTORE bob rory tim");
-            WriteThisLine(":1")
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SINTERSTORE"; "bob"; "rory"; "tim"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_sunion () =
@@ -169,9 +168,10 @@ let test_sunion () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["SADD"; "tim"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SUNION"; "rory"; "tim"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("SUNION rory tim");
             WriteThisLine("*1");
             WriteThisLine("$4");
             WriteThisLine("cool")

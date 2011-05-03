@@ -353,7 +353,7 @@ let sinter keys connection =
 
 let sinterstore dstkey keys connection =
     (* SINTERSTORE *)
-    match send_and_receive_command_safely (aggregate_command "SINTERSTORE" (dstkey :: keys)) connection with
+    match send_multibulk_and_receive_command_safely ("SINTERSTORE" :: dstkey :: keys) connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
