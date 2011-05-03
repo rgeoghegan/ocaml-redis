@@ -236,9 +236,10 @@ let test_srandmember () =
     use_test_script
         ((read_lines_from_list
             ["SADD"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SRANDMEMBER"; "cool"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("SRANDMEMBER cool");
             WriteThisLine("$4");
             WriteThisLine("rory");
         ])

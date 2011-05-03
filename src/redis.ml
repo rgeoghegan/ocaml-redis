@@ -381,7 +381,7 @@ let sdiffstore dstkey from_key keys connection =
 
 let srandmember key connection =
     (* SRANDMEMBER *)
-    match send_and_receive_command_safely ("SRANDMEMBER " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["SRANDMEMBER"; key] connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
