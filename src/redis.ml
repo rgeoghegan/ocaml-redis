@@ -349,7 +349,7 @@ let smembers key connection =
 let sinter keys connection =
     (* SINTER *)
     expect_non_nil_multibulk
-        (send_and_receive_command_safely (aggregate_command "SINTER" keys) connection);;
+        (send_multibulk_and_receive_command_safely ("SINTER" :: keys) connection);;
 
 let sinterstore dstkey keys connection =
     (* SINTERSTORE *)

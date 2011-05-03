@@ -129,8 +129,9 @@ let test_sinter () =
         @ (read_lines_from_list
             ["SADD"; "tim"; "cool"])
         @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SINTER"; "rory"; "tim"])
         @ [
-            ReadThisLine("SINTER rory tim");
             WriteThisLine("*1");
             WriteThisLine("$4");
             WriteThisLine("cool")
