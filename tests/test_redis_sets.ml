@@ -60,12 +60,10 @@ let test_smove () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["SADD"; "tim"; "even cooler"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("SMOVE tim rory 11");
-            ReadThisLine("even cooler");
-            WriteThisLine(":1");
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["SMOVE"; "tim"; "rory"; "even cooler"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_scard () =

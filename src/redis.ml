@@ -328,10 +328,7 @@ let spop key connection =
 let smove srckey destkey member connection =
     (* SMOVE *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely
-            (Printf.sprintf "SMOVE %s %s" srckey destkey)
-            member
-            connection);;
+        (send_multibulk_and_receive_command_safely ["SMOVE"; srckey; destkey; member] connection);;
 
 let scard key connection =
     (* SCARD *)
