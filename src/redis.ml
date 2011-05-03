@@ -581,75 +581,58 @@ let hset key field value connection =
 let hdel key field connection =
     (* HDEL *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("HDEL " ^ key) field connection);;
+        (send_multibulk_and_receive_command_safely ["HDEL"; key; field] connection);;
 
 let hget key field connection =
     (* HGET *)
-    match send_with_value_and_receive_command_safely ("HGET " ^ key) field connection with
+    match send_multibulk_and_receive_command_safely ["HGET"; key; field] connection with
         Bulk(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let hmget key field_list connection =
     (* HMGET *)
-    let cmd_buf = Buffer.create 256
-    in
-    (* Unfortunately, HMGET has the list of fields inline, except for the last field, which is given as a value *)
-    let rec stick_together_but_leave_last cmds =
-        match cmds with
-            x :: [] -> x |
-            x :: t -> begin
-                Buffer.add_char cmd_buf ' ';
-                Buffer.add_string cmd_buf x;
-                stick_together_but_leave_last t
-            end |
-            [] -> failwith "Something went wrong, not expecting an empty list."
-    in
-    begin
-        Buffer.add_string cmd_buf "HMGET";
-        let value = stick_together_but_leave_last (key :: field_list)
-        in
-            match send_with_value_and_receive_command_safely (Buffer.contents cmd_buf) value connection with
-                Multibulk(MultibulkValue(x)) -> x |
-                _ -> failwith "Did not recognize what I got back"
-    end;;
+    match send_multibulk_and_receive_command_safely
+        ("HMGET" :: key :: field_list) connection with
+            Multibulk(MultibulkValue(x)) -> x |
+            _ -> failwith "Did not recognize what I got back";;
 
 let hmset key field_value_pairs connection =
     (* HMSET *)
-    let rec flatten list_of_pairs result =
-        match list_of_pairs with
-            (key, value) :: tail -> flatten tail (key :: value :: result) |
-            [] -> result
+    let values = List.fold_left
+        (fun rest el -> ((fst el) :: (snd el) :: rest))
+        []
+        field_value_pairs
     in
     handle_status
-        (send_multibulk_command
-           ( "HMSET" :: key :: (flatten (List.rev field_value_pairs) [])) connection);;
+        (send_multibulk_and_receive_command_safely
+           ("HMSET" :: key :: values) connection);;
 
 let hincrby key field value connection =
     (* HINCRBY *)
-    match send_and_receive_command_safely (Printf.sprintf "HINCRBY %s %s %d" key field value) connection with
+    match send_multibulk_and_receive_command_safely ["HINCRBY"; key; field; string_of_int value] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let hexists key field connection =
     (* HEXISTS *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("HEXISTS " ^ key) field connection);;
+        (send_multibulk_and_receive_command_safely ["HEXISTS"; key; field] connection);;
 
 let hlen key connection =
     (* HLEN *)
-    match send_and_receive_command_safely ("HLEN " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["HLEN"; key] connection with
         Integer(x) -> x |
         _ -> failwith "Did not recognize what I got back";;
 
 let hkeys key connection =
     (* HKEYS *)
-    match send_and_receive_command_safely ("HKEYS " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["HKEYS"; key] connection with
         Multibulk(MultibulkValue(x)) -> List.map string_of_bulk_data x |
         _ -> failwith "Did not recognize what I got back";;
 
 let hvals key connection =
     (* HVALS *)
-    match send_and_receive_command_safely ("HVALS " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["HVALS"; key] connection with
         Multibulk(MultibulkValue(x)) -> List.map string_of_bulk_data x |
         _ -> failwith "Did not recognize what I got back";;
 

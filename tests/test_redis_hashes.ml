@@ -28,15 +28,13 @@ let test_hdel () =
     use_test_script
         ((read_lines_from_list
             ["HSET"; "rory"; "cool"; "true"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("HDEL rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":1");
-            ReadThisLine("HDEL rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":0")
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HDEL"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HDEL"; "rory"; "cool"])
+        @ [WriteThisLine(":0")])
         test_func;;
 
 let test_hget () =
@@ -49,10 +47,10 @@ let test_hget () =
     use_test_script
         ((read_lines_from_list
             ["HSET"; "rory"; "cool"; "true"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HGET"; "rory"; "cool"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("HGET rory 4");
-            ReadThisLine("cool");
             WriteThisLine("$4");
             WriteThisLine("true")
         ])
@@ -72,15 +70,17 @@ let test_hmget () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["HSET"; "rory"; "handsome"; "true"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HMGET"; "rory"; "cool"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("HMGET rory 4");
-            ReadThisLine("cool");
             WriteThisLine("*1");
             WriteThisLine("$4");
-            WriteThisLine("true");
-            ReadThisLine("HMGET rory cool 8");
-            ReadThisLine("handsome");
+            WriteThisLine("true")
+        ]
+        @ (read_lines_from_list
+            ["HMGET"; "rory"; "cool"; "handsome"])
+        @ [
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("true");
@@ -93,22 +93,11 @@ let test_hmset () =
     let test_func connection =
         Redis.hmset "rory" [("cool", "true"); ("handsome", "true")] connection
     in
-    use_test_script [
-        ReadThisLine("*6");
-        ReadThisLine("$5");
-        ReadThisLine("HMSET");
-        ReadThisLine("$4");
-        ReadThisLine("rory");
-        ReadThisLine("$4");
-        ReadThisLine("cool");
-        ReadThisLine("$4");
-        ReadThisLine("true");
-        ReadThisLine("$8");
-        ReadThisLine("handsome");
-        ReadThisLine("$4");
-        ReadThisLine("true");
-        WriteThisLine("+OK")
-    ] test_func;;
+    use_test_script
+        ((read_lines_from_list
+            ["HMSET"; "rory"; "handsome"; "true"; "cool"; "true"])
+        @ [WriteThisLine("+OK")])
+        test_func;;
 
 let test_hincrby () =
     let test_func connection =
@@ -118,11 +107,10 @@ let test_hincrby () =
     use_test_script
         ((read_lines_from_list
             ["HSET"; "rory"; "age"; "26"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("HINCRBY rory age 1");
-            WriteThisLine(":27")
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HINCRBY"; "rory"; "age"; "1"])
+        @ [WriteThisLine(":27")])
         test_func;;
 
 let test_hexists () =
@@ -134,15 +122,13 @@ let test_hexists () =
     use_test_script
         ((read_lines_from_list
             ["HSET"; "rory"; "cool"; "true"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("HEXISTS rory 4");
-            ReadThisLine("cool");
-            WriteThisLine(":1");
-            ReadThisLine("HEXISTS rory 3");
-            ReadThisLine("age");
-            WriteThisLine(":0")
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HEXISTS"; "rory"; "cool"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HEXISTS"; "rory"; "age"])
+        @ [WriteThisLine(":0")])
         test_func;;
 
 let test_hlen () =
@@ -153,11 +139,10 @@ let test_hlen () =
     use_test_script
         ((read_lines_from_list
             ["HSET"; "rory"; "cool"; "true"])
-        @ [
-            WriteThisLine(":1");
-            ReadThisLine("HLEN rory");
-            WriteThisLine(":1")
-        ])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HLEN"; "rory"])
+        @ [WriteThisLine(":1")])
         test_func;;
 
 let test_hkeys () =
@@ -172,9 +157,10 @@ let test_hkeys () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["HSET"; "rory"; "handsome"; "true"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HKEYS"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("HKEYS rory");
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("cool");
@@ -195,9 +181,10 @@ let test_hvals () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["HSET"; "rory"; "handsome"; "true"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HVALS"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("HVALS rory");
             WriteThisLine("*2");
             WriteThisLine("$4");
             WriteThisLine("true");

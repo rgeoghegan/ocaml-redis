@@ -269,7 +269,6 @@ let smoke_test_with_quit conn = begin
     assert (not (Redis.hset "rory" "cool" "false" conn));
 
     assert (Redis.hdel "rory" "cool" conn);
-(*
     assert (not (Redis.hdel "rory" "cool" conn));
 
     assert (Redis.hset "rory" "handsome" "true" conn);
@@ -328,7 +327,6 @@ let smoke_test_with_quit conn = begin
 
     assert ( 0.0 < Redis.lastsave conn);
     Redis.bgrewriteaof conn;
-*)
 
     Redis.flushall conn;
     Redis.quit conn
