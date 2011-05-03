@@ -405,10 +405,15 @@ let flushall connection =
     handle_status (send_multibulk_and_receive_command_safely ["FLUSHALL"] connection);;
 
 (* Commands operating on sorted sets *)
+let format_float f =
+    (* A lot of the sorted set commands take a floating point argument. We need to turn them
+    into strings consistently *)
+    Printf.sprintf "%f" f;;
+
 let zadd key score member connection =
     (* ZADD *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely (Printf.sprintf "ZADD %s %f" key score) member connection);;
+        (send_multibulk_and_receive_command_safely ["ZADD"; key; format_float score; member] connection);;
 
 let zrem key member connection =
     (* ZREM *)

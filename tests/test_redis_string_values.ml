@@ -259,12 +259,10 @@ let test_value_type () =
     Script.use_test_script
         ((Script.read_lines_from_list
             ["SET"; "rory"; "cool"])
-        @ [
-            Script.WriteThisLine("+OK");
-            Script.ReadThisLine("ZADD tim 1.000000 8");
-            Script.ReadThisLine("not cool");
-            Script.WriteThisLine(":1");
-        ]
+        @ [Script.WriteThisLine("+OK")]
+        @ (Script.read_lines_from_list
+            ["ZADD"; "tim"; "1.000000"; "not cool"])
+        @ [Script.WriteThisLine(":1")]
         @ (Script.read_lines_from_list
             ["TYPE"; "rory"])
         @ [Script.WriteThisLine("+string")]

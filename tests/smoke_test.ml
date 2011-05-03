@@ -126,12 +126,10 @@ let smoke_test_with_quit conn = begin
     ignore (Redis.lpush "rory" "2" conn);
     ignore (Redis.lpush "rory" "11" conn);
 
-(* *)
     (* Sorted sets *)
     assert (Redis.zadd "coolest" 42.0 "rory" conn);
-(*
+(* *)
     assert (Redis.zrem "coolest" "rory" conn);
-*)
 
 (*
     ignore (Redis.zadd "coolest" 1.0 "rory" conn);
