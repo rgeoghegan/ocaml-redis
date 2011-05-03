@@ -644,7 +644,7 @@ let hgetall key connection =
             f :: v :: rest -> collate_pairs rest ((f,v) :: out) |
             _ -> failwith "Did not provide a pair of field-values"
     in
-    match send_and_receive_command_safely ("HGETALL " ^ key) connection with
+    match send_multibulk_and_receive_command_safely ["HGETALL"; key] connection with
         Multibulk(MultibulkValue(x)) -> collate_pairs (List.map string_of_bulk_data x) [] |
         _ -> failwith "Did not recognize what I got back";;
 

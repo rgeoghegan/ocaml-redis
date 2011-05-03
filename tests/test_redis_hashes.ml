@@ -205,9 +205,10 @@ let test_hgetall () =
         @ [WriteThisLine(":1")]
         @ (read_lines_from_list
             ["HSET"; "rory"; "handsome"; "true"])
+        @ [WriteThisLine(":1")]
+        @ (read_lines_from_list
+            ["HGETALL"; "rory"])
         @ [
-            WriteThisLine(":1");
-            ReadThisLine("HGETALL rory");
             WriteThisLine("*4");
             WriteThisLine("$4");
             WriteThisLine("cool");
