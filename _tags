@@ -1,0 +1,15 @@
+# OASIS_START
+# DO NOT EDIT (digest: b4adbdfab949c1094f4b13a8ce18cc80)
+# Library redis
+"src": include
+<src/*.ml{,i}>: pkg_unix
+# Executable test
+<tests/test.{native,byte}>: use_redis
+<tests/test.{native,byte}>: pkg_unix
+<tests/test.{native,byte}>: pkg_str
+<tests/test.{native,byte}>: pkg_oUnit
+<tests/*.ml{,i}>: use_redis
+<tests/*.ml{,i}>: pkg_unix
+<tests/*.ml{,i}>: pkg_str
+<tests/*.ml{,i}>: pkg_oUnit
+# OASIS_STOP
