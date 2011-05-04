@@ -1,9 +1,7 @@
 Redis client library for Ocaml
 ==============================
 
-ocaml-redis implements the client spec of the [Redis key-value store](http://code.google.com/p/redis/).
-
-This branch is specifically implementing Redis 2.0, and is not compatible with Redis 1.2.5.
+ocaml-redis implements the client spec of the [Redis key-value store](http://redis.io/). This version is aimed to be compatible with Redis 2.2, and is not compatible with earlier versions.
 
 Example Usage
 -------------
