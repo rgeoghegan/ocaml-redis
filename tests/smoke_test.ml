@@ -6,13 +6,13 @@
 open OUnit
 
 let suite = 
-  let setup () : Redis.Connection.t = 
+  let setup () = 
     let conn = Redis.create_connection () in
     Redis.auth "qwerty" conn;
     Redis.flushall conn;
     conn
   in
-  let teardown (conn : Redis.Connection.t) = 
+  let teardown conn = 
     Redis.flushall conn;
     Redis.quit conn
   in
@@ -71,7 +71,6 @@ let suite =
              assert_bool "" (Redis.expireat "tim" (Unix.time() +. 10.) conn);
              assert_bool "" (10 >= Redis.ttl "tim" conn);
            ));
-
       "list operations" >:: 
         (test 
            (fun conn ->
@@ -81,7 +80,7 @@ let suite =
              assert_equal 2 (Redis.llen "rory" conn);
              assert_equal [Redis.String("even cooler"); Redis.String("cool")]
                (Redis.lrange "rory" 0 1 conn);
-             
+
              Redis.ltrim "rory" 0 0 conn;
              assert_equal "even cooler" (Redis.string_of_bulk_data (Redis.lindex "rory" 0 conn));
              Redis.lset "rory" 0 "just cool" conn;

@@ -312,7 +312,7 @@ let brpop_many key_list ?(timeout=`None) connection =
 let sadd key member connection =
     (* SADD *)
     handle_integer_as_boolean
-        (send_with_value_and_receive_command_safely ("SADD " ^ key) member connection);;
+      (send_multibulk_and_receive_command_safely ["SADD"; key; member] connection);;
 
 let srem key member connection =
     (* SREM *)
