@@ -20,6 +20,12 @@ type bulk_data = Nil | String of string
 (** Rank types. Ranks are an integer, or [Nil] for a non-existant key. *)
 type rank = NilRank | Rank of int
 
+type timeout = Seconds of int | NoTimeout
+
+type limit = Unlimited | Limit of int * int 
+
+type aggregate = Min | Max | Sum
+
 (** Exception raised when trying to get a {!bulk_data} [String] out of a {!bulk_data} [Nil] type. *)
 exception RedisNilError of string
 
@@ -233,7 +239,7 @@ val rpop : string -> Connection.t -> bulk_data
 *)
 val blpop :
     string ->
-    ?timeout:[< `None | `Seconds of int > `None ] ->
+    ?timeout:timeout ->
     Connection.t ->
     bulk_data
 
@@ -243,7 +249,7 @@ val blpop :
 *)
 val blpop_many :
     string list ->
-    ?timeout:[< `None | `Seconds of int > `None ] ->
+    ?timeout:timeout ->
     Connection.t ->
     string * bulk_data
 
@@ -253,7 +259,7 @@ val blpop_many :
 *)
 val brpop :
     string ->
-    ?timeout:[< `None | `Seconds of int > `None ] ->
+    ?timeout:timeout ->
     Connection.t ->
     bulk_data
 
@@ -263,7 +269,7 @@ val brpop :
 *)
 val brpop_many :
     string list ->
-    ?timeout:[< `None | `Seconds of int > `None ] ->
+    ?timeout:timeout ->
     Connection.t ->
     string * bulk_data
 
@@ -361,7 +367,7 @@ val zrange :
 (** [zrange_withscores k s e c], returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrange} function except it also gives the score for each item.
     @return a list of [({!bulk_data}, float)] for the specified range.
 *)
-val zrange_withscores : 
+val zrange_with_scores : 
   string ->
   int -> int -> Connection.t -> (bulk_data * float) list
 
@@ -373,7 +379,7 @@ val zrevrange :
 (** [zrevrange_withscores k s e c], returns a {i reversed ordered} list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrevrange} function except it also gives the score for each item.
     @return a list of [({bulk_data}, float)] for the specified range.
 *)
-val zrevrange_withscores : 
+val zrevrange_with_scores : 
   string ->
   int -> int -> Connection.t -> (bulk_data * float) list
 
@@ -384,7 +390,7 @@ val zrangebyscore :
   string ->
   float ->
   float ->
-  ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
+  ?limit:limit ->
   Connection.t -> bulk_data list
 
 (** [zcard k c] returns the number of members in the sorted set at the key [k] on connection [c], as per the [ZCARD] redis keyword. *)
@@ -407,25 +413,25 @@ val zremrangebyscore : string -> float -> float -> Connection.t -> int
     @param aggregate way to aggregate scores across all the same members of different keys. Either [`Sum] (the default), [`Min] or [`Max].
     @return The number of members now in the destination key.
 *)
-val zunionstore : string -> string list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
+val zunionstore : string -> string list -> ?aggregate:aggregate -> Connection.t -> int
 
-(** [zunionstore_withweights d kl wl aggregate c] stores the union of all the members in the sorted sets at [kl] in destination key [d] by first multiplying the scores in each key by wl and then by aggregating by [aggregate] on connection [c], as per the [ZUNIONSTORE] redis keyword.
+(** [zunionstore_with_weights d kl wl aggregate c] stores the union of all the members in the sorted sets at [kl] in destination key [d] by first multiplying the scores in each key by wl and then by aggregating by [aggregate] on connection [c], as per the [ZUNIONSTORE] redis keyword.
     @param aggregate way to aggregate scores across all the same members of different keys. Either [`Sum] (the default), [`Min] or [`Max].
     @return The number of members now in the destination key.
 *)
-val zunionstore_withweights : string -> string list -> float list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
+val zunionstore_with_weights : string -> string list -> float list -> ?aggregate:aggregate -> Connection.t -> int
 
 (** [zinterstore d kl aggregate c] stores the intersection of all the members in the sorted sets at [kl] in destination key [d] by aggregating by [aggregate] on connection [c], as per the [ZINTERSTORE] redis keyword.
     @param aggregate way to aggregate scores across all the same members of different keys. Either [`Sum] (the default), [`Min] or [`Max].
     @return The number of members now in the destination key.
 *)
-val zinterstore : string -> string list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
+val zinterstore : string -> string list -> ?aggregate:aggregate -> Connection.t -> int
 
-(** [zinterstore_withweights d kl wl aggregate c] stores the intersection of all the members in the sorted sets at [kl] in destination key [d] by first multiplying the scores in each key by wl and then by aggregating by [aggregate] on connection [c], as per the [ZINTERSTORE] redis keyword.
+(** [zinterstore_with_weights d kl wl aggregate c] stores the intersection of all the members in the sorted sets at [kl] in destination key [d] by first multiplying the scores in each key by wl and then by aggregating by [aggregate] on connection [c], as per the [ZINTERSTORE] redis keyword.
     @param aggregate way to aggregate scores across all the same members of different keys. Either [`Sum] (the default), [`Min] or [`Max].
     @return The number of members now in the destination key.
 *)
-val zinterstore_withweights : string -> string list -> float list -> ?aggregate:[< `Sum | `Min | `Max > `Sum ] -> Connection.t -> int
+val zinterstore_with_weights : string -> string list -> float list -> ?aggregate:aggregate -> Connection.t -> int
 
 (** {3:hash_cmd Commands operating on hashes} *)
 
@@ -482,6 +488,10 @@ val hgetall : string -> Connection.t -> (string * string) list
 *)
 type redis_sort_pattern = KeyPattern of string | FieldPattern of string * string | NoSort | NoPattern
 
+type sort_order = Asc | Desc
+
+type sort_alpha = Alpha | NonAlpha
+
 (** [sort k pattern limit get order alpha c] returns the members of a list, set or sorted set at key [k] on connection [c], as per the [sort] redis keyword.
     @param pattern a {!redis_sort_pattern}, [NoPattern] by default.
     @param limit either [`Unlimited] to return unlimited values (the default) or [`Limit(limit, offset)] to limit to [limit] results offset by [offset].
@@ -492,10 +502,10 @@ type redis_sort_pattern = KeyPattern of string | FieldPattern of string * string
 val sort :
   string ->
   ?pattern:redis_sort_pattern ->
-  ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
+  ?limit:limit ->
   ?get:redis_sort_pattern ->
-  ?order:[< `Asc | `Desc > `Asc ] ->
-  ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
+  ?order:sort_order ->
+  ?alpha:sort_alpha ->
   Connection.t -> bulk_data list
 
 (** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [SORT] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
@@ -509,9 +519,9 @@ val sort_get_many :
   string ->
   string list ->
   ?pattern:redis_sort_pattern ->
-  ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
-  ?order:[< `Asc | `Desc > `Asc ] ->
-  ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
+  ?limit:limit ->
+  ?order:sort_order ->
+  ?alpha:sort_alpha ->
   Connection.t -> bulk_data list list
 
 (** [sort_and_store k gt d pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], and places the results at key [d], as per the [SORT] redis keyword. This function is a way to use the [STORE] keyword with either one or multiple [GET]s times as per the redis spec.
@@ -527,9 +537,9 @@ val sort_and_store :
   string list ->
   string ->
   ?pattern:redis_sort_pattern ->
-  ?limit:[< `Limit of int * int | `Unlimited > `Unlimited ] ->
-  ?order:[< `Asc | `Desc > `Asc ] ->
-  ?alpha:[< `Alpha | `NonAlpha > `NonAlpha ] ->
+  ?limit:limit ->
+  ?order:sort_order ->
+  ?alpha:sort_alpha ->
   Connection.t -> int
 
 (** {3:persistence_cmd Persistence control commands} *)
