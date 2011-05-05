@@ -3,8 +3,17 @@
 
    Utility code used mostly internally to the library. *)
 
-type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
-type bulk_data = Nil | String of string
+type redis_value_type = 
+  | RedisString 
+  | RedisNil 
+  | RedisList 
+  | RedisSet 
+  | RedisZSet
+
+type bulk_data = 
+  | Nil 
+  | String of string
+
 type rank = NilRank | Rank of int
 type multi_bulk_data = MultibulkNil | MultibulkValue of bulk_data list
 exception RedisServerError of string
@@ -104,12 +113,10 @@ module Connection =
                 Buffer.contents out_buf
             end;;
 
+        (* Send the given text out to the connection without flushing *)
         let send_text_straight text (_, out_chan) =
-            (* Send the given text out to the connection without flushing *)
-            begin
-                output_string out_chan text;
-                output_string out_chan "\r\n"
-            end
+          output_string out_chan text;
+          output_string out_chan "\r\n"
 
         let send_text text connection =
             (* Send the given text out to the connection *)
@@ -211,12 +218,11 @@ module Helpers =
 
         let send_with_value_and_receive_command_safely command value connection =
             (* Will send out the command, appended with the length of value, and will then send out value. Also
-            will catch and fail on any errors. I.e., given 'foo' 'bar', will send "foo 3\r\nbar\r\n" *)
-            begin
-                Connection.send_text_straight (command ^ " " ^ (string_of_int (String.length value))) connection;
-                Connection.send_text value connection;
-                handle_error (receive_answer connection) 
-            end
+            will catch and fail on any errors. I.e., given 'foo'
+            'bar', will send "foo 3\r\nbar\r\n" *)
+          Connection.send_text_straight command connection;
+          Connection.send_text value connection;
+          handle_error (receive_answer connection) 
 
         let aggregate_command command tokens = 
             (* Given a list of tokens, joins them with command *)
@@ -261,7 +267,7 @@ module Helpers =
 
         let handle_special_status special_status reply =
             (* For status replies, does error checking and display *)
-            match handle_error reply with
+          match handle_error reply with
                 Status(x) when x = special_status -> () |
                 Status(x) -> failwith ("Received status(" ^ x ^ ")") |
                 _ -> failwith "Did not recognize what I got back"

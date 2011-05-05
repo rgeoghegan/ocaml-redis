@@ -1,0 +1,10 @@
+# OASIS_START
+# DO NOT EDIT (digest: b505ea62fc07ec8359583aa739221e91)
+version = "1.0"
+description = "Redis client"
+requires = "unix"
+archive(byte) = "redis.cma"
+archive(native) = "redis.cmxa"
+exists_if = "redis.cma"
+# OASIS_STOP
+

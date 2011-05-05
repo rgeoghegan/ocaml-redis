@@ -1,0 +1,35 @@
+OASISFormat: 0.1
+Name: beagle
+Version: 1.0
+LicenseFile: COPYING
+License: BSD4
+Authors: Rory Geoghegan
+Homepage: https://github.com/rgeoghegan/ocaml-redis
+BuildTools: ocamlbuild
+Plugins: DevFiles (0.2), META (0.2)
+Synopsis: Redis client
+
+Library redis
+  Build: true 
+  FindlibName: ocaml-redis
+  Path: src
+  Modules: Redis
+  BuildDepends: unix
+  Install: true
+  CompiledObject: best
+  
+Flag tests
+  Description: Build and run tests
+
+Executable test
+  Path:         tests
+  MainIs:       test.ml
+  Install:      false
+  Build$:       flag(tests)
+  BuildDepends: oUnit (>= 1.1.0), ocaml-redis, str
+  CompiledObject: best
+  
+Test main
+  Run$:    flag(tests)
+  Command: $test
+
