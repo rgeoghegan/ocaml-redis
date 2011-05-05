@@ -151,14 +151,14 @@ module Connection = struct
     Buffer.contents out_buf
 
   (* Send the given text out to the connection without flushing *)
-  let send_text_straight text (_, out_chan) =
+  let send_text_straight (_, out_chan) text =
     output_string out_chan text;
     output_string out_chan "\r\n"
 
   (* Send the given text out to the connection *)
-  let send_text text connection =
+  let send_text connection text =
     let (_, out_chan) = connection in
-    send_text_straight text connection;
+    send_text_straight connection text;
     flush out_chan
       
   (* Retrieve one character from the connection *)
@@ -188,7 +188,7 @@ module Helpers = struct
       end
 
   (* Parse multibulk data structure, with first '*' already popped off *)
-  let get_multibulk_data size conn =
+  let get_multibulk_data conn size =
     let in_chan, _ = conn in
     let rec iter i data =
       if i == 0
@@ -231,23 +231,23 @@ module Helpers = struct
       | '+' -> Status (Connection.read_string connection)
       | ':' -> parse_integer_response (Connection.read_string connection)
       | '$' -> Bulk (get_bulk_data connection)
-      | '*' -> get_multibulk_data (int_of_string (Connection.read_string connection)) connection
+      | '*' -> get_multibulk_data connection (int_of_string (Connection.read_string connection))
       | '-' -> Error (Connection.read_string connection)
       | c   -> ignore (Connection.read_string connection); UnexpectedChar c
 
   (* Send command, and receive the result casted to the right type,
      catch and fail on errors *)
-  let send command connection =
-    Connection.send_text command connection;
+  let send connection command =
+    Connection.send_text connection command;
     let reply = receive_answer connection in
     filter_error reply
 
   (* Will send out the command, appended with the length of value, 
      and will then send out value. Also will catch and fail on any errors. 
      I.e., given 'foo' 'bar', will send "foo 3\r\nbar\r\n" *)
-  let send_value command value connection =
-    Connection.send_text_straight command connection;
-    Connection.send_text value connection;
+  let send_value connection command value =
+    Connection.send_text_straight connection command;
+    Connection.send_text connection value;
     filter_error (receive_answer connection) 
 
   (* Given a list of tokens, joins them with command *)
@@ -267,17 +267,17 @@ module Helpers = struct
   (* Will send a given list of tokens to send in multibulk 
      using the unified request protocol. *)
           
-  let send_multibulk tokens connection =
+  let send_multibulk connection tokens =
     let token_length = (string_of_int (List.length tokens)) in
     let rec send_in_tokens tokens_left =
       match tokens_left with
         | [] -> ()
         | h :: t -> 
-          Connection.send_text_straight ("$" ^ (string_of_int (String.length h))) connection;
-          Connection.send_text_straight h connection;
+          Connection.send_text_straight connection ("$" ^ (string_of_int (String.length h)));
+          Connection.send_text_straight connection h;
           send_in_tokens t
     in
-    Connection.send_text_straight ("*" ^ token_length) connection;
+    Connection.send_text_straight connection ("*" ^ token_length);
     send_in_tokens tokens;
     Connection.flush_connection connection;
     let reply = receive_answer connection in

@@ -8,7 +8,7 @@ open OUnit
 let suite = 
   let setup () = 
     let conn = Redis.create_connection () in
-    Redis.auth "qwerty" conn;
+    Redis.auth conn "qwerty";
     Redis.flushall conn;
     conn
   in
@@ -22,216 +22,216 @@ let suite =
       "general" >:: 
         (test 
            (fun conn ->
-             assert_equal false (Redis.exists "rory" conn);
-             Redis.set "rory" "cool" conn;
-             assert_equal "cool" (Redis.string_of_bulk_data (Redis.get "rory" conn));
-             assert_equal "cool" (Redis.string_of_bulk_data (Redis.getset "rory" "not cool" conn));
-             assert_equal [Redis.String("not cool"); Redis.Nil] (Redis.mget ["rory"; "tim"] conn);
-             assert_equal false (Redis.setnx "rory" "uncool" conn);
-             assert_equal "not cool" (Redis.string_of_bulk_data (Redis.get "rory" conn));
+             assert_equal false (Redis.exists conn "rory");
+             Redis.set conn "rory" "cool";
+             assert_equal "cool" (Redis.string_of_bulk_data (Redis.get conn "rory"));
+             assert_equal "cool" (Redis.string_of_bulk_data (Redis.getset conn "rory" "not cool"));
+             assert_equal [Redis.String "not cool"; Redis.Nil] (Redis.mget conn ["rory"; "tim"]);
+             assert_equal false (Redis.setnx conn "rory" "uncool");
+             assert_equal "not cool" (Redis.string_of_bulk_data (Redis.get conn "rory"));
 
-             Redis.mset [("rory", "cool"); ("tim", "not cool")] conn;
-             assert_bool "" (not (Redis.msetnx [("rory", "not cool"); ("tim", "cool")] conn));
+             Redis.mset conn [("rory", "cool"); ("tim", "not cool")];
+             assert_bool "" (not (Redis.msetnx conn [("rory", "not cool"); ("tim", "cool")]));
 
-             Redis.set "rory" "0" conn;
-             assert_equal 1 (Redis.incr "rory" conn);
-             assert_equal 5 (Redis.incrby "rory" 4 conn);
-             assert_equal 4 (Redis.decr "rory" conn);
-             assert_equal 2 (Redis.decrby "rory" 2 conn);
+             Redis.set conn "rory" "0";
+             assert_equal 1 (Redis.incr conn "rory");
+             assert_equal 5 (Redis.incrby conn "rory" 4);
+             assert_equal 4 (Redis.decr conn "rory");
+             assert_equal 2 (Redis.decrby conn "rory" 2);
 
-             Redis.set "rory" "very " conn;
-             assert_equal 9 (Redis.append "rory" "cool" conn);
+             Redis.set conn "rory" "very ";
+             assert_equal 9 (Redis.append conn "rory" "cool");
 
-             assert_equal "cool" (Redis.string_of_bulk_data (Redis.substr "rory" 5 9 conn));
+             assert_equal "cool" (Redis.string_of_bulk_data (Redis.substr conn "rory" 5 9));
 
-             assert_equal 2 (Redis.del ["rory"; "tim"] conn);
-             assert_equal false (Redis.del_one "rory" conn);
+             assert_equal 2 (Redis.del conn ["rory"; "tim"]);
+             assert_equal false (Redis.del_one conn "rory");
     
-             Redis.set "rory" "cool" conn;
-             assert_equal Redis.RedisNil (Redis.value_type "tim" conn);
-             assert_equal Redis.RedisString (Redis.value_type "rory" conn);
+             Redis.set conn "rory" "cool";
+             assert_equal Redis.RedisNil (Redis.value_type conn "tim");
+             assert_equal Redis.RedisString (Redis.value_type conn "rory");
 
-             assert_equal ["rory"] (Redis.keys "*" conn); 
+             assert_equal ["rory"] (Redis.keys conn "*"); 
              assert_equal "rory" (Redis.randomkey conn);
-             Redis.rename "rory" "tim" conn;
+             Redis.rename conn "rory" "tim";
 
              assert_equal "tim" (Redis.randomkey conn);
 
-             Redis.set "rory" "more cool" conn;
-             assert_equal false (Redis.renamenx "rory" "tim" conn);
+             Redis.set conn "rory" "more cool";
+             assert_equal false (Redis.renamenx conn "rory" "tim");
 
-             Redis.setex "rory" 10 "cool" conn;
+             Redis.setex conn "rory" 10 "cool";
              
              assert_equal 2 (Redis.dbsize conn );
 
-             Redis.set "rory" "cool" conn;
-             assert_bool "" (Redis.expire "rory" 10 conn);
-             assert_bool "" (10 >= Redis.ttl "rory" conn);
+             Redis.set conn "rory" "cool";
+             assert_bool "" (Redis.expire conn "rory" 10);
+             assert_bool "" (10 >= Redis.ttl conn "rory");
 
-             assert_bool "" (Redis.expireat "tim" (Unix.time() +. 10.) conn);
-             assert_bool "" (10 >= Redis.ttl "tim" conn);
+             assert_bool "" (Redis.expireat conn "tim" (Unix.time() +. 10.));
+             assert_bool "" (10 >= Redis.ttl conn "tim");
            ));
       "list operations" >:: 
         (test 
            (fun conn ->
-             ignore (Redis.del ["rory"] conn);
-             assert_equal 1 (Redis.rpush "rory" "cool" conn);
-             assert_equal 2 (Redis.lpush "rory" "even cooler" conn);
-             assert_equal 2 (Redis.llen "rory" conn);
-             assert_equal [Redis.String("even cooler"); Redis.String("cool")]
-               (Redis.lrange "rory" 0 1 conn);
+             ignore (Redis.del conn ["rory"]);
+             assert_equal 1 (Redis.rpush conn "rory" "cool");
+             assert_equal 2 (Redis.lpush conn "rory" "even cooler");
+             assert_equal 2 (Redis.llen conn "rory");
+             assert_equal [Redis.String "even cooler"; Redis.String "cool"]
+               (Redis.lrange conn "rory" 0 1);
 
-             Redis.ltrim "rory" 0 0 conn;
-             assert_equal "even cooler" (Redis.string_of_bulk_data (Redis.lindex "rory" 0 conn));
-             Redis.lset "rory" 0 "just cool" conn;
-             ignore (Redis.rpush "rory" "cool" conn);
-             assert_equal 1 (Redis.lrem "rory" 0 "cool" conn);
+             Redis.ltrim conn "rory" 0 0;
+             assert_equal "even cooler" (Redis.string_of_bulk_data (Redis.lindex conn "rory" 0));
+             Redis.lset conn "rory" 0 "just cool";
+             ignore (Redis.rpush conn "rory" "cool");
+             assert_equal 1 (Redis.lrem conn "rory" 0 "cool");
              
-             ignore (Redis.rpush "rory" "cool" conn);
-             ignore (Redis.rpush "rory" "even cooler" conn);
+             ignore (Redis.rpush conn "rory" "cool");
+             ignore (Redis.rpush conn "rory" "even cooler");
              
-             assert_equal "just cool" (Redis.string_of_bulk_data (Redis.lpop "rory" conn));
-             assert_equal "even cooler" (Redis.string_of_bulk_data (Redis.rpop "rory" conn));
+             assert_equal "just cool" (Redis.string_of_bulk_data (Redis.lpop conn "rory"));
+             assert_equal "even cooler" (Redis.string_of_bulk_data (Redis.rpop conn "rory"));
              
-             ignore (Redis.rpush "cool" "rory" conn);
-             ignore (Redis.rpush "cool" "tim" conn);
-             assert_equal "tim" (Redis.string_of_bulk_data (Redis.rpoplpush "cool" "not_cool" conn));
+             ignore (Redis.rpush conn "cool" "rory");
+             ignore (Redis.rpush conn "cool" "tim");
+             assert_equal "tim" (Redis.string_of_bulk_data (Redis.rpoplpush conn "cool" "not_cool"));
            ));
 
       "set operations" >:: 
         (test 
            (fun conn ->
-             ignore (Redis.del_one "tim" conn);
-             assert_bool "" (Redis.sadd "tim" "not cool" conn);
-             assert_bool "" (Redis.sadd "tim" "smells" conn);
-             assert_bool "" (Redis.srem "tim" "smells" conn);
-             assert_equal "not cool" (Redis.string_of_bulk_data (Redis.spop "tim" conn));
+             ignore (Redis.del_one conn "tim");
+             assert_bool "" (Redis.sadd conn "tim" "not cool");
+             assert_bool "" (Redis.sadd conn "tim" "smells");
+             assert_bool "" (Redis.srem conn "tim" "smells");
+             assert_equal "not cool" (Redis.string_of_bulk_data (Redis.spop conn "tim"));
 
-             ignore ( Redis.del_one "rory" conn);
-             assert_bool "" (Redis.sadd "rory" "cool" conn);
-             assert_bool "" ( Redis.sadd "tim" "even cooler" conn);
-             assert_bool "" ( Redis.smove "tim" "rory" "even cooler" conn );
+             ignore ( Redis.del_one conn "rory");
+             assert_bool "" (Redis.sadd conn "rory" "cool");
+             assert_bool "" ( Redis.sadd conn "tim" "even cooler");
+             assert_bool "" ( Redis.smove conn "tim" "rory" "even cooler");
     
-             assert_equal 2 (Redis.scard "rory" conn );
-             assert_bool "" ( Redis.sismember "rory" "cool" conn );
+             assert_equal 2 (Redis.scard conn "rory");
+             assert_bool "" ( Redis.sismember conn "rory" "cool");
 
-             ignore ( Redis.srem "rory" "cool" conn );
-             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.smembers "rory" conn)) );
+             ignore (Redis.srem conn "rory" "cool");
+             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.smembers conn "rory")) );
              
-             ignore (Redis.sadd "tim" "even cooler" conn);
+             ignore (Redis.sadd conn "tim" "even cooler");
              
-             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.sinter ["rory"; "tim"] conn)) );
+             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.sinter conn ["rory"; "tim"])));
              
-             assert_equal 1 ( Redis.sinterstore "bob" ["rory"; "tim"] conn );
+             assert_equal 1 (Redis.sinterstore conn "bob" ["rory"; "tim"]);
              
-             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.sunion ["rory"; "tim"] conn)) );
-             assert_equal 1 (Redis.sunionstore "bob" ["rory"; "tim"] conn );
+             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.sunion conn ["rory"; "tim"])));
+             assert_equal 1 (Redis.sunionstore conn "bob" ["rory"; "tim"]);
              
-             ignore ( Redis.srem "tim" "even cooler" conn );
-             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.sdiff "rory" ["tim"] conn)) );
-             assert_equal 1 (Redis.sdiffstore "bob" "rory" ["tim"] conn);
+             ignore ( Redis.srem conn "tim" "even cooler");
+             assert_equal "even cooler" (Redis.string_of_bulk_data (List.hd (Redis.sdiff conn "rory" ["tim"])));
+             assert_equal 1 (Redis.sdiffstore conn "bob" "rory" ["tim"]);
              
-             ignore (Redis.del ["rory"; "tim"] conn);
-             ignore (Redis.sadd "rory" "cool" conn);
-             assert_equal "cool" (Redis.string_of_bulk_data (Redis.srandmember "rory" conn));
-             assert_equal Redis.Nil (Redis.srandmember "non_existent_key" conn);
+             ignore (Redis.del conn ["rory"; "tim"]);
+             ignore (Redis.sadd conn "rory" "cool");
+             assert_equal "cool" (Redis.string_of_bulk_data (Redis.srandmember conn "rory"));
+             assert_equal Redis.Nil (Redis.srandmember conn "non_existent_key");
            ));
         
       "multiple databases" >:: 
         (test 
            (fun conn ->
-             Redis.select 1 conn;
-             Redis.select 0 conn;
+             Redis.select conn 1;
+             Redis.select conn 0;
 
-             ignore (Redis.lpush "rory" "1" conn);
-             ignore (Redis.lpush "rory" "2" conn);
-             ignore (Redis.lpush "rory" "11" conn);
+             ignore (Redis.lpush conn "rory" "1");
+             ignore (Redis.lpush conn "rory" "2");
+             ignore (Redis.lpush conn "rory" "11");
              
-             assert_bool "" (Redis.move "rory" 1 conn);
+             assert_bool "" (Redis.move conn "rory" 1);
            ));
 
       "sorted sets" >:: 
         (test 
            (fun conn ->
-             assert_bool "" (Redis.zadd "coolest" 42.0 "rory" conn);
-             assert_bool "" (Redis.zrem "coolest" "rory" conn);
+             assert_bool "" (Redis.zadd conn "coolest" 42.0 "rory");
+             assert_bool "" (Redis.zrem conn "coolest" "rory");
 
-             ignore (Redis.zadd "coolest" 1.0 "rory" conn);
-             ignore (Redis.zadd "coolest" 99.0 "tim" conn);
+             ignore (Redis.zadd conn "coolest" 1.0 "rory");
+             ignore (Redis.zadd conn "coolest" 99.0 "tim");
 
              let f = Redis.string_of_bulk_data in
-             let l = List.map f (Redis.zrange "coolest" 0 1 conn) in
+             let l = List.map f (Redis.zrange conn "coolest" 0 1) in
              assert_equal ["rory"; "tim"] l;
              
              let f (a, b) = Redis.string_of_bulk_data a, b in
-             let l = List.map f (Redis.zrange_with_scores "coolest" 0 1 conn) in
+             let l = List.map f (Redis.zrange_with_scores conn "coolest" 0 1) in
              assert_equal [("rory", 1.0); ("tim", 99.0)] l;
 
              let f = Redis.string_of_bulk_data in
-             let l = List.map f (Redis.zrevrange "coolest" 0 1 conn) in
+             let l = List.map f (Redis.zrevrange conn "coolest" 0 1) in
              assert_equal ["tim"; "rory"] l;
              
              let f (a, b) = Redis.string_of_bulk_data a, b in
-             let l = List.map f (Redis.zrevrange_with_scores "coolest" 0 1 conn) in
+             let l = List.map f (Redis.zrevrange_with_scores conn "coolest" 0 1) in
              assert_equal [("tim", 99.0); ("rory", 1.0)] l;
              
              assert_equal "rory" (Redis.string_of_bulk_data
                                     (List.hd
-                                       (Redis.zrangebyscore
+                                       (Redis.zrangebyscore conn
                                           "coolest" 0.0 100.0
-                                          ~limit:(Redis.Limit (0, 1)) conn)));
+                                          ~limit:(Redis.Limit (0, 1)))));
              
-             assert_equal 2.0 (Redis.zincrby "coolest" 1.0 "rory" conn);
+             assert_equal 2.0 (Redis.zincrby conn "coolest" 1.0 "rory");
 
-             assert_equal (Redis.Rank 0) (Redis.zrank "coolest" "rory" conn);
-             assert_equal (Redis.Rank 1) (Redis.zrevrank "coolest" "rory" conn);
+             assert_equal (Redis.Rank 0) (Redis.zrank conn "coolest" "rory");
+             assert_equal (Redis.Rank 1) (Redis.zrevrank conn "coolest" "rory");
 
-             assert_equal 2 (Redis.zcard "coolest" conn);
-             assert_equal 2.0 (Redis.zscore "coolest" "rory" conn);
-             assert_equal 1 (Redis.zremrangebyrank "coolest" 0 0 conn);
-             assert_equal 1 (Redis.zremrangebyscore "coolest" 80.0 120.0 conn);
+             assert_equal 2 (Redis.zcard conn "coolest");
+             assert_equal 2.0 (Redis.zscore conn "coolest" "rory");
+             assert_equal 1 (Redis.zremrangebyrank conn "coolest" 0 0);
+             assert_equal 1 (Redis.zremrangebyscore conn "coolest" 80.0 120.0);
              
-             ignore (Redis.del_one "tim" conn);
-             ignore (Redis.del_one "rory" conn);
-             ignore (Redis.zadd "rory" 10.0 "cool" conn);
-             ignore (Redis.zadd "tim" 20.0 "uncool" conn);
+             ignore (Redis.del_one conn "tim");
+             ignore (Redis.del_one conn "rory");
+             ignore (Redis.zadd conn "rory" 10.0 "cool");
+             ignore (Redis.zadd conn "tim" 20.0 "uncool");
 
-             assert_equal 2 (Redis.zunionstore "union" ["rory"; "tim"] conn);
-             assert_equal 2 (Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:Redis.Sum conn);
-             assert_equal 2 (Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:Redis.Min conn);
-             assert_equal 2 (Redis.zunionstore "union" ["rory"; "tim"] ~aggregate:Redis.Max conn);
+             assert_equal 2 (Redis.zunionstore conn "union" ["rory"; "tim"]);
+             assert_equal 2 (Redis.zunionstore conn "union" ["rory"; "tim"] ~aggregate:Redis.Sum);
+             assert_equal 2 (Redis.zunionstore conn "union" ["rory"; "tim"] ~aggregate:Redis.Min);
+             assert_equal 2 (Redis.zunionstore conn "union" ["rory"; "tim"] ~aggregate:Redis.Max);
              
-             assert_equal 2 (Redis.zunionstore_with_weights "union" ["rory"; "tim"] [1.0; 0.5] conn);
-             assert_equal 2 (Redis.zunionstore_with_weights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Sum conn);
-             assert_equal 2 (Redis.zunionstore_with_weights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Min conn);
-             assert_equal 2 (Redis.zunionstore_with_weights "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Max conn);
+             assert_equal 2 (Redis.zunionstore_with_weights conn "union" ["rory"; "tim"] [1.0; 0.5]);
+             assert_equal 2 (Redis.zunionstore_with_weights conn "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Sum);
+             assert_equal 2 (Redis.zunionstore_with_weights conn "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Min);
+             assert_equal 2 (Redis.zunionstore_with_weights conn "union" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Max);
              
-             assert_equal 0 (Redis.zinterstore "inter" ["rory"; "tim"] conn);
-             assert_equal 0 (Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:Redis.Sum conn);
-             assert_equal 0 (Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:Redis.Min conn);
-             assert_equal 0 (Redis.zinterstore "inter" ["rory"; "tim"] ~aggregate:Redis.Max conn);
+             assert_equal 0 (Redis.zinterstore conn "inter" ["rory"; "tim"]);
+             assert_equal 0 (Redis.zinterstore conn "inter" ["rory"; "tim"] ~aggregate:Redis.Sum);
+             assert_equal 0 (Redis.zinterstore conn "inter" ["rory"; "tim"] ~aggregate:Redis.Min);
+             assert_equal 0 (Redis.zinterstore conn "inter" ["rory"; "tim"] ~aggregate:Redis.Max);
              
-             assert_equal 0 (Redis.zinterstore_with_weights "inter" ["rory"; "tim"] [1.0; 0.5] conn);
-             assert_equal 0 (Redis.zinterstore_with_weights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Sum conn);
-             assert_equal 0 (Redis.zinterstore_with_weights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Min conn);
-             assert_equal 0 (Redis.zinterstore_with_weights "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Max conn);
+             assert_equal 0 (Redis.zinterstore_with_weights conn "inter" ["rory"; "tim"] [1.0; 0.5]);
+             assert_equal 0 (Redis.zinterstore_with_weights conn "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Sum);
+             assert_equal 0 (Redis.zinterstore_with_weights conn "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Min);
+             assert_equal 0 (Redis.zinterstore_with_weights conn "inter" ["rory"; "tim"] [1.0; 0.5] ~aggregate:Redis.Max);
            ));
 
       "sort" >:: 
         (test 
            (fun conn ->
-             ignore (Redis.del_one "rory" conn);
-             ignore (Redis.lpush "rory" "1" conn);
-             ignore (Redis.lpush "rory" "2" conn);
+             ignore (Redis.del_one conn "rory");
+             ignore (Redis.lpush conn "rory" "1");
+             ignore (Redis.lpush conn "rory" "2");
 
              assert_equal "2" (Redis.string_of_bulk_data 
-                                 (List.hd (Redis.sort "rory" 
+                                 (List.hd (Redis.sort conn "rory" 
                                              ~alpha:Redis.Alpha 
-                                             ~order:Redis.Desc conn)));
+                                             ~order:Redis.Desc)));
 
 
              assert_equal "2" (Redis.string_of_bulk_data 
-                                 (List.hd (Redis.sort "rory" ~pattern:Redis.NoSort conn)));
+                                 (List.hd (Redis.sort conn "rory" ~pattern:Redis.NoSort)));
            ));
 
       "complex sort" >:: 
@@ -242,73 +242,71 @@ let suite =
              let data = [["Rory"; "1984"]; ["Bob"; "1980"]] in
              let add_record index record =
                let add_field name value =
-                 Redis.set (name ^ "_" ^ (string_of_int index)) value conn
+                 Redis.set conn (name ^ "_" ^ (string_of_int index)) value
                in
-               ignore (Redis.rpush "people" (string_of_int index) conn);
+               ignore (Redis.rpush conn "people" (string_of_int index));
                List.iter2 add_field fields record;
                index + 1
              in
              ignore (List.fold_left add_record 1 data);
-             ignore (Redis.hset "hash_1" "yob" "1984" conn);
-             ignore (Redis.hset "hash_2" "yob" "1980" conn);
+             ignore (Redis.hset conn "hash_1" "yob" "1984");
+             ignore (Redis.hset conn "hash_2" "yob" "1980");
 
              let f = Redis.string_of_bulk_data in
-             let l = List.map f (Redis.sort "people"
-                                   ~get:(Redis.KeyPattern("name_*")) conn) in
+             let l = List.map f (Redis.sort conn "people"
+                                   ~get:(Redis.KeyPattern("name_*"))) in
              assert_equal ["Rory"; "Bob"] l;
 
 
-             let l = List.map f (Redis.sort "people"
-                                   ~get:(Redis.FieldPattern("hash_*", "yob")) conn) in
+             let l = List.map f (Redis.sort conn "people"
+                                   ~get:(Redis.FieldPattern("hash_*", "yob"))) in
              assert_equal ["1984"; "1980"] l;
 
-             let l = List.map f (List.hd (Redis.sort_get_many "people"
+             let l = List.map f (List.hd (Redis.sort_get_many conn "people"
                                             ["name_*"; "yob_*"] 
-                                            ~pattern:(Redis.KeyPattern("yob_*"))
-                                            conn)) in
+                                            ~pattern:(Redis.KeyPattern("yob_*")))) in
              assert_equal ["Bob"; "1980"] l;
              
-             let l = List.map f (List.hd (Redis.sort_get_many "people" ["name_*"; "yob_*"] 
-                                            ~pattern:(Redis.FieldPattern("hash_*", "yob")) conn)) in
+             let l = List.map f (List.hd (Redis.sort_get_many conn "people" ["name_*"; "yob_*"] 
+                                            ~pattern:(Redis.FieldPattern("hash_*", "yob")))) in
              assert_equal ["Bob"; "1980"] l;
 
-             assert_equal 2 (Redis.sort_and_store "people" ["name_*"] "results" 
-                               ~pattern:(Redis.KeyPattern("yob_*")) conn);
+             assert_equal 2 (Redis.sort_and_store conn "people" ["name_*"] "results" 
+                               ~pattern:(Redis.KeyPattern("yob_*")));
            ));
 
       "hashes" >:: 
         (test 
            (fun conn ->
-             ignore (Redis.del ["rory"] conn);
-             assert_bool "" (Redis.hset "rory" "cool" "true" conn);
-             assert_bool "" (not (Redis.hset "rory" "cool" "false" conn));
+             ignore (Redis.del conn ["rory"]);
+             assert_bool "" (Redis.hset conn "rory" "cool" "true");
+             assert_bool "" (not (Redis.hset conn "rory" "cool" "false"));
              
-             assert_bool "" (Redis.hdel "rory" "cool" conn);
-             assert_bool "" (not (Redis.hdel "rory" "cool" conn));
+             assert_bool "" (Redis.hdel conn "rory" "cool");
+             assert_bool "" (not (Redis.hdel conn "rory" "cool"));
              
-             assert_bool "" (Redis.hset "rory" "handsome" "true" conn);
-             assert_equal (Redis.String "true") (Redis.hget "rory" "handsome" conn);
-             assert_equal Redis.Nil (Redis.hget "rory" "boring" conn);
+             assert_bool "" (Redis.hset conn "rory" "handsome" "true");
+             assert_equal (Redis.String "true") (Redis.hget conn "rory" "handsome");
+             assert_equal Redis.Nil (Redis.hget conn "rory" "boring");
              
              assert_equal [Redis.String("true"); Redis.Nil] 
-               (Redis.hmget "rory" ["handsome"; "boring"] conn);
+               (Redis.hmget conn "rory" ["handsome"; "boring"]);
 
-             Redis.hmset "rory" [("handsome", "false"); ("boring", "true")] conn;
+             Redis.hmset conn "rory" [("handsome", "false"); ("boring", "true")];
 
-             assert_equal 26 (Redis.hincrby "rory" "age" 26 conn);
+             assert_equal 26 (Redis.hincrby conn "rory" "age" 26);
 
-             assert_bool "" (Redis.hexists "rory" "handsome" conn);
-             assert_bool "" (not (Redis.hexists "rory" "andsome" conn));
+             assert_bool "" (Redis.hexists conn "rory" "handsome");
+             assert_bool "" (not (Redis.hexists conn "rory" "andsome"));
     
-             assert_equal 3 (Redis.hlen "rory" conn);
+             assert_equal 3 (Redis.hlen conn "rory");
              
-             ignore (Redis.del ["rory"] conn);
-             ignore (Redis.hset "rory" "cool" "true" conn);
-             assert_equal ["cool"] (Redis.hkeys "rory" conn);
+             ignore (Redis.del conn ["rory"]);
+             ignore (Redis.hset conn "rory" "cool" "true");
 
-             assert_equal ["true"] (Redis.hvals "rory" conn);
-
-             assert_equal [("cool", "true")] (Redis.hgetall "rory" conn);
+             assert_equal ["cool"] (Redis.hkeys conn "rory");
+             assert_equal ["true"] (Redis.hvals conn "rory");
+             assert_equal [("cool", "true")] (Redis.hgetall conn "rory");
            ));
 
       "remote control" >:: 
@@ -322,25 +320,25 @@ let suite =
       "long running" >:: 
         (test 
            (fun conn ->
-             ignore (Redis.del ["rory"; "tim"; "bob"] conn);
-             ignore (Redis.rpush "rory" "cool" conn);
+             ignore (Redis.del conn ["rory"; "tim"; "bob"]);
+             ignore (Redis.rpush conn "rory" "cool");
 
-             assert_equal "cool" (Redis.string_of_bulk_data (Redis.blpop "rory" conn));
-             assert_equal Redis.Nil (Redis.blpop "rory" ~timeout:(Redis.Seconds 1) conn);
+             assert_equal "cool" (Redis.string_of_bulk_data (Redis.blpop conn "rory"));
+             assert_equal Redis.Nil (Redis.blpop conn "rory" ~timeout:(Redis.Seconds 1));
 
-             ignore (Redis.rpush "tim" "not cool" conn);
-             assert_equal ("tim", Redis.String "not cool") (Redis.blpop_many ["rory"; "tim"] conn);
-             assert_equal ("", Redis.Nil) (Redis.blpop_many ["rory"; "tim"] 
-                                             ~timeout:(Redis.Seconds 1) conn);
+             ignore (Redis.rpush conn "tim" "not cool");
+             assert_equal ("tim", Redis.String "not cool") (Redis.blpop_many conn ["rory"; "tim"]);
+             assert_equal ("", Redis.Nil) (Redis.blpop_many conn ["rory"; "tim"] 
+                                             ~timeout:(Redis.Seconds 1));
 
-             ignore (Redis.rpush "rory" "cool" conn);
-             assert_equal "cool" (Redis.string_of_bulk_data (Redis.brpop "rory" conn));
-             assert_equal Redis.Nil (Redis.brpop "rory" ~timeout:(Redis.Seconds 1) conn);
+             ignore (Redis.rpush conn "rory" "cool");
+             assert_equal "cool" (Redis.string_of_bulk_data (Redis.brpop conn "rory"));
+             assert_equal Redis.Nil (Redis.brpop conn "rory" ~timeout:(Redis.Seconds 1));
 
-             ignore (Redis.rpush "tim" "not cool" conn);
-             assert_equal ("tim", Redis.String("not cool")) (Redis.blpop_many ["rory"; "tim"; "bob"] conn);
-             assert_equal ("", Redis.Nil) (Redis.blpop_many ["rory"; "tim"; "bob"] 
-                                             ~timeout:(Redis.Seconds 1) conn);
+             ignore (Redis.rpush conn "tim" "not cool");
+             assert_equal ("tim", Redis.String("not cool")) (Redis.blpop_many conn ["rory"; "tim"; "bob"]);
+             assert_equal ("", Redis.Nil) (Redis.blpop_many conn ["rory"; "tim"; "bob"] 
+                                             ~timeout:(Redis.Seconds 1));
            ));
 
       "persistence" >:: 
@@ -357,7 +355,7 @@ let suite =
 let shutdown_suite = 
   let setup () : Redis.Connection.t = 
     let conn = Redis.create_connection () in
-    Redis.auth "qwerty" conn;
+    Redis.auth conn "qwerty";
     Redis.flushall conn;
     conn
   in
@@ -372,7 +370,7 @@ let shutdown_suite =
         (test 
            (fun conn ->
              (* Shutdown is different from quit, so it needs it's own test function *)
-             Redis.auth "qwerty" conn;
+             Redis.auth conn "qwerty";
              Redis.shutdown conn;
            ));
     ]

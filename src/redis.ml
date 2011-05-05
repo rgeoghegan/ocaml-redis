@@ -17,312 +17,312 @@ let create_connection ?(addr = "127.0.0.1") ?(port = 6379) () =
 
 (* PING *)
 let ping connection =
-  expect_status "PONG" (send "PING" connection);
+  expect_status "PONG" (send connection "PING");
   true
 
 (* QUIT, also should automatically close the connection *)
 let quit connection =
-  Connection.send_text "QUIT" connection
+  Connection.send_text connection "QUIT"
 
 (* AUTH *)
-let auth password connection =
-  expect_success (send ("AUTH " ^ password) connection)
+let auth connection password =
+  expect_success (send connection ("AUTH " ^ password))
 
 (***************************************)
 (* Commands operating on string values *)
 (***************************************)
 
 (* SET *)
-let set key value connection =
-  expect_success (send_multibulk ["SET"; key; value] connection)
+let set connection key value =
+  expect_success (send_multibulk connection ["SET"; key; value])
 
 (* GET *)
-let get key connection =
-  expect_bulk (send_multibulk ["GET"; key] connection)
+let get connection key =
+  expect_bulk (send_multibulk connection ["GET"; key])
 
 (* GETSET *)
-let getset key new_value connection =
-  expect_bulk (send_multibulk ["GETSET"; key; new_value] connection)
+let getset connection key new_value =
+  expect_bulk (send_multibulk connection ["GETSET"; key; new_value])
 
 (* MGET *)
-let mget keys connection = 
-  expect_non_nil_multibulk (send_multibulk ("MGET" :: keys) connection)
+let mget connection keys = 
+  expect_non_nil_multibulk (send_multibulk connection ("MGET" :: keys))
 
 (* SETNX *)
-let setnx key value connection =
-  expect_bool (send_multibulk ["SETNX"; key; value] connection)
+let setnx connection key value =
+  expect_bool (send_multibulk connection ["SETNX"; key; value])
 
 (* SETEX *)
-let setex key timeout value connection =
+let setex connection key timeout value =
   let cmd = ["SETEX"; key; (string_of_int timeout); value] in
-  expect_success (send_multibulk cmd connection)
+  expect_success (send_multibulk connection cmd)
 
 (* MSET *)
-let mset key_value_pairs connection =
-  expect_success (send_multibulk ("MSET" :: (flatten key_value_pairs [])) connection)
+let mset connection key_value_pairs =
+  expect_success (send_multibulk connection ("MSET" :: (flatten key_value_pairs [])))
 
 (* MSETNX *)
-let msetnx key_value_pairs connection =
-  expect_bool (send_multibulk ( "MSETNX" :: (flatten key_value_pairs [])) connection)
+let msetnx connection key_value_pairs =
+  expect_bool (send_multibulk connection ("MSETNX" :: (flatten key_value_pairs [])))
 
 (* INCR *)
-let incr key connection =
-  expect_int (send_multibulk ["INCR"; key] connection)
+let incr connection key =
+  expect_int (send_multibulk connection ["INCR"; key])
 
 (* INCRBY *)
-let incrby key value connection =
-  expect_int (send_multibulk ["INCRBY"; key; string_of_int value] connection)
+let incrby connection key value =
+  expect_int (send_multibulk connection ["INCRBY"; key; string_of_int value])
 
 (* DECR *)
-let decr key connection =
-  expect_int (send_multibulk ["DECR"; key] connection)
+let decr connection key =
+  expect_int (send_multibulk connection ["DECR"; key])
 
 (* DECRBY *)
-let decrby key value connection =
-  expect_int (send_multibulk ["DECRBY"; key; string_of_int value] connection)
+let decrby connection key value =
+  expect_int (send_multibulk connection ["DECRBY"; key; string_of_int value])
 
 (* APPEND *)
-let append key value connection =
-  expect_int (send_multibulk ["APPEND"; key; value] connection)
+let append connection key value =
+  expect_int (send_multibulk connection ["APPEND"; key; value])
 
 (* SUBSTR, note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
-let substr key start stop connection =
+let substr connection key start stop =
   let cmd = ["SUBSTR"; key; string_of_int start; string_of_int stop] in
-  expect_bulk (send_multibulk cmd connection)
+  expect_bulk (send_multibulk connection cmd)
 
 (* EXISTS *)
-let exists key connection =
-  expect_bool (send_multibulk ["EXISTS"; key] connection)
+let exists connection key =
+  expect_bool (send_multibulk connection ["EXISTS"; key])
 
 (* DEL *)
-let del keys connection =
-  expect_int (send_multibulk ("DEL" :: keys) connection)
+let del connection keys = 
+  expect_int (send_multibulk connection ("DEL" :: keys))
 
 (* Exactly like "del", except you do not need to provide a list, 
    just one key. Not in spec *)
-let del_one key connection =
-  expect_bool (send_multibulk ["DEL"; key] connection)
+let del_one connection key =
+  expect_bool (send_multibulk connection ["DEL"; key])
 
 (* TYPE, unfortunately type is an ocaml keyword, 
    so it cannot be used as a function name *)
-let value_type key connection =
-  expect_type (send_multibulk ["TYPE"; key] connection)
+let value_type connection key =
+  expect_type (send_multibulk connection ["TYPE"; key])
 
 (***************************************)
 (* Commands operating on the key space *)
 (***************************************)
 
 (* KEYS *)
-let keys pattern connection =
-  expect_multibulk_list (send_multibulk ["KEYS"; pattern] connection)
+let keys connection pattern =
+  expect_multibulk_list (send_multibulk connection ["KEYS"; pattern])
 
 (* RANDOMKEY *)
 let randomkey connection =
-  string_of_bulk_data (expect_bulk (send_multibulk ["RANDOMKEY"] connection))
+  string_of_bulk_data (expect_bulk (send_multibulk connection ["RANDOMKEY"]))
 
 (* RENAME *)
-let rename oldkey newkey connection =
-  expect_success (send_multibulk ["RENAME"; oldkey; newkey] connection)
+let rename connection oldkey newkey =
+  expect_success (send_multibulk connection ["RENAME"; oldkey; newkey])
 
 (* RENAMENX *)
-let renamenx oldkey newkey connection =
-  expect_bool (send_multibulk ["RENAMENX"; oldkey; newkey] connection)
+let renamenx connection oldkey newkey =
+  expect_bool (send_multibulk connection ["RENAMENX"; oldkey; newkey])
 
 (* DBSIZE *)
 let dbsize connection =
-  expect_int (send_multibulk ["DBSIZE"] connection)
+  expect_int (send_multibulk connection ["DBSIZE"])
 
 (* EXPIRE *)
-let expire key seconds connection = 
-  expect_bool (send_multibulk ["EXPIRE"; key; string_of_int seconds] connection)
+let expire connection key seconds = 
+  expect_bool (send_multibulk connection ["EXPIRE"; key; string_of_int seconds])
 
 (* EXPIREAT *)
-let expireat key time connection =
-  expect_bool (send_multibulk ["EXPIREAT"; key; Printf.sprintf "%.f" time] connection)
+let expireat connection key time =
+  expect_bool (send_multibulk connection ["EXPIREAT"; key; Printf.sprintf "%.f" time])
 
 (* TTL *)
-let ttl key connection =
-  expect_int (send_multibulk ["TTL"; key] connection)
+let ttl connection key =
+  expect_int (send_multibulk connection ["TTL"; key])
 
 (*******************************)
 (* Commands operating on lists *)
 (*******************************)
 
 (* RPUSH *)
-let rpush key value connection =
-  expect_int (send_multibulk ["RPUSH"; key; value] connection)
+let rpush connection key value =
+  expect_int (send_multibulk connection ["RPUSH"; key; value])
 
 (* LPUSH *)
-let lpush key value connection =
-  expect_int (send_multibulk ["LPUSH"; key; value] connection)
+let lpush connection key value =
+  expect_int (send_multibulk connection ["LPUSH"; key; value])
 
 (* LLEN *)
-let llen key connection =
-  expect_int (send_multibulk ["LLEN"; key] connection)
+let llen connection key =
+  expect_int (send_multibulk connection ["LLEN"; key])
 
 (* LRANGE, please note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
-let lrange key start stop connection =
+let lrange connection key start stop =
   let cmd = ["LRANGE"; key; string_of_int start; string_of_int stop] in
-  expect_non_nil_multibulk(send_multibulk cmd connection)
+  expect_non_nil_multibulk (send_multibulk connection cmd)
 
 (* LTRIM, please note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
-let ltrim key start stop connection =
+let ltrim connection key start stop =
   let cmd = ["LTRIM"; key; string_of_int start; string_of_int stop] in
-  expect_success (send_multibulk cmd connection)
+  expect_success (send_multibulk connection cmd)
 
 (* LINDEX *)
-let lindex key index connection =
+let lindex connection key index =
   let cmd = ["LINDEX"; key; string_of_int index] in
-  expect_bulk (send_multibulk cmd connection)
+  expect_bulk (send_multibulk connection cmd)
 
 (* LSET *)
-let lset key index value connection =
+let lset connection key index value =
   let cmd = ["LSET"; key; string_of_int index; value]  in
-  expect_success (send_multibulk cmd connection)
+  expect_success (send_multibulk connection cmd)
 
 (* LREM *)
-let lrem key count value connection =
+let lrem connection key count value =
   let cmd = ["LREM"; key; string_of_int count; value] in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 (* LPOP *)
-let lpop key connection =
-  expect_bulk (send_multibulk ["LPOP"; key] connection)
+let lpop connection key =
+  expect_bulk (send_multibulk connection ["LPOP"; key])
 
 (* RPOP *)
-let rpop key connection =
-  expect_bulk (send_multibulk ["RPOP"; key] connection)
+let rpop connection key =
+  expect_bulk (send_multibulk connection ["RPOP"; key])
 
 (* RPOPLPUSH *)
-let rpoplpush src_key dest_key connection =
-  expect_bulk (send_multibulk ["RPOPLPUSH"; src_key; dest_key] connection)
+let rpoplpush connection src_key dest_key =
+  expect_bulk (send_multibulk connection ["RPOPLPUSH"; src_key; dest_key])
 
 let string_of_timeout = function
   | Seconds seconds -> string_of_int seconds
   | Wait       -> "0"
     
 (* BLPOP, but for only one key *)
-let blpop key ?(timeout = Wait) connection =
+let blpop connection ?(timeout = Wait) key =
   let cmd = ["BLPOP"; key; string_of_timeout timeout] in
-  expect_multibulk_kv (send_multibulk cmd connection)
+  expect_multibulk_kv (send_multibulk connection cmd)
 
 (* BLPOP, but for many keys *)
-let blpop_many key_list ?(timeout = Wait) connection =
+let blpop_many connection ?(timeout = Wait) key_list =
   let cmd = ("BLPOP" :: key_list) @ [string_of_timeout timeout] in
-  expect_multibulk_skv (send_multibulk cmd connection)
+  expect_multibulk_skv (send_multibulk connection cmd)
     
 (* BRPOP, but for only one key *)
-let brpop key ?(timeout = Wait) connection =
+let brpop connection ?(timeout = Wait) key =
   let cmd = ["BRPOP"; key; string_of_timeout timeout] in
-  expect_multibulk_kv (send_multibulk cmd connection)
+  expect_multibulk_kv (send_multibulk connection cmd)
 
 (* BRPOP *)
-let brpop_many key_list ?(timeout = Wait) connection =
+let brpop_many connection ?(timeout = Wait) key_list =
   let cmd = "BRPOP" :: key_list @ [string_of_timeout timeout] in
-  expect_multibulk_skv (send_multibulk cmd connection)
+  expect_multibulk_skv (send_multibulk connection cmd)
 
 (******************************)
 (* Commands operating on sets *)
 (******************************)
 
 (* SADD *)
-let sadd key member connection =
-  expect_bool (send_multibulk ["SADD"; key; member] connection)
+let sadd connection key member =
+  expect_bool (send_multibulk connection ["SADD"; key; member])
 
 (* SREM *)
-let srem key member connection =
-  expect_bool (send_multibulk ["SREM"; key; member] connection)
+let srem connection key member =
+  expect_bool (send_multibulk connection ["SREM"; key; member])
 
 (* SPOP *)
-let spop key connection =
-  expect_bulk (send_multibulk ["SPOP"; key] connection)
+let spop connection key =
+  expect_bulk (send_multibulk connection ["SPOP"; key])
 
 (* SMOVE *)
-let smove srckey destkey member connection =
-  expect_bool (send_multibulk ["SMOVE"; srckey; destkey; member] connection)
+let smove connection srckey destkey member =
+  expect_bool (send_multibulk connection ["SMOVE"; srckey; destkey; member])
 
 (* SCARD *)
-let scard key connection =
-  expect_int (send_multibulk ["SCARD"; key] connection)
+let scard connection key =
+  expect_int (send_multibulk connection ["SCARD"; key])
 
 (* SISMEMBER *)
-let sismember key member connection =
-  expect_bool (send_multibulk ["SISMEMBER"; key; member] connection)
+let sismember connection key member =
+  expect_bool (send_multibulk connection ["SISMEMBER"; key; member])
 
 (* SMEMBERS *)
-let smembers key connection =
-  expect_non_nil_multibulk (send_multibulk ["SMEMBERS"; key] connection)
+let smembers connection key =
+  expect_non_nil_multibulk (send_multibulk connection ["SMEMBERS"; key])
 
 (* SINTER *)
-let sinter keys connection =
-  expect_non_nil_multibulk (send_multibulk ("SINTER" :: keys) connection)
+let sinter connection keys =
+  expect_non_nil_multibulk (send_multibulk connection ("SINTER" :: keys))
 
 (* SINTERSTORE *)
-let sinterstore dstkey keys connection =
-  expect_int (send_multibulk ("SINTERSTORE" :: dstkey :: keys) connection)
+let sinterstore connection dstkey keys =
+  expect_int (send_multibulk connection ("SINTERSTORE" :: dstkey :: keys))
 
 (* SUNION *)
-let sunion keys connection =
-  expect_non_nil_multibulk (send_multibulk ("SUNION" :: keys) connection)
+let sunion connection keys =
+  expect_non_nil_multibulk (send_multibulk connection ("SUNION" :: keys))
 
 (* SUNIONSTORE *)
-let sunionstore dstkey keys connection =
-  expect_int (send_multibulk ("SUNIONSTORE" :: dstkey :: keys) connection)
+let sunionstore connection dstkey keys =
+  expect_int (send_multibulk connection ("SUNIONSTORE" :: dstkey :: keys))
 
 (* SDIFF *)
-let sdiff from_key keys connection =
-  expect_non_nil_multibulk (send_multibulk ("SDIFF" :: from_key :: keys) connection)
+let sdiff connection from_key keys =
+  expect_non_nil_multibulk (send_multibulk connection ("SDIFF" :: from_key :: keys))
 
 (* SDIFFSTORE *)
-let sdiffstore dstkey from_key keys connection =
+let sdiffstore connection dstkey from_key keys =
   let cmd = "SDIFFSTORE" :: dstkey :: from_key :: keys in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 (* SRANDMEMBER *)
-let srandmember key connection =
-  expect_bulk (send_multibulk ["SRANDMEMBER"; key] connection)
+let srandmember connection key =
+  expect_bulk (send_multibulk connection ["SRANDMEMBER"; key])
 
 (****************************************)
 (* Multiple databases handling commands *)
 (****************************************)
 
 (* SELECT *)
-let select index connection =
-  expect_success (send_multibulk ["SELECT"; string_of_int index] connection)
+let select connection index =
+  expect_success (send_multibulk connection ["SELECT"; string_of_int index])
 
 (* MOVE *)
-let move key index connection =
-  expect_bool (send_multibulk ["MOVE"; key; string_of_int index] connection)
+let move connection key index =
+  expect_bool (send_multibulk connection ["MOVE"; key; string_of_int index])
 
 (* FLUSHDB *)
 let flushdb connection =
-  expect_success (send_multibulk ["FLUSHDB"] connection)
+  expect_success (send_multibulk connection ["FLUSHDB"])
 
 (* FLUSHALL *)
 let flushall connection =
-  expect_success (send_multibulk ["FLUSHALL"] connection)
+  expect_success (send_multibulk connection ["FLUSHALL"])
 
 (*************************************)
 (* Commands operating on sorted sets *)
 (*************************************)
 
 (* ZADD *)
-let zadd key score member connection =
+let zadd connection key score member =
   let cmd = ["ZADD"; key; string_of_float score; member] in
-  expect_bool (send_multibulk cmd connection)
+  expect_bool (send_multibulk connection cmd)
 
 (* ZREM *)
-let zrem key member connection =
-  expect_bool (send_multibulk ["ZREM"; key; member] connection)
+let zrem connection key member =
+  expect_bool (send_multibulk connection ["ZREM"; key; member])
 
 (* ZRANGE, please note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
-let zrange key start stop connection =
+let zrange connection key start stop =
   let cmd = ["ZRANGE"; key; string_of_int start; string_of_int stop] in
-  expect_non_nil_multibulk (send_multibulk cmd connection)
+  expect_non_nil_multibulk (send_multibulk connection cmd)
 
 (* Takes a list of [v_1; s_1; v_2; s_2; ...; v_n; s_n] and
    collates it into a list of pairs [(v_1, s_1); (v_2, s_2); ... ; (v_n, s_n)] *)
@@ -341,26 +341,26 @@ let score_transformer value_and_scores_list =
   value_iter value_and_scores_list []
 
 (* ZRANGE, but with the WITHSCORES option added on. *)
-let zrange_with_scores key start stop connection =
+let zrange_with_scores connection key start stop =
   let cmd = ["ZRANGE"; key; string_of_int start; string_of_int stop; "WITHSCORES"] in
-  score_transformer (expect_non_nil_multibulk (send_multibulk cmd connection))
+  score_transformer (expect_non_nil_multibulk (send_multibulk connection cmd))
 
 (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, 
 so it has been replaced by 'stop' *)
-let zrevrange key start stop connection =
+let zrevrange connection key start stop =
   let cmd = ["ZREVRANGE"; key; string_of_int start; string_of_int stop] in
-  expect_non_nil_multibulk (send_multibulk cmd connection)
+  expect_non_nil_multibulk (send_multibulk connection cmd)
 
 (* ZRANGE, but with the WITHSCORES option added on. *)
-let zrevrange_with_scores key start stop connection =
+let zrevrange_with_scores connection key start stop =
   let cmd = ["ZREVRANGE"; key; string_of_int start; 
              string_of_int stop; "WITHSCORES"] in
   score_transformer (expect_non_nil_multibulk 
-                       (send_multibulk cmd connection))
+                       (send_multibulk connection cmd))
 
 (* ZRANGEBYSCORE, please note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
-let zrangebyscore key start stop ?(limit = Unlimited) connection =
+let zrangebyscore connection ?(limit = Unlimited) key start stop =
   let limit = match limit with
     | Unlimited    -> []
     | Limit (x, y) -> ["LIMIT"; string_of_int x; string_of_int y]
@@ -368,39 +368,39 @@ let zrangebyscore key start stop ?(limit = Unlimited) connection =
   let cmd = ["ZRANGEBYSCORE"; key; 
              string_of_float start;
              string_of_float stop] @ limit in
-  expect_non_nil_multibulk (send_multibulk cmd connection)
+  expect_non_nil_multibulk (send_multibulk connection cmd)
 
 (* ZINCRBY *)
-let zincrby key increment member connection =
+let zincrby connection key increment member =
   let cmd = ["ZINCRBY"; key; string_of_float increment; member] in
-  expect_float (send_multibulk cmd connection)
+  expect_float (send_multibulk connection cmd)
 
 (* ZRANK *)
-let zrank key member connection =
-  expect_rank (send_multibulk ["ZRANK"; key; member] connection)
+let zrank connection key member =
+  expect_rank (send_multibulk connection ["ZRANK"; key; member])
 
 (* ZREVRANK *)
-let zrevrank key member connection =
-  expect_rank (send_multibulk ["ZREVRANK"; key; member] connection)
+let zrevrank connection key member =
+  expect_rank (send_multibulk connection ["ZREVRANK"; key; member])
 
 (* ZCARD *)
-let zcard key connection =
-  expect_int (send_multibulk ["ZCARD"; key] connection)
+let zcard connection key =
+  expect_int (send_multibulk connection ["ZCARD"; key])
 
 (* ZSCORE *)
-let zscore key member connection =
-  expect_float (send_multibulk ["ZSCORE"; key; member] connection)
+let zscore connection key member =
+  expect_float (send_multibulk connection ["ZSCORE"; key; member])
 
 (* ZREMRANGEBYRANK *)
-let zremrangebyrank key start stop connection =
+let zremrangebyrank connection key start stop =
   let cmd = ["ZREMRANGEBYRANK"; key; string_of_int start; string_of_int stop] in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 (* ZREMRANGEBYSCORE *)
-let zremrangebyscore key min max connection =
+let zremrangebyscore connection key min max =
   let cmd = ["ZREMRANGEBYSCORE"; key; 
              string_of_float min; string_of_float max] in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 let keylen l = string_of_int (List.length l)
 
@@ -412,21 +412,21 @@ let string_of_aggregate a =
   in 
   ["AGGREGATE"; s] 
 
-let zunioncmd cmd dstkey key_list ?(aggregate = Sum) connection =
+let zunioncmd cmd connection ?(aggregate = Sum) dstkey key_list =
   let cmd = [cmd; dstkey; keylen key_list] 
     @ key_list @ (string_of_aggregate aggregate) in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 let zunionstore = zunioncmd "ZUNIONSTORE"
 let zinterstore = zunioncmd "ZINTERSTORE"
 
-let zunioncmd_with_weights cmd dstkey key_list weight_list ?(aggregate = Sum) connection =
+let zunioncmd_with_weights cmd connection ?(aggregate = Sum) dstkey key_list weight_list =
   if List.length key_list != List.length weight_list
   then raise (RedisInvalidArgumentError("Not as many weights were given as keys to " ^ cmd));
   let weights = List.map string_of_float weight_list in
   let cmd = [cmd; dstkey; keylen key_list] 
     @ key_list @ ("WEIGHTS" :: weights) @ (string_of_aggregate aggregate) in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 let zunionstore_with_weights = zunioncmd_with_weights "ZUNIONSTORE"                   
 let zinterstore_with_weights = zunioncmd_with_weights "ZINTERSTORE"
@@ -436,58 +436,58 @@ let zinterstore_with_weights = zunioncmd_with_weights "ZINTERSTORE"
 (********************************)
 
 (* HSET *)
-let hset key field value connection =
-  expect_bool (send_multibulk ["HSET"; key; field; value] connection)
+let hset connection key field value =
+  expect_bool (send_multibulk connection ["HSET"; key; field; value])
 
 (* HDEL *)
-let hdel key field connection =
-  expect_bool (send_multibulk ["HDEL"; key; field] connection)
+let hdel connection key field =
+  expect_bool (send_multibulk connection ["HDEL"; key; field])
     
 (* HGET *)
-let hget key field connection =
-  expect_bulk (send_multibulk ["HGET"; key; field] connection)
+let hget connection key field =
+  expect_bulk (send_multibulk connection ["HGET"; key; field])
 
 (* HMGET *)
-let hmget key field_list connection =
+let hmget connection key field_list =
   let cmd = "HMGET" :: key :: field_list in
-  expect_multibulk (send_multibulk cmd connection)
+  expect_multibulk (send_multibulk connection cmd)
 
 (* HMSET *)
-let hmset key field_value_pairs connection =
+let hmset connection key field_value_pairs =
   let f rest el = (fst el) :: (snd el) :: rest in
   let values = List.fold_left f [] field_value_pairs in
-  expect_success (send_multibulk ("HMSET" :: key :: values) connection)
+  expect_success (send_multibulk connection ("HMSET" :: key :: values))
 
 (* HINCRBY *)
-let hincrby key field value connection =
+let hincrby connection key field value =
   let cmd = ["HINCRBY"; key; field; string_of_int value] in
-  expect_int (send_multibulk cmd connection)
+  expect_int (send_multibulk connection cmd)
 
 (* HEXISTS *)
-let hexists key field connection =
-  expect_bool (send_multibulk ["HEXISTS"; key; field] connection)
+let hexists connection key field =
+  expect_bool (send_multibulk connection ["HEXISTS"; key; field])
 
 (* HLEN *)
-let hlen key connection =
-  expect_int (send_multibulk ["HLEN"; key] connection)
+let hlen connection key =
+  expect_int (send_multibulk connection ["HLEN"; key])
 
 (* HKEYS *)
-let hkeys key connection =
-  expect_multibulk_list (send_multibulk ["HKEYS"; key] connection)
+let hkeys connection key =
+  expect_multibulk_list (send_multibulk connection ["HKEYS"; key])
 
 (* HVALS *)
-let hvals key connection =
-  expect_multibulk_list (send_multibulk ["HVALS"; key] connection)
+let hvals connection key =
+  expect_multibulk_list (send_multibulk connection ["HVALS"; key])
 
 (* HGETALL *)
-let hgetall key connection =
+let hgetall connection key =
   let rec collate_pairs elems out =
     match elems with
       | []             -> List.rev out
       | f :: v :: rest -> collate_pairs rest ((f,v) :: out) 
       | _              -> failwith "Did not provide a pair of field-values"
   in
-  let reply : response = send_multibulk ["HGETALL"; key] connection in
+  let reply : response = send_multibulk connection ["HGETALL"; key] in
   let result = expect_multibulk_list reply in 
   collate_pairs result []
 
@@ -524,26 +524,26 @@ let parse_get_arg = function
   | NoSort | NoPattern  -> ""
 
 (* SORT *)
-let sort key
+let sort connection
     ?(pattern = NoPattern)
     ?(limit = Unlimited)
     ?(get = NoPattern)
     ?(order = Asc)
-    ?(alpha = NonAlpha)
-    connection =
+    ?(alpha = NonAlpha) 
+    key =
   let command = 
     let pattern, limit, order, alpha =
       parse_sort_args pattern limit order alpha in
     "SORT " ^ key ^ pattern ^ limit ^ (parse_get_arg get) ^ order ^ alpha in
-  expect_non_nil_multibulk (send command connection)
+  expect_non_nil_multibulk (send connection command)
 
 (* SORT, for multiple gets *)
-let sort_get_many key get_patterns
+let sort_get_many connection 
     ?(pattern = NoPattern)
     ?(limit = Unlimited)
     ?(order = Asc)
-    ?(alpha = NonAlpha)
-    connection =
+    ?(alpha = NonAlpha) 
+    key get_patterns =
   let command = 
     let pattern, limit, order, alpha =
       parse_sort_args pattern limit order alpha in
@@ -561,15 +561,15 @@ let sort_get_many key get_patterns
     iter count responses [] []
   in
   let patlen = List.length get_patterns in
-  collate_response patlen (expect_non_nil_multibulk (send command connection))
+  collate_response patlen (expect_non_nil_multibulk (send connection command))
 
 (* SORT, with the STORE keyword *)
-let sort_and_store key get_patterns dest_key
+let sort_and_store connection
     ?(pattern = NoPattern)
     ?(limit = Unlimited)
     ?(order = Asc)
-    ?(alpha = NonAlpha)
-    connection =
+    ?(alpha = NonAlpha) 
+    key get_patterns dest_key =
   let command = 
     let pattern, limit, order, alpha =
       parse_sort_args pattern limit order alpha in
@@ -577,7 +577,7 @@ let sort_and_store key get_patterns dest_key
     let get = List.fold_left f "" get_patterns in
     let store = " STORE " ^ dest_key in
     "SORT " ^ key ^ pattern ^ limit ^ get ^ order ^ alpha ^ store in
-  expect_int (send command connection)
+  expect_int (send connection command)
 
 (********************************)
 (* Persistence control commands *)
@@ -585,19 +585,19 @@ let sort_and_store key get_patterns dest_key
 
 (* SAVE *)
 let save connection =
-  expect_success (send "SAVE" connection)
+  expect_success (send connection "SAVE")
 
 (* BGSAVE *)
 let bgsave connection =
-  expect_status "Background saving started" (send "BGSAVE" connection)
+  expect_status "Background saving started" (send connection "BGSAVE")
 
 (* LASTSAVE *)
 let lastsave connection =
-  expect_large_int (send "LASTSAVE" connection)
+  expect_large_int (send connection "LASTSAVE")
 
 (* SHUTDOWN *)
 let shutdown connection =
-  Connection.send_text "SHUTDOWN" connection;
+  Connection.send_text connection "SHUTDOWN";
   try
     match receive_answer connection with
       | Status x -> failwith x 
@@ -608,7 +608,7 @@ let shutdown connection =
 let bgrewriteaof connection =
   expect_status 
     "Background append only file rewriting started"
-    (send "BGREWRITEAOF" connection)
+    (send connection "BGREWRITEAOF")
 
 (* Remote server control commands *)
 
@@ -638,10 +638,10 @@ end
 
 (* INFO *)
 let info connection =
-  let result = expect_bulk (send "INFO" connection) in
+  let result = expect_bulk (send connection "INFO") in
   Info.create (string_of_bulk_data result)
 
 (* SLAVEOF *)
-let slaveof addr port connection =
-  expect_success (send (Printf.sprintf "SLAVEOF %s %d" addr port) connection)
+let slaveof connection addr port =
+  expect_success (send connection (Printf.sprintf "SLAVEOF %s %d" addr port))
 
