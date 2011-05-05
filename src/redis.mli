@@ -20,7 +20,7 @@ type bulk_data = Nil | String of string
 (** Rank types. Ranks are an integer, or [Nil] for a non-existant key. *)
 type rank = NilRank | Rank of int
 
-type timeout = Seconds of int | NoTimeout
+type timeout = Seconds of int | Wait
 
 type limit = Unlimited | Limit of int * int 
 

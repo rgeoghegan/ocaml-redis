@@ -24,7 +24,7 @@ type multibulk_data =
 
 type timeout = 
   | Seconds of int
-  | NoTimeout
+  | Wait
 
 type limit = 
   | Unlimited
@@ -63,7 +63,8 @@ type response =
   | Bulk of bulk_data 
   | Multibulk of multibulk_data 
   | Error of string
-  | Undecipherable 
+  | UnexpectedChar of char
+  | UnexpectedSize of int
 
 (* Different printing functions for the above types *)
 
@@ -99,7 +100,8 @@ let string_of_response r =
         | MultibulkValue [] -> Printf.sprintf "Multibulk([])"
         | MultibulkValue (h :: t) -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t)
     end
-    | Undecipherable -> "Undecipherable"
+    | UnexpectedChar c    -> "Unexpected char " ^ (Char.escaped c)
+    | UnexpectedSize size -> "Unexpected size " ^ (string_of_int size)
 
 let string_of_redis_value_type vt =
   match vt with
@@ -193,13 +195,13 @@ module Helpers = struct
       then Multibulk(MultibulkValue(List.rev data))
       else match input_char in_chan with
         | '$' -> iter (i - 1) ((get_bulk_data conn) :: data)
-        | _   -> Undecipherable
+        | c   -> UnexpectedChar c
     in
     match size with
       | -1           -> Multibulk MultibulkNil
       | 0            -> Multibulk (MultibulkValue [])
       | x when x > 0 -> iter size [] 
-      | _            -> Undecipherable
+      | _            -> UnexpectedSize size 
 
   (* Expecting an integer response, will return the right type depending on the size *)
   let parse_integer_response response =
@@ -213,11 +215,15 @@ module Helpers = struct
      if getting an explicit error from the server ("-...")
      or a RedisServerError with "Could not decipher response" 
      for an unrecognised response type. *)
-  let handle_error reply =
-    match reply with
-      | Error e        -> raise (RedisServerError e)
-      | Undecipherable -> raise (RedisServerError "Could not decipher response") 
-      | x              -> x
+  let filter_error = function
+    | Error e -> 
+      raise (RedisServerError e)
+    | UnexpectedChar c -> 
+      raise (RedisServerError ("Unexpected char " ^ Char.escaped c))
+    | UnexpectedSize size -> 
+      raise (RedisServerError ("Unexpected size " ^ (string_of_int size)))
+    | x -> 
+      x
 
   (* Get answer back from redis and cast it to the right type *)
   let receive_answer connection =
@@ -227,24 +233,22 @@ module Helpers = struct
       | '$' -> Bulk (get_bulk_data connection)
       | '*' -> get_multibulk_data (int_of_string (Connection.read_string connection)) connection
       | '-' -> Error (Connection.read_string connection)
-      | _   -> ignore (Connection.read_string connection); Undecipherable
+      | c   -> ignore (Connection.read_string connection); UnexpectedChar c
 
-  (* Send command, and receive the result casted to the right type *)
-  let send_recv_cmd command connection =
+  (* Send command, and receive the result casted to the right type,
+     catch and fail on errors *)
+  let send command connection =
     Connection.send_text command connection;
-    receive_answer connection
-
-  (* Will send the command, much like send_and_receive_command, but will catch and failwith any errors *)
-  let send_recv command connection =
-    handle_error (send_recv_cmd command connection)
+    let reply = receive_answer connection in
+    filter_error reply
 
   (* Will send out the command, appended with the length of value, 
      and will then send out value. Also will catch and fail on any errors. 
      I.e., given 'foo' 'bar', will send "foo 3\r\nbar\r\n" *)
-  let send_with_value_and_receive_command_safely command value connection =
+  let send_value command value connection =
     Connection.send_text_straight command connection;
     Connection.send_text value connection;
-    handle_error (receive_answer connection) 
+    filter_error (receive_answer connection) 
 
   (* Given a list of tokens, joins them with command *)
   let aggregate_command command tokens = 
@@ -260,8 +264,8 @@ module Helpers = struct
         List.iter (joiner out_buffer) x;
         Buffer.contents out_buffer
 
-  (* Will send a given list of tokens to send in multibulk using the
-  unified request protocol. *)
+  (* Will send a given list of tokens to send in multibulk 
+     using the unified request protocol. *)
           
   let send_multibulk tokens connection =
     let token_length = (string_of_int (List.length tokens)) in
@@ -276,29 +280,24 @@ module Helpers = struct
     Connection.send_text_straight ("*" ^ token_length) connection;
     send_in_tokens tokens;
     Connection.flush_connection connection;
-    receive_answer connection
-
-  (* Will send out the command in the same way as
-     "send_multibulk_command" but will catch and fail on any errors. *)
-  let send_recv_multibulk tokens connection =
-    handle_error (send_multibulk tokens connection)
-
-  (* For status replies, does error checking and display *)
-  let handle_special_status special_status reply =
-    match handle_error reply with
-      | Status x when x = special_status -> ()
-      | Status x -> failwith ("Received status(" ^ x ^ ")")
-      | _        -> failwith "Did not recognize what I got back"
-        
-  (* The most common case of handle_special_status is the "OK" status *)
-  let handle_status = handle_special_status "OK"
+    let reply = receive_answer connection in
+    filter_error reply
 
   let fail_with_reply name reply = 
     failwith (name ^ ": Unexpected " ^ (string_of_response reply))
 
+  (* For status replies, does error checking and display *)
+  let expect_status special_status reply =
+    match filter_error reply with
+      | Status x when x = special_status -> ()
+      | x -> fail_with_reply "expect_status" x
+        
+  (* The most common case of expect_status is the "OK" status *)
+  let expect_success = expect_status "OK"
+
   (* For integer replies, does error checking and casting to boolean *)
   let expect_bool reply =
-    match handle_error reply with
+    match filter_error reply with
       | Integer 0 -> false
       | Integer 1 -> true
       | x         ->  fail_with_reply "expect_bool" x
@@ -349,7 +348,7 @@ module Helpers = struct
   (* For bulk replies that should be floating point numbers, 
      does error checking and casts to float *)
   let expect_float reply =
-    match handle_error reply with
+    match filter_error reply with
       | Bulk (String x) -> begin
         try
           float_of_string x 
