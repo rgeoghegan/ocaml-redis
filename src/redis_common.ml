@@ -111,8 +111,7 @@ module Connection = struct
     and buffer = Buffer.create 100 in
     let add = Buffer.add_char buffer in
     while !flag do
-      let c = input_char in_chan in
-      match c with
+      match input_char in_chan with
         | '\r' -> begin match input_char in_chan with
             | '\n' -> flag := false
             |   x  -> add '\r'; add x
@@ -238,8 +237,7 @@ module Helpers = struct
         Buffer.contents out_buffer
 
   (* Will send a given list of tokens to send in list
-     using the unified request protocol. *)
-          
+     using the unified request protocol. *)          
   let send_multi connection tokens =
     let token_length = (string_of_int (List.length tokens)) in
     let rec send_in_tokens tokens_left =
@@ -300,7 +298,7 @@ module Helpers = struct
   let expect_kv_multi = function
     | MultiBulk Some [Some k; Some v] -> Some (k, v)
     | MultiBulk None                  -> None
-    | x                          -> fail_with_reply "expect_kv_multi" x
+    | x                               -> fail_with_reply "expect_kv_multi" x
 
   (* For list replies that should be floating point numbers, 
      does error checking and casts to float *)
