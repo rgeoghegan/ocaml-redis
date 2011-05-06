@@ -11,11 +11,25 @@ Note that every command below will raise a {!RedisServerError} exception if the 
 
 (** {3:redis_types Types used with redis} *)
 
-(** Different types of redis keys, as per the TYPE keyword. To get a string representation, use {!string_of_redis_value_type}. *)
-type redis_value_type = RedisString | RedisNil | RedisList | RedisSet | RedisZSet
+(** Different types of redis keys, as per the TYPE keyword. To get a string representation, use {!Value.to_string}. *)
 
-(** Bulk types. To get a string representation, use {!string_of_bulk_data}. *)
-type bulk_data = Nil | String of string
+module Value : sig 
+
+  type t = 
+    | Nil 
+    | String 
+    | List 
+    | Set 
+    | SortedSet
+
+  type one = string option
+  type pair = (string * string) option
+  type many = one list option
+
+  val to_string : t -> string
+  val get : 'a option -> 'a 
+
+end
 
 (** Rank types. Ranks are an integer, or [Nil] for a non-existant key. *)
 type rank = NilRank | Rank of int
@@ -26,14 +40,8 @@ type limit = Unlimited | Limit of int * int
 
 type aggregate = Min | Max | Sum
 
-(** Exception raised when trying to get a {!bulk_data} [String] out of a {!bulk_data} [Nil] type. *)
+(** Exception raised when trying to get a {!string} [String] out of a {!string} [Nil] type. *)
 exception RedisNilError of string
-
-(** Gives a string representation of a {!redis_value_type} type. *)
-val string_of_redis_value_type : redis_value_type -> string
-
-(** Returns the string contained by a {!bulk_data} type, as long as the type is {!bulk_data} [String]. If it is {!bulk_data} [Nil], it raises a {!RedisNilError} exception. *)
-val string_of_bulk_data : bulk_data -> string
 
 (** Returns the rank contained by a {!rank} type, as long as the type is {!rank} [Rank]. If it is {!rank} [Nil], it raises a {!RedisNilError} exception. *)
 val int_of_rank : rank -> int
@@ -85,13 +93,13 @@ val del : Connection.t -> string list -> int
 val del_one : Connection.t -> string -> bool
 
 (** [value_type k c] returns the type of key [k] on connection [c], as per the [TYPE] redis keyword. Note that this is not named type because [type] is a reserved keyword in Ocaml. *)
-val value_type : Connection.t -> string -> redis_value_type
+val value_type : Connection.t -> string -> Value.t
 
 (** [keys p c] returns a list of keys matching the pattern [p] on connection [c], as per the [KEYS] redis keyword. *)
-val keys : Connection.t -> string -> string list
+val keys : Connection.t -> string -> Value.many
 
 (** [randomkey c] returns a random key on connection [c], as per the [RANDOMKEY] redis keyword. If no keys are in the store, will raise a RedisNilError. *)
-val randomkey : Connection.t -> string
+val randomkey : Connection.t -> Value.one
 
 (** [rename on nn c] renames old key name [on] to new key name [nn] on connection [c], as per the [RENAME] redis keyword. *)
 val rename : Connection.t -> string -> string -> unit
@@ -135,13 +143,13 @@ val flushall : Connection.t -> unit
 val set : Connection.t -> string -> string -> unit
 
 (** [get k c] gets the key [k] on connection [c], as per the [GET] redis keyword. *)
-val get : Connection.t -> string -> bulk_data
+val get : Connection.t -> string -> Value.one
 
 (** [getset k v c] gets the key [k] on connection [c], and then sets it to [v], as per the [GETSET] redis keyword. *)
-val getset : Connection.t -> string -> string -> bulk_data
+val getset : Connection.t -> string -> string -> Value.one
 
 (** [mget kl c] gets the values associated to each key in list [kl] on connection [c], as per the [MGET] redis keyword. *)
-val mget :  Connection.t -> string list -> bulk_data list
+val mget :  Connection.t -> string list -> Value.many
 
 (** [setnx k v c] sets key [k] to value [v] on connection [c], as per the [SETNX] redis keyword. As opposed to {!set}, will return [false] and not set the key if the key [k] already exists; otherwise returns [true]. *)
 val setnx : Connection.t -> string -> string -> bool
@@ -183,7 +191,7 @@ val append : Connection.t -> string -> string -> int
 
 (** [substr k s e c] returns the substring starting at index [s] and ending at index [e] for key [k] on connection [c].
 *)
-val substr : Connection.t -> string -> int -> int -> bulk_data
+val substr : Connection.t -> string -> int -> int -> Value.one
 
 (** {3:list_cmd Commands operating on lists} *)
 
@@ -201,13 +209,13 @@ val lpush : Connection.t -> string -> string -> int
 val llen : Connection.t -> string -> int
 
 (** [lrange k s e c] returns the elements of list as key [k] between start index [s] and end index [e] inclusively on connection [c], as per the [LRANGE] redis keyword. *)
-val lrange : Connection.t -> string -> int -> int -> bulk_data list
+val lrange : Connection.t -> string -> int -> int -> Value.many
 
 (** [ltrim k s e c] remove all elements of the list at key [k] {i not} between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ltrim] redis keyword. *)
 val ltrim : Connection.t -> string -> int -> int -> unit
 
 (** [lindex k i c] get the value at index [i] in the list at key [k] on connection [c], as per the [LINDEX] redis keyword. *)
-val lindex : Connection.t -> string -> int -> bulk_data
+val lindex : Connection.t -> string -> int -> Value.one
 
 (** [lset k i v c] sets the index [i] of the list at key [k] to value [v] on connection [c], as per the [LSET] redis keyword. *)
 val lset : Connection.t -> string -> int -> string -> unit
@@ -220,39 +228,39 @@ val lrem : Connection.t -> string -> int -> string -> int
 (** [lpop k c] pops the head of the list at key [k] on connection [c], as per the [LPOP] redis keyword.
     @return the value popped.
 *)
-val lpop : Connection.t -> string -> bulk_data
+val lpop : Connection.t -> string -> Value.one
 
 (** [rpop k c] pops the tail of the list at key [k] on connection [c], as per the [RPOP] redis keyword.
     @return the value popped.
 *)
-val rpop : Connection.t -> string -> bulk_data
+val rpop : Connection.t -> string -> Value.one
 
 (** [blpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [BLPOP] redis keyword, but for only one key.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
-    @return the value poped from key [k], or {!bulk_data} [Nil] if the list at [k] is empty
+    @return the value poped from key [k], or {!string} [Nil] if the list at [k] is empty
 *)
-val blpop : Connection.t -> ?timeout:timeout -> string -> bulk_data
+val blpop : Connection.t -> ?timeout:timeout -> string -> Value.pair
 
 (** [blpop_many kl timeout c] blocks until it can pop a value off one of the lists given by the list of keys [kl] on connection [c], as per the [BLPOP] redis keyword, like {!blpop} but for many keys.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
-    @return a pair of ([key], {!bulk_data}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!bulk_data} [Nil]) is returned
+    @return a pair of ([key], {!string}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!string} [Nil]) is returned
 *)
-val blpop_many : Connection.t -> ?timeout:timeout -> string list -> string * bulk_data
+val blpop_many : Connection.t -> ?timeout:timeout -> string list -> Value.pair
 
 (** [brpop k timeout c] blocks until it can pop a value off the list at [k] on connection [c], as per the [BRPOP] redis keyword, but for only one key.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
-    @return the value poped from key [k], or {!bulk_data} [Nil] if the list at [k] is empty
+    @return the value poped from key [k], or {!string} [Nil] if the list at [k] is empty
 *)
-val brpop : Connection.t -> ?timeout:timeout -> string -> bulk_data
+val brpop : Connection.t -> ?timeout:timeout -> string -> Value.pair
 
 (** [brpop_many kl timeout c] blocks until it can pop a value off one of the lists given by the list of keys [kl] on connection [c], as per the [BRPOP] redis keyword, like {!brpop} but for many keys.
     @param timeout provide [`Seconds(s)] to only wait for [s] seconds, by default does not timeout
-    @return a pair of ([key], {!bulk_data}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!bulk_data} [Nil]) is returned
+    @return a pair of ([key], {!string}), which is the value popped from the list at [key]. If no value was found before the timeout, a pair ([""], {!string} [Nil]) is returned
 *)
-val brpop_many : Connection.t -> ?timeout:timeout -> string list -> string * bulk_data
+val brpop_many : Connection.t -> ?timeout:timeout -> string list -> Value.pair
 
 (** [rpoplpush sk dk c] pops the tail of the list at the source key [sk] and pushes it to the tail of the list at the destination key [dk] on connection [c], as per the [RPOPLPUSH] redis keyword. *)
-val rpoplpush : Connection.t -> string -> string -> bulk_data
+val rpoplpush : Connection.t -> string -> string -> Value.one
 
 (** {3:set_cmd Commands operating on sets} *)
 
@@ -269,7 +277,7 @@ val srem : Connection.t -> string -> string -> bool
 (** [spop k c] pop a random member from the set at key [k] on connection [c], as per the [SPOP] redis keyword.
     @return the member that got popped.
 *)
-val spop : Connection.t -> string -> bulk_data
+val spop : Connection.t -> string -> Value.one
 
 (** [smove sk dk m c] moves the member [m] from the set at the source key [sk] to the set at the destination key [dk] on connection c, as per the [SMOVE] redis keyword.
     @return [false] if the element was not found in the first set and no operation was done, [false] otherwise. 
@@ -283,7 +291,7 @@ val scard : Connection.t -> string -> int
 val sismember : Connection.t -> string -> string -> bool
 
 (** [sinter kl c] returns the intersection of all the sets at the keys listed in [kl] on connection [c], as per the [SINTER] redis keyword. *)
-val sinter : Connection.t -> string list -> bulk_data list
+val sinter : Connection.t -> string list -> Value.many
 
 (** [sinterstore dk kl c] puts the intersection of all the sets listed in [kl] into the set at destination key [dk] on connection [c], as per the [SINTERSTORE] redis keyword.
     @return the number of members in the new set.
@@ -291,7 +299,7 @@ val sinter : Connection.t -> string list -> bulk_data list
 val sinterstore : Connection.t -> string -> string list -> int
 
 (** [sunion kl c] returns the union of all the sets at the keys listed in [kl] on connection [c], as per the [SUNION] redis keyword. *)
-val sunion : Connection.t -> string list -> bulk_data list
+val sunion : Connection.t -> string list -> Value.many
 
 (** [sunionstore dk kl c] puts the union of all the sets listed in [kl] into the set at destination key [dk] on connection [c], as per the [SUNIONSTORE] redis keyword.
     @return the number of members in the new set.
@@ -299,7 +307,7 @@ val sunion : Connection.t -> string list -> bulk_data list
 val sunionstore : Connection.t -> string -> string list -> int
 
 (** [sdiff fk kl c] returns the difference between the set at the from key [km] and the other keys in the [kl] on connection [c], as per the [SDIFF] redis keyword. *)
-val sdiff : Connection.t -> string -> string list -> bulk_data list
+val sdiff : Connection.t -> string -> string list -> Value.many
 
 (** [sdiffstore dk fk kl c] puts the difference between the set at the from key [fk] and the other keys in the [kl] into the set at the destination key [dk] on connection [c], as per the [SDIFFSTORE] redis keyword.
     @return the number of members in the new set.
@@ -307,10 +315,10 @@ val sdiff : Connection.t -> string -> string list -> bulk_data list
 val sdiffstore : Connection.t -> string -> string -> string list -> int
 
 (** [smembers k c] returns all the members of the set at key [k] on connection [c], as per the [SMEMBERS] redis keyword. *)
-val smembers : Connection.t -> string -> bulk_data list
+val smembers : Connection.t -> string -> Value.many
 
 (** [srandmember k c] returns a random member from the set at the key [k] on connection [c], as per the [SRANDMEMBER] redis keyword. *)
-val srandmember : Connection.t -> string -> bulk_data
+val srandmember : Connection.t -> string -> Value.one
 
 (** {3:sorted_sets_cmd Commands operating on sorted sets (zsets)} *)
 
@@ -334,20 +342,20 @@ val zrank : Connection.t -> string -> string -> rank
 val zrevrank : Connection.t -> string -> string -> rank
 
 (** [zrange k s e c] returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZRANGE] redis keyword. *)
-val zrange : Connection.t -> string -> int -> int -> bulk_data list
+val zrange : Connection.t -> string -> int -> int -> Value.many
 
 (** [zrange_withscores k s e c], returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrange} function except it also gives the score for each item.
-    @return a list of [({!bulk_data}, float)] for the specified range.
+    @return a list of [({!string}, float)] for the specified range.
 *)
-val zrange_with_scores : Connection.t -> string -> int -> int -> (bulk_data * float) list
+val zrange_with_scores : Connection.t -> string -> int -> int -> (string * float) option list option
 
 (** [zrevrange k s e c] returns a {i reversed ordered} list of members of the sorted set at key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZREVRANGE] redis keyword. *)
-val zrevrange : Connection.t -> string -> int -> int -> bulk_data list
+val zrevrange : Connection.t -> string -> int -> int -> Value.many
 
 (** [zrevrange_withscores k s e c], returns a {i reversed ordered} list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrevrange} function except it also gives the score for each item.
-    @return a list of [({bulk_data}, float)] for the specified range.
+    @return a list of [({string}, float)] for the specified range.
 *)
-val zrevrange_with_scores : Connection.t -> string -> int -> int -> (bulk_data * float) list
+val zrevrange_with_scores : Connection.t -> string -> int -> int -> (string * float) option list option
 
 (** [zrangebyscore k min max limit c] returns a list of all the members in sorted set at the key [k] with scores between [min] and [max], inclusively, on connection [c], as per the [ZRANGEBYSCORE] redis keyword.
     @param limit Pass in [`Limit(offset, limit)] to limit the number of returned values by [limit] offset by [offset].
@@ -357,7 +365,7 @@ val zrangebyscore :
   ?limit:limit ->
   string ->
   float ->
-  float -> bulk_data list
+  float -> Value.many
 
 (** [zcard k c] returns the number of members in the sorted set at the key [k] on connection [c], as per the [ZCARD] redis keyword. *)
 val zcard : Connection.t -> string -> int
@@ -412,13 +420,13 @@ val hset : Connection.t -> string -> string -> string -> bool
 val hdel : Connection.t -> string -> string -> bool
 
 (** [hget k f c] retrieves the string stored for field [f] at key [k] on connection [c], as per the [HGET] redis keyword.
-    @return {!bulk_data} [Nil] if the field or the key cannot be found.
+    @return {!string} [Nil] if the field or the key cannot be found.
 *)
-val hget : Connection.t -> string -> string -> bulk_data
+val hget : Connection.t -> string -> string -> Value.one
 
 (** [hmget k fl c] retrieves the list of fields [fl] off key [k] on connection [c], as per the [HMGET] redis keyword.
 *)
-val hmget : Connection.t -> string -> string list -> bulk_data list
+val hmget : Connection.t -> string -> string list -> Value.many
 
 (** [hmset k fv c] sets the list of field-value pairs [fv] on connection [c], as per the [HMSET] redis keyword.
 *)
@@ -438,11 +446,11 @@ val hlen : Connection.t -> string -> int
 
 (** [hkeys k c] returns a list of all the fields at key [k] on connection [c], as per the [HKEYS] redis keyword.
 *)
-val hkeys : Connection.t -> string -> string list
+val hkeys : Connection.t -> string -> Value.many
 
 (** [hvals k c] returns a list of all the values tied to fields at key [k] on connection [c], as per the [HVALS] redis keyword.
 *)
-val hvals : Connection.t -> string -> string list
+val hvals : Connection.t -> string -> Value.many
 
 (** [hgetall k c] returns the pairs of field/values stored at key [k] on connection [c], as per the [HGETALL] redis keyword.
 *)
@@ -472,7 +480,7 @@ val sort :
   ?get:redis_sort_pattern ->
   ?order:sort_order ->
   ?alpha:sort_alpha -> 
-  string -> bulk_data list
+  string -> Value.many
 
 (** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [SORT] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
     @return a list of lists of values "gotten" by the patterns in the list [gt]
@@ -488,7 +496,7 @@ val sort_get_many :
   ?order:sort_order ->
   ?alpha:sort_alpha -> 
   string ->
-  string list -> bulk_data list list
+  string list -> Value.many list
 
 (** [sort_and_store k gt d pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], and places the results at key [d], as per the [SORT] redis keyword. This function is a way to use the [STORE] keyword with either one or multiple [GET]s times as per the redis spec.
     @return the length of the destination list at key [d]
@@ -548,3 +556,4 @@ val info : Connection.t -> Info.t
 
 (** [slaveof a p c] makes the redis server a slave of another redis server at host [a] and port [o] on connection [c], as per the [SLAVEOF] redis keyword. *)
 val slaveof : Connection.t -> string -> int -> unit
+

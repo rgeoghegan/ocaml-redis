@@ -3,24 +3,9 @@
 
    Utility code used mostly internally to the library. *)
 
-type redis_value_type = 
-  | RedisString 
-  | RedisNil 
-  | RedisList 
-  | RedisSet 
-  | RedisZSet
-
-type bulk_data = 
-  | Nil 
-  | String of string
-
 type rank = 
   | NilRank 
   | Rank of int
-
-type multibulk_data =
-  | MultibulkNil 
-  | MultibulkValue of bulk_data list
 
 type timeout = 
   | Seconds of int
@@ -60,18 +45,11 @@ type response =
   | Status of string 
   | Integer of int 
   | LargeInteger of float 
-  | Bulk of bulk_data 
-  | Multibulk of multibulk_data 
+  | Bulk of string option
+  | MultiBulk of string option list option
   | Error of string
-  | UnexpectedChar of char
-  | UnexpectedSize of int
 
 (* Different printing functions for the above types *)
-
-let string_of_bulk_data bd =
-  match bd with
-    | String x -> x 
-    | Nil      -> raise (RedisNilError "Trying to extract string from none")
 
 let int_of_rank r =
   match r with
@@ -79,76 +57,85 @@ let int_of_rank r =
     | NilRank -> raise (RedisNilError "Trying to extract string from none")
 
 let string_of_response r =
-  let bulk_printer x =
-    match x with
-      | String d -> Printf.sprintf "String(%S)" d
-      | Nil      -> "Nil"
+  let bulk_printer = function
+    | Some x -> Printf.sprintf "String(%S)" x
+    | None   -> "Nil"
   in
-  let rec multi_bulk_list_to_string l =
-    match l with
-      | [] -> ""
-      | h :: t -> Printf.sprintf "; %s%s" (bulk_printer h) (multi_bulk_list_to_string t)
-  in
-  match r with
-    | Status       x -> Printf.sprintf "Status(%S)" x 
-    | Integer      x -> Printf.sprintf "Integer(%d)" x
-    | LargeInteger x -> Printf.sprintf "LargeInteger(%.2f)" x
-    | Error        x -> Printf.sprintf "Error(%S)" x
-    | Bulk         x -> Printf.sprintf "Bulk(%s)" (bulk_printer x)
-    | Multibulk x -> begin match x with
-        | MultibulkNil      -> "MultibulkNil"
-        | MultibulkValue [] -> Printf.sprintf "Multibulk([])"
-        | MultibulkValue (h :: t) -> Printf.sprintf "Multibulk([%s%s])" (bulk_printer h) (multi_bulk_list_to_string t)
-    end
-    | UnexpectedChar c    -> "Unexpected char " ^ (Char.escaped c)
-    | UnexpectedSize size -> "Unexpected size " ^ (string_of_int size)
-
-let string_of_redis_value_type vt =
-  match vt with
-    | RedisNil    -> "Nil" 
-    | RedisString -> "String" 
-    | RedisList   -> "List" 
-    | RedisSet    -> "Set"
-    | RedisZSet   -> "ZSet"
+  let multi_bulk_printer l = 
+    String.concat "; " (List.map bulk_printer l)
+  in  match r with
+    | Status x           -> Printf.sprintf "Status(%S)" x 
+    | Integer x          -> Printf.sprintf "Integer(%d)" x
+    | LargeInteger x     -> Printf.sprintf "LargeInteger(%.2f)" x
+    | Error x            -> Printf.sprintf "Error(%S)" x
+    | Bulk x             -> Printf.sprintf "Bulk(%s)" (bulk_printer x)
+    | MultiBulk None     -> Printf.sprintf "MultiBulk(Nil)"
+    | MultiBulk (Some x) -> Printf.sprintf "MultiBulk(%s)" (multi_bulk_printer x)
 
 (* Simple function to print out a msg to stdout, should not be used in production code. *)
-let debug_string comment value =
-  Printf.printf "%s %S\n" comment value;
-  flush stdout
+let debug fmt = 
+  Printf.ksprintf (fun s -> print_endline s; flush stdout) fmt
 
+module Value = struct
+
+  type t = 
+    | Nil 
+    | String 
+    | List 
+    | Set 
+    | SortedSet
+
+  type one = string option
+  type pair = (string * string) option
+  type many = one list option
+
+  let get = function 
+    | Some x -> x
+    | None   -> failwith "Value.get: unexpected None"
+
+  let to_string = function
+    | Nil       -> "Nil"
+    | String    -> "String" 
+    | List      -> "List" 
+    | Set       -> "Set"
+    | SortedSet -> "ZSet"
+
+end
+  
 (* The Connection module handles some low level operations with the sockets *)
 module Connection = struct
-
+    
   type t = in_channel * out_channel
 
   let create addr port =
     let server = Unix.inet_addr_of_string addr in
-    let in_c, out_c = 
-      Unix.open_connection (Unix.ADDR_INET (server, port)) in
+    let in_c, out_c = Unix.open_connection (Unix.ADDR_INET (server, port)) in
     (in_c, out_c)
-
+      
   (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)
   let read_string (in_chan, _) =
-    let rec iter out_buffer =
-      match input_char in_chan with
+    let flag = ref true
+    and buffer = Buffer.create 100 in
+    let add = Buffer.add_char buffer in
+    while !flag do
+      let c = input_char in_chan in
+      match c with
         | '\r' -> begin match input_char in_chan with
-            | '\n' -> Buffer.contents out_buffer 
-            | x ->
-              Buffer.add_char out_buffer '\r';
-              Buffer.add_char out_buffer x;
-              iter out_buffer
+            | '\n' -> flag := false
+            |   x  -> add '\r'; add x
         end
-        | x ->
-          Buffer.add_char out_buffer x;
-          iter out_buffer
-    in
-    iter (Buffer.create 100)
+        | x -> add x
+    done;
+    let result = Buffer.contents buffer in
+    result
 
   (* Read length caracters from in channel and output them as string *)
-  let read_fixed_string length (in_chan, _) =
+  let read_fixed_string (in_chan, _) length =
     let out_buf = Buffer.create length in
     Buffer.add_channel out_buf in_chan length;
-    Buffer.contents out_buf
+    let result = Buffer.contents out_buf in
+    List.iter (fun x -> assert (x == input_char in_chan)) ['\r'; '\n'];
+    result
 
   (* Send the given text out to the connection without flushing *)
   let send_text_straight (_, out_chan) text =
@@ -175,33 +162,30 @@ module Helpers = struct
 
   (* Gets the data from a '$x\r\nx\r\n' response, 
      once the first '$' has already been popped off *)
-  let get_bulk_data connection =
-    let length = int_of_string (Connection.read_string connection) in
-    if length == -1
-    then Nil
-    else let out_str = if length == 0
-      then String("")
-      else String(Connection.read_fixed_string length connection) in begin
-        (* Exhausts the \r\n ending of a bulk data value *)
-        List.iter (fun x -> assert(x == Connection.get_one_char connection)) ['\r'; '\n'];
-        out_str
-      end
-
-  (* Parse multibulk data structure, with first '*' already popped off *)
-  let get_multibulk_data conn size =
-    let in_chan, _ = conn in
-    let rec iter i data =
-      if i == 0
-      then Multibulk(MultibulkValue(List.rev data))
-      else match input_char in_chan with
-        | '$' -> iter (i - 1) ((get_bulk_data conn) :: data)
-        | c   -> UnexpectedChar c
+  let get_bulk connection =
+    let result = match int_of_string (Connection.read_string connection) with
+      | 0  -> Some ""
+      | -1 -> None
+      | sz -> Some (Connection.read_fixed_string connection sz)
     in
+    result
+
+  (* Parse list structure, with first '*' already popped off *)
+  let get_multi_bulk conn size =
+    let in_chan, _ = conn in
     match size with
-      | -1           -> Multibulk MultibulkNil
-      | 0            -> Multibulk (MultibulkValue [])
-      | x when x > 0 -> iter size [] 
-      | _            -> UnexpectedSize size 
+      |  0 -> MultiBulk (Some [])
+      | -1 -> MultiBulk None
+      |  n -> 
+        let acc = ref [] in
+        for i = 0 to n - 1 do
+          let bulk = match input_char in_chan with
+            | '$' -> get_bulk conn
+            | c   -> failwith ("get_multi_bulk: unexpected char " ^ (Char.escaped c))
+          in 
+          acc := bulk :: !acc
+        done;
+        MultiBulk (Some (List.rev !acc))
 
   (* Expecting an integer response, will return the right type depending on the size *)
   let parse_integer_response response =
@@ -218,22 +202,18 @@ module Helpers = struct
   let filter_error = function
     | Error e -> 
       raise (RedisServerError e)
-    | UnexpectedChar c -> 
-      raise (RedisServerError ("Unexpected char " ^ Char.escaped c))
-    | UnexpectedSize size -> 
-      raise (RedisServerError ("Unexpected size " ^ (string_of_int size)))
-    | x -> 
-      x
+    | x -> x
 
   (* Get answer back from redis and cast it to the right type *)
   let receive_answer connection =
-    match (Connection.get_one_char connection) with
+    let c = Connection.get_one_char connection in
+    match c with
       | '+' -> Status (Connection.read_string connection)
       | ':' -> parse_integer_response (Connection.read_string connection)
-      | '$' -> Bulk (get_bulk_data connection)
-      | '*' -> get_multibulk_data connection (int_of_string (Connection.read_string connection))
+      | '$' -> Bulk (get_bulk connection)
+      | '*' -> get_multi_bulk connection (int_of_string (Connection.read_string connection))
       | '-' -> Error (Connection.read_string connection)
-      | c   -> ignore (Connection.read_string connection); UnexpectedChar c
+      |  c  -> failwith ("receive_answer: unexpected char " ^ (Char.escaped c))
 
   (* Send command, and receive the result casted to the right type,
      catch and fail on errors *)
@@ -264,10 +244,10 @@ module Helpers = struct
         List.iter (joiner out_buffer) x;
         Buffer.contents out_buffer
 
-  (* Will send a given list of tokens to send in multibulk 
+  (* Will send a given list of tokens to send in list
      using the unified request protocol. *)
           
-  let send_multibulk connection tokens =
+  let send_multi connection tokens =
     let token_length = (string_of_int (List.length tokens)) in
     let rec send_in_tokens tokens_left =
       match tokens_left with
@@ -311,51 +291,34 @@ module Helpers = struct
     | LargeInteger x -> x
     | x              -> fail_with_reply "expect_large_int" x
 
+  let expect_rank = function
+    | Integer x      -> Rank x 
+    | Bulk (Some "") -> NilRank 
+    | x              -> fail_with_reply "expect_rank" x
+
   let expect_bulk = function
     | Bulk x -> x
     | x      -> fail_with_reply "expect_bulk" x
 
-  let expect_rank = function
-    | Integer x -> Rank x 
-    | Bulk Nil  -> NilRank 
-    | x         -> fail_with_reply "expect_rank" x
+  let expect_multi = function
+    | MultiBulk l -> l
+    | x           -> fail_with_reply "expect_multi" x
 
-  let expect_multibulk_list = function
-    | Multibulk (MultibulkValue l) -> List.map string_of_bulk_data l 
-    | x                            -> fail_with_reply "expect_multibulk_list" x
+  let expect_kv_multi = function
+    | MultiBulk Some [Some k; Some v] -> Some (k, v)
+    | MultiBulk None                  -> None
+    | x                          -> fail_with_reply "expect_kv_multi" x
 
-  let expect_multibulk_kv = function
-    | Multibulk (MultibulkValue [k; v]) -> v 
-    | Multibulk MultibulkNil            -> Nil
-    | x                                 -> fail_with_reply "expect_multibulk_kv" x
-
-  let expect_multibulk_skv = function
-    | Multibulk (MultibulkValue [k; v]) -> (string_of_bulk_data k), v 
-    | Multibulk MultibulkNil            -> "", Nil
-    | x                                 -> fail_with_reply "expect_multibulk_skv" x
-
-  let expect_multibulk = function
-    | Multibulk (MultibulkValue x) -> x 
-    | x                            -> fail_with_reply "expect_multibulk" x
-
-  (* Extracts bulk_data_list out of Multibulk replies, raises and error if a nil is found *)
-  let expect_non_nil_multibulk = function
-    | Multibulk MultibulkNil -> 
-      raise (RedisNilError "Was not expecting MultibulkNil response.") 
-    | Multibulk (MultibulkValue v) -> v 
-    | x -> fail_with_reply "expect_non_nil_multibulk" x
-
-  (* For bulk replies that should be floating point numbers, 
+  (* For list replies that should be floating point numbers, 
      does error checking and casts to float *)
   let expect_float reply =
     match filter_error reply with
-      | Bulk (String x) -> begin
+      | Bulk (Some x) -> begin
         try
           float_of_string x 
         with Failure "float_of_string" ->
           failwith (Printf.sprintf "%S is not a floating point number" x)
       end
-      | Bulk Nil -> failwith "expect_float: Unexpected Bulk Nil"
       | x -> fail_with_reply "expect_float" x
 
   let rec flatten pairs result =
@@ -364,11 +327,11 @@ module Helpers = struct
       | []                -> result
 
   let expect_type = function
-    | Status "string" -> RedisString
-    | Status "set"    -> RedisSet
-    | Status "zset"   -> RedisZSet
-    | Status "list"   -> RedisList
-    | Status "none"   -> RedisNil
+    | Status "string" -> Value.String
+    | Status "set"    -> Value.Set
+    | Status "zset"   -> Value.SortedSet
+    | Status "list"   -> Value.List
+    | Status "none"   -> Value.Nil
     | x               -> fail_with_reply "expect_type" x
 
 end
