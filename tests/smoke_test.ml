@@ -328,7 +328,7 @@ let suite =
              Redis.save conn;
              Redis.bgsave conn;
 
-             assert_bool "" (0.0 < Redis.lastsave conn);
+             assert_bool "" (0L < Redis.lastsave conn);
              Redis.bgrewriteaof conn;
            ));
         ]

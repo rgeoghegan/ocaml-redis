@@ -44,7 +44,7 @@ exception RedisInvalidArgumentError of string
 type response = 
   | Status of string 
   | Integer of int 
-  | LargeInteger of float 
+  | LargeInteger of int64
   | Bulk of string option
   | MultiBulk of string option list option
   | Error of string
@@ -66,7 +66,7 @@ let string_of_response r =
   in  match r with
     | Status x           -> Printf.sprintf "Status(%S)" x 
     | Integer x          -> Printf.sprintf "Integer(%d)" x
-    | LargeInteger x     -> Printf.sprintf "LargeInteger(%.2f)" x
+    | LargeInteger x     -> Printf.sprintf "LargeInteger(%Ld)" x
     | Error x            -> Printf.sprintf "Error(%S)" x
     | Bulk x             -> Printf.sprintf "Bulk(%s)" (bulk_printer x)
     | MultiBulk None     -> Printf.sprintf "MultiBulk(Nil)"
@@ -192,7 +192,7 @@ module Helpers = struct
     try
       Integer (int_of_string response)
     with Failure "int_of_string" ->
-      LargeInteger (float_of_string response)
+      LargeInteger (Int64.of_string response)
 
   (* Filters out any errors and raises them.
      Raises RedisServerError with the error message 
@@ -287,7 +287,7 @@ module Helpers = struct
     | x         -> fail_with_reply "expect_int" x
 
   let expect_large_int = function
-    | Integer x      -> float_of_int x
+    | Integer x      -> Int64.of_int x
     | LargeInteger x -> x
     | x              -> fail_with_reply "expect_large_int" x
 

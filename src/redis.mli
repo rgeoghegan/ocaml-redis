@@ -527,7 +527,7 @@ val bgsave : Connection.t -> unit
 (** [lastsave c] returns the UNIX time of the last save on connection [c], as per the [LASTSAVE] redis keyword.
     @return a float, because the unix time is bigger than the int size in ocaml on 32 bit architectures.
 *)
-val lastsave : Connection.t -> float
+val lastsave : Connection.t -> int64
 
 (** [shutdown c] write to disk and then shuts down the server on connection [c], as per the [SHUTDOWN] redis keyword. *)
 val shutdown : Connection.t -> unit
