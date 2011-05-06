@@ -35,8 +35,6 @@ type sort_alpha =
   | NonAlpha
 
 exception RedisServerError of string
-exception RedisNilError of string
-exception RedisInvalidArgumentError of string
 
 (* This is an internal type used to transform 
    what the Redis server can handle into ocaml types. *)
@@ -50,11 +48,6 @@ type response =
   | Error of string
 
 (* Different printing functions for the above types *)
-
-let int_of_rank r =
-  match r with
-    | Rank x  -> x 
-    | NilRank -> raise (RedisNilError "Trying to extract string from none")
 
 let string_of_response r =
   let bulk_printer = function

@@ -423,7 +423,7 @@ let zinterstore = zunioncmd "ZINTERSTORE"
 
 let zunioncmd_with_weights cmd connection ?(aggregate = Sum) dstkey key_list weight_list =
   if List.length key_list != List.length weight_list
-  then raise (RedisInvalidArgumentError("Not as many weights were given as keys to " ^ cmd));
+  then failwith ("Not as many weights were given as keys to " ^ cmd);
   let weights = List.map string_of_float weight_list in
   let cmd = [cmd; dstkey; keylen key_list] 
     @ key_list @ ("WEIGHTS" :: weights) @ (string_of_aggregate aggregate) in

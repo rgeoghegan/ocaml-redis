@@ -40,17 +40,8 @@ type limit = Unlimited | Limit of int * int
 
 type aggregate = Min | Max | Sum
 
-(** Exception raised when trying to get a {!string} [String] out of a {!string} [Nil] type. *)
-exception RedisNilError of string
-
-(** Returns the rank contained by a {!rank} type, as long as the type is {!rank} [Rank]. If it is {!rank} [Nil], it raises a {!RedisNilError} exception. *)
-val int_of_rank : rank -> int
-
 (** Exception when getting an error ("-...") response from the redis server. *)
 exception RedisServerError of string
-
-(** Exception when the client library discovers a problem with one of the arguments. *)
-exception RedisInvalidArgumentError of string
 
 (** {3:connection Connection handling} *)
 
