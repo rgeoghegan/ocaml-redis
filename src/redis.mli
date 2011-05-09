@@ -158,22 +158,22 @@ val msetnx : Connection.t -> (string * string) list -> bool
 (** [incr k c] increments key [k] by 1 on connection [c], as per the [INCR] redis keyword.
     @return the new value of the key.
 *)
-val incr : Connection.t -> string -> int
+val incr : Connection.t -> string -> int64
 
 (** [incrby k i c] increments key [k] by interger [i] on connection [c], as per the [INCRBY] redis keyword.
     @return the new value of the key.
 *)
-val incrby : Connection.t -> string -> int -> int
+val incrby : Connection.t -> string -> int -> int64
 
 (** [decr k c] decrements key [k] by 1 on connection [c], as per the [DECR] redis keyword.
     @return the new value of the key.
 *)
-val decr : Connection.t -> string -> int
+val decr : Connection.t -> string -> int64
 
 (** [decrby k i c] decrements key [k] by interger [i] on connection [c], as per the [DECRBY] redis keyword.
     @return the new value of the key.
 *)
-val decrby : Connection.t -> string -> int -> int
+val decrby : Connection.t -> string -> int -> int64
 
 (** [append k v c] appends string [v] to key [k] on connection [c], as per the [APPEND] redis keyword.
     @return the new length of the value stored at that key.
@@ -425,7 +425,7 @@ val hmset : Connection.t -> string -> (string * string) list -> unit
 
 (** [hincrby k f v c] increments the field [f] on key [k] by value [v] on connection [c], as per the [HINCRBY] redis keyword.
 *)
-val hincrby : Connection.t -> string -> string -> int -> int
+val hincrby : Connection.t -> string -> string -> int -> int64
 
 (** [hexists k f c] returns [true] if field [f] exists at key [k] on connection [c], [false] otherwise, as per the [HEXISTS] redis keyword.
 *)

@@ -67,19 +67,19 @@ let msetnx connection key_value_pairs =
 
 (* INCR *)
 let incr connection key =
-  expect_int (send_multi connection ["INCR"; key])
+  expect_large_int (send_multi connection ["INCR"; key])
 
 (* INCRBY *)
 let incrby connection key value =
-  expect_int (send_multi connection ["INCRBY"; key; string_of_int value])
+  expect_large_int (send_multi connection ["INCRBY"; key; string_of_int value])
 
 (* DECR *)
 let decr connection key =
-  expect_int (send_multi connection ["DECR"; key])
+  expect_large_int (send_multi connection ["DECR"; key])
 
 (* DECRBY *)
 let decrby connection key value =
-  expect_int (send_multi connection ["DECRBY"; key; string_of_int value])
+  expect_large_int (send_multi connection ["DECRBY"; key; string_of_int value])
 
 (* APPEND *)
 let append connection key value =
@@ -462,7 +462,7 @@ let hmset connection key field_value_pairs =
 (* HINCRBY *)
 let hincrby connection key field value =
   let cmd = ["HINCRBY"; key; field; string_of_int value] in
-  expect_int (send_multi connection cmd)
+  expect_large_int (send_multi connection cmd)
 
 (* HEXISTS *)
 let hexists connection key field =

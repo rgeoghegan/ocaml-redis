@@ -35,10 +35,10 @@ let suite =
              assert_bool "" (not (Redis.msetnx conn [("rory", "not cool"); ("tim", "cool")]));
 
              Redis.set conn "rory" "0";
-             assert_equal 1 (Redis.incr conn "rory");
-             assert_equal 5 (Redis.incrby conn "rory" 4);
-             assert_equal 4 (Redis.decr conn "rory");
-             assert_equal 2 (Redis.decrby conn "rory" 2);
+             assert_equal 1L (Redis.incr conn "rory");
+             assert_equal 5L (Redis.incrby conn "rory" 4);
+             assert_equal 4L (Redis.decr conn "rory");
+             assert_equal 2L (Redis.decrby conn "rory" 2);
 
              Redis.set conn "rory" "very ";
              assert_equal 9 (Redis.append conn "rory" "cool");
@@ -277,7 +277,7 @@ let suite =
              assert_equal (Some [Some "true"; None]) (Redis.hmget conn "rory" ["handsome"; "boring"]);
              Redis.hmset conn "rory" [("handsome", "false"); ("boring", "true")];
 
-             assert_equal 26 (Redis.hincrby conn "rory" "age" 26);
+             assert_equal 26L (Redis.hincrby conn "rory" "age" 26);
 
              assert_bool "" (Redis.hexists conn "rory" "handsome");
              assert_bool "" (not (Redis.hexists conn "rory" "andsome"));
