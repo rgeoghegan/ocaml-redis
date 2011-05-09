@@ -13,7 +13,7 @@ Library redis
   Build: true 
   FindlibName: redis
   Path: src
-  Modules: Redis
+  Modules: Redis, Redis_common
   BuildDepends: unix
   Install: true
   CompiledObject: best
