@@ -11,7 +11,7 @@ Synopsis: Redis client
 
 Library redis
   Build: true 
-  FindlibName: ocaml-redis
+  FindlibName: redis
   Path: src
   Modules: Redis
   BuildDepends: unix
@@ -26,7 +26,7 @@ Executable test
   MainIs:       test.ml
   Install:      false
   Build$:       flag(tests)
-  BuildDepends: oUnit (>= 1.1.0), ocaml-redis, str
+  BuildDepends: oUnit (>= 1.1.0), redis, str
   CompiledObject: best
   
 Test main
