@@ -266,11 +266,15 @@ let suite =
              assert_bool "" (Redis.hset conn "rory" "cool" "true");
              assert_bool "" (not (Redis.hset conn "rory" "cool" "false"));
 
+             ignore (Redis.del conn ["rory"]);
+             assert_bool "" (Redis.hsetnx conn "rory" "cool" "true");
+             assert_bool "" (not (Redis.hsetnx conn "rory" "cool" "false"));
+             assert_equal (one "true") (Redis.hget conn "rory" "cool");
+
              assert_bool "" (Redis.hdel conn "rory" "cool");
              assert_bool "" (not (Redis.hdel conn "rory" "cool"));
              
              assert_bool "" (Redis.hset conn "rory" "handsome" "true");
-
              assert_equal (one "true") (Redis.hget conn "rory" "handsome");
              assert_equal None (Redis.hget conn "rory" "boring");
              

@@ -405,6 +405,11 @@ val zinterstore_with_weights : Connection.t -> ?aggregate:aggregate -> string ->
 *)
 val hset : Connection.t -> string -> string -> string -> bool
 
+(** [hsetnx k f v c] sets field [f] to value [v] at key [k] on connection [c], as per the [HSETNX] redis keyword.
+    @return [false] if the field does not already exist in the hash and no operation was performed, [true] otherwise.
+*)
+val hsetnx : Connection.t -> string -> string -> string -> bool
+
 (** [hdel k f c] deletes field [f] from key [k] on connection [c], as per the [HDEL] redis keyword.
     @return [true] if the field existed and was deleted, [false] otherwise
 *)

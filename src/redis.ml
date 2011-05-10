@@ -440,6 +440,10 @@ let zinterstore_with_weights = zunioncmd_with_weights "ZINTERSTORE"
 let hset connection key field value =
   expect_bool (send_multi connection ["HSET"; key; field; value])
 
+(* HSETNX *)
+let hsetnx connection key field value =
+  expect_bool (send_multi connection ["HSETNX"; key; field; value])
+
 (* HDEL *)
 let hdel connection key field =
   expect_bool (send_multi connection ["HDEL"; key; field])
