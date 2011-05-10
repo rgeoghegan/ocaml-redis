@@ -309,9 +309,11 @@ let flushall connection =
 (* Commands operating on sorted sets *)
 (*************************************)
 
+let format_float = Printf.sprintf "%.8f"
+
 (* ZADD *)
 let zadd connection key score member =
-  let cmd = ["ZADD"; key; string_of_float score; member] in
+  let cmd = ["ZADD"; key; format_float score; member] in
   expect_bool (send_multi connection cmd)
 
 (* ZREM *)
@@ -367,13 +369,13 @@ let zrangebyscore connection ?(limit = Unlimited) key start stop =
     | Limit (x, y) -> ["LIMIT"; string_of_int x; string_of_int y]
   in
   let cmd = ["ZRANGEBYSCORE"; key; 
-             string_of_float start;
-             string_of_float stop] @ limit in
+             format_float start;
+             format_float stop] @ limit in
   expect_multi (send_multi connection cmd)
 
 (* ZINCRBY *)
 let zincrby connection key increment member =
-  let cmd = ["ZINCRBY"; key; string_of_float increment; member] in
+  let cmd = ["ZINCRBY"; key; format_float increment; member] in
   expect_float (send_multi connection cmd)
 
 (* ZRANK *)
@@ -400,7 +402,7 @@ let zremrangebyrank connection key start stop =
 (* ZREMRANGEBYSCORE *)
 let zremrangebyscore connection key min max =
   let cmd = ["ZREMRANGEBYSCORE"; key; 
-             string_of_float min; string_of_float max] in
+             format_float min; format_float max] in
   expect_int (send_multi connection cmd)
 
 let keylen l = string_of_int (List.length l)
@@ -424,7 +426,7 @@ let zinterstore = zunioncmd "ZINTERSTORE"
 let zunioncmd_with_weights cmd connection ?(aggregate = Sum) dstkey key_list weight_list =
   if List.length key_list != List.length weight_list
   then failwith ("Not as many weights were given as keys to " ^ cmd);
-  let weights = List.map string_of_float weight_list in
+  let weights = List.map format_float weight_list in
   let cmd = [cmd; dstkey; keylen key_list] 
     @ key_list @ ("WEIGHTS" :: weights) @ (string_of_aggregate aggregate) in
   expect_int (send_multi connection cmd)
