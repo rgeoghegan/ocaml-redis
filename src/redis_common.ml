@@ -3,10 +3,6 @@
 
    Utility code used mostly internally to the library. *)
 
-type rank = 
-  | NilRank 
-  | Rank of int
-
 type timeout = 
   | Seconds of int
   | Wait
@@ -283,9 +279,9 @@ module Helpers = struct
     | x              -> fail_with_reply "expect_large_int" x
 
   let expect_rank = function
-    | Integer x      -> Rank x 
-    | Bulk (Some "") -> NilRank 
-    | x              -> fail_with_reply "expect_rank" x
+    | Integer x -> Some x
+    | Bulk None -> None
+    | x         -> fail_with_reply "expect_rank" x
 
   let expect_bulk = function
     | Bulk x -> x

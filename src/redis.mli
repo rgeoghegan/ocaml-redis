@@ -31,9 +31,6 @@ module Value : sig
 
 end
 
-(** Rank types. Ranks are an integer, or [Nil] for a non-existant key. *)
-type rank = NilRank | Rank of int
-
 type timeout = Seconds of int | Wait
 
 type limit = Unlimited | Limit of int * int 
@@ -327,10 +324,10 @@ val zrem : Connection.t -> string -> string -> bool
 val zincrby : Connection.t -> string -> float -> string -> float
 
 (** [zrank k m c] returns the rank of member [m] at key [k] on connection [c], as per the [ZRANK] redis keyword. *)
-val zrank : Connection.t -> string -> string -> rank
+val zrank : Connection.t -> string -> string -> int option
 
 (** [zrevrank k m c] returns the reverse rank of member [m] at key [k] on connection [c], as per the [ZREVRANK] redis keyword. *)
-val zrevrank : Connection.t -> string -> string -> rank
+val zrevrank : Connection.t -> string -> string -> int option
 
 (** [zrange k s e c] returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZRANGE] redis keyword. *)
 val zrange : Connection.t -> string -> int -> int -> Value.many

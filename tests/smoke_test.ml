@@ -176,8 +176,9 @@ let suite =
              
              assert_equal 2.0 (Redis.zincrby conn "coolest" 1.0 "rory");
 
-             assert_equal (Redis.Rank 0) (Redis.zrank conn "coolest" "rory");
-             assert_equal (Redis.Rank 1) (Redis.zrevrank conn "coolest" "rory");
+             assert_equal None (Redis.zrank conn "coolest" "joel");
+             assert_equal (Some 0) (Redis.zrank conn "coolest" "rory");
+             assert_equal (Some 1) (Redis.zrevrank conn "coolest" "rory");
 
              assert_equal 2 (Redis.zcard conn "coolest");
              assert_equal (Some 2.0) (Redis.zscore conn "coolest" "rory");
