@@ -392,7 +392,7 @@ let zcard connection key =
 
 (* ZSCORE *)
 let zscore connection key member =
-  expect_float (send_multi connection ["ZSCORE"; key; member])
+  expect_opt_float (send_multi connection ["ZSCORE"; key; member])
 
 (* ZREMRANGEBYRANK *)
 let zremrangebyrank connection key start stop =

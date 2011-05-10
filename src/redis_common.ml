@@ -306,11 +306,22 @@ module Helpers = struct
     match filter_error reply with
       | Bulk (Some x) -> begin
         try
-          float_of_string x 
+          float_of_string x
         with Failure "float_of_string" ->
           failwith (Printf.sprintf "%S is not a floating point number" x)
       end
       | x -> fail_with_reply "expect_float" x
+
+  let expect_opt_float reply =
+    match filter_error reply with
+      | Bulk (Some x) -> begin
+        try
+          Some (float_of_string x)
+        with Failure "float_of_string" ->
+          failwith (Printf.sprintf "%S is not a floating point number" x)
+      end
+      | Bulk None -> None
+      | x         -> fail_with_reply "expect_opt_float" x
 
   let rec flatten pairs result =
     match pairs with

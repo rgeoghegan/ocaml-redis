@@ -180,7 +180,7 @@ let suite =
              assert_equal (Redis.Rank 1) (Redis.zrevrank conn "coolest" "rory");
 
              assert_equal 2 (Redis.zcard conn "coolest");
-             assert_equal 2.0 (Redis.zscore conn "coolest" "rory");
+             assert_equal (Some 2.0) (Redis.zscore conn "coolest" "rory");
              assert_equal 1 (Redis.zremrangebyrank conn "coolest" 0 0);
              assert_equal 1 (Redis.zremrangebyscore conn "coolest" 80.0 120.0);
              

@@ -362,7 +362,7 @@ val zrangebyscore :
 val zcard : Connection.t -> string -> int
 
 (** [zscore k e c] returns the score of the element [e] of the sorted set at the key [k] on connection [c], as per the [ZSCORE] redis keyword. *)
-val zscore : Connection.t -> string -> string -> float
+val zscore : Connection.t -> string -> string -> float option
 
 (** [zremrangebyrank k s e c] removes all the members of key [k] on connection [c] in the ranks starting at [s] and ending at [e], as per the [ZREMRANGEBYRANK] redis keyword.
     @return the number of deleted members.
