@@ -84,7 +84,7 @@ val del_one : Connection.t -> string -> bool
 val value_type : Connection.t -> string -> Value.t
 
 (** [keys p c] returns a list of keys matching the pattern [p] on connection [c], as per the [KEYS] redis keyword. *)
-val keys : Connection.t -> string -> Value.many
+val keys : Connection.t -> string -> string list
 
 (** [randomkey c] returns a random key on connection [c], as per the [RANDOMKEY] redis keyword. If no keys are in the store, will raise a RedisNilError. *)
 val randomkey : Connection.t -> Value.one
@@ -177,9 +177,9 @@ val decrby : Connection.t -> string -> int -> int64
 *)
 val append : Connection.t -> string -> string -> int
 
-(** [substr k s e c] returns the substring starting at index [s] and ending at index [e] for key [k] on connection [c].
+(** [getrange k s e c] returns the substring starting at index [s] and ending at index [e] for key [k] on connection [c].
 *)
-val substr : Connection.t -> string -> int -> int -> Value.one
+val getrange : Connection.t -> string -> int -> int -> string
 
 (** {3:list_cmd Commands operating on lists} *)
 
@@ -197,7 +197,7 @@ val lpush : Connection.t -> string -> string -> int
 val llen : Connection.t -> string -> int
 
 (** [lrange k s e c] returns the elements of list as key [k] between start index [s] and end index [e] inclusively on connection [c], as per the [LRANGE] redis keyword. *)
-val lrange : Connection.t -> string -> int -> int -> Value.many
+val lrange : Connection.t -> string -> int -> int -> string list
 
 (** [ltrim k s e c] remove all elements of the list at key [k] {i not} between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ltrim] redis keyword. *)
 val ltrim : Connection.t -> string -> int -> int -> unit
@@ -279,7 +279,7 @@ val scard : Connection.t -> string -> int
 val sismember : Connection.t -> string -> string -> bool
 
 (** [sinter kl c] returns the intersection of all the sets at the keys listed in [kl] on connection [c], as per the [SINTER] redis keyword. *)
-val sinter : Connection.t -> string list -> Value.many
+val sinter : Connection.t -> string list -> string list
 
 (** [sinterstore dk kl c] puts the intersection of all the sets listed in [kl] into the set at destination key [dk] on connection [c], as per the [SINTERSTORE] redis keyword.
     @return the number of members in the new set.
@@ -287,7 +287,7 @@ val sinter : Connection.t -> string list -> Value.many
 val sinterstore : Connection.t -> string -> string list -> int
 
 (** [sunion kl c] returns the union of all the sets at the keys listed in [kl] on connection [c], as per the [SUNION] redis keyword. *)
-val sunion : Connection.t -> string list -> Value.many
+val sunion : Connection.t -> string list -> string list
 
 (** [sunionstore dk kl c] puts the union of all the sets listed in [kl] into the set at destination key [dk] on connection [c], as per the [SUNIONSTORE] redis keyword.
     @return the number of members in the new set.
@@ -295,7 +295,7 @@ val sunion : Connection.t -> string list -> Value.many
 val sunionstore : Connection.t -> string -> string list -> int
 
 (** [sdiff fk kl c] returns the difference between the set at the from key [km] and the other keys in the [kl] on connection [c], as per the [SDIFF] redis keyword. *)
-val sdiff : Connection.t -> string -> string list -> Value.many
+val sdiff : Connection.t -> string -> string list -> string list
 
 (** [sdiffstore dk fk kl c] puts the difference between the set at the from key [fk] and the other keys in the [kl] into the set at the destination key [dk] on connection [c], as per the [SDIFFSTORE] redis keyword.
     @return the number of members in the new set.
@@ -303,7 +303,7 @@ val sdiff : Connection.t -> string -> string list -> Value.many
 val sdiffstore : Connection.t -> string -> string -> string list -> int
 
 (** [smembers k c] returns all the members of the set at key [k] on connection [c], as per the [SMEMBERS] redis keyword. *)
-val smembers : Connection.t -> string -> Value.many
+val smembers : Connection.t -> string -> string list
 
 (** [srandmember k c] returns a random member from the set at the key [k] on connection [c], as per the [SRANDMEMBER] redis keyword. *)
 val srandmember : Connection.t -> string -> Value.one
@@ -330,20 +330,20 @@ val zrank : Connection.t -> string -> string -> int option
 val zrevrank : Connection.t -> string -> string -> int option
 
 (** [zrange k s e c] returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZRANGE] redis keyword. *)
-val zrange : Connection.t -> string -> int -> int -> Value.many
+val zrange : Connection.t -> string -> int -> int -> string list
 
 (** [zrange_withscores k s e c], returns an in-order list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrange} function except it also gives the score for each item.
     @return a list of [({!string}, float)] for the specified range.
 *)
-val zrange_with_scores : Connection.t -> string -> int -> int -> (string * float) option list option
+val zrange_with_scores : Connection.t -> string -> int -> int -> (string * float) list
 
 (** [zrevrange k s e c] returns a {i reversed ordered} list of members of the sorted set at key [k] between the start index [s] and the end index [e], inclusively, on connection [c], as per the [ZREVRANGE] redis keyword. *)
-val zrevrange : Connection.t -> string -> int -> int -> Value.many
+val zrevrange : Connection.t -> string -> int -> int -> string list
 
 (** [zrevrange_withscores k s e c], returns a {i reversed ordered} list of members of the set at sorted key [k] between the start index [s] and the end index [e], inclusively, on connection [c]. This is exactly like the {!zrevrange} function except it also gives the score for each item.
     @return a list of [({string}, float)] for the specified range.
 *)
-val zrevrange_with_scores : Connection.t -> string -> int -> int -> (string * float) option list option
+val zrevrange_with_scores : Connection.t -> string -> int -> int -> (string * float) list 
 
 (** [zrangebyscore k min max limit c] returns a list of all the members in sorted set at the key [k] with scores between [min] and [max], inclusively, on connection [c], as per the [ZRANGEBYSCORE] redis keyword.
     @param limit Pass in [`Limit(offset, limit)] to limit the number of returned values by [limit] offset by [offset].
@@ -353,7 +353,7 @@ val zrangebyscore :
   ?limit:limit ->
   string ->
   float ->
-  float -> Value.many
+  float -> string list
 
 (** [zcard k c] returns the number of members in the sorted set at the key [k] on connection [c], as per the [ZCARD] redis keyword. *)
 val zcard : Connection.t -> string -> int
@@ -439,11 +439,11 @@ val hlen : Connection.t -> string -> int
 
 (** [hkeys k c] returns a list of all the fields at key [k] on connection [c], as per the [HKEYS] redis keyword.
 *)
-val hkeys : Connection.t -> string -> Value.many
+val hkeys : Connection.t -> string -> string list
 
 (** [hvals k c] returns a list of all the values tied to fields at key [k] on connection [c], as per the [HVALS] redis keyword.
 *)
-val hvals : Connection.t -> string -> Value.many
+val hvals : Connection.t -> string -> string list
 
 (** [hgetall k c] returns the pairs of field/values stored at key [k] on connection [c], as per the [HGETALL] redis keyword.
 *)
@@ -473,7 +473,7 @@ val sort :
   ?get:redis_sort_pattern ->
   ?order:sort_order ->
   ?alpha:sort_alpha -> 
-  string -> Value.many
+  string -> string list
 
 (** [sort_get_many k gt pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], as per the [SORT] redis keyword. This function is a way to use the [GET] keyword multiple times as per the redis spec and collate them into one list while not dealing with wrapping and unwrapping values from lists in the simplest case with {!sort}.
     @return a list of lists of values "gotten" by the patterns in the list [gt]
@@ -489,7 +489,7 @@ val sort_get_many :
   ?order:sort_order ->
   ?alpha:sort_alpha -> 
   string ->
-  string list -> Value.many list
+  string list -> string list list
 
 (** [sort_and_store k gt d pattern limit order alpha c] sorts a list, set or sorted set at key [k] on connection [c], and places the results at key [d], as per the [SORT] redis keyword. This function is a way to use the [STORE] keyword with either one or multiple [GET]s times as per the redis spec.
     @return the length of the destination list at key [d]

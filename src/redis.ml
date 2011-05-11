@@ -85,11 +85,11 @@ let decrby connection key value =
 let append connection key value =
   expect_int (send_multi connection ["APPEND"; key; value])
 
-(* SUBSTR, note that the word 'end' is a keyword in ocaml, 
+(* GETRANGE, note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
-let substr connection key start stop =
-  let cmd = ["SUBSTR"; key; string_of_int start; string_of_int stop] in
-  expect_bulk (send_multi connection cmd)
+let getrange connection key start stop =
+  let cmd = ["GETRANGE"; key; string_of_int start; string_of_int stop] in
+  expect_string (send_multi connection cmd)
 
 (* EXISTS *)
 let exists connection key =
@@ -115,7 +115,7 @@ let value_type connection key =
 
 (* KEYS *)
 let keys connection pattern =
-  expect_multi (send_multi connection ["KEYS"; pattern])
+  expect_list (send_multi connection ["KEYS"; pattern])
 
 (* RANDOMKEY *)
 let randomkey connection =
@@ -165,7 +165,7 @@ let llen connection key =
    so it has been replaced by 'stop' *)
 let lrange connection key start stop =
   let cmd = ["LRANGE"; key; string_of_int start; string_of_int stop] in
-  expect_multi (send_multi connection cmd)
+  expect_list (send_multi connection cmd)
 
 (* LTRIM, please note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
@@ -254,11 +254,11 @@ let sismember connection key member =
 
 (* SMEMBERS *)
 let smembers connection key =
-  expect_multi (send_multi connection ["SMEMBERS"; key])
+  expect_list (send_multi connection ["SMEMBERS"; key])
 
 (* SINTER *)
 let sinter connection keys =
-  expect_multi (send_multi connection ("SINTER" :: keys))
+  expect_list (send_multi connection ("SINTER" :: keys))
 
 (* SINTERSTORE *)
 let sinterstore connection dstkey keys =
@@ -266,7 +266,7 @@ let sinterstore connection dstkey keys =
 
 (* SUNION *)
 let sunion connection keys =
-  expect_multi (send_multi connection ("SUNION" :: keys))
+  expect_list (send_multi connection ("SUNION" :: keys))
 
 (* SUNIONSTORE *)
 let sunionstore connection dstkey keys =
@@ -274,7 +274,7 @@ let sunionstore connection dstkey keys =
 
 (* SDIFF *)
 let sdiff connection from_key keys =
-  expect_multi (send_multi connection ("SDIFF" :: from_key :: keys))
+  expect_list (send_multi connection ("SDIFF" :: from_key :: keys))
 
 (* SDIFFSTORE *)
 let sdiffstore connection dstkey from_key keys =
@@ -324,42 +324,39 @@ let zrem connection key member =
    so it has been replaced by 'stop' *)
 let zrange connection key start stop =
   let cmd = ["ZRANGE"; key; string_of_int start; string_of_int stop] in
-  expect_multi (send_multi connection cmd)
+  expect_list (send_multi connection cmd)
 
 (* Takes a list of [v_1; s_1; v_2; s_2; ...; v_n; s_n] and
    collates it into a list of pairs [(v_1, s_1); (v_2, s_2); ... ;
    (v_n, s_n)] *)
 
-let collate f = 
+let collate f l = 
   let rec collate' f l acc =
     match l with
-      | []                          -> List.rev acc
-      | None :: t                   -> collate' f t (None :: acc) 
-      | (Some h1) :: (Some h2) :: t -> collate' f t ((Some (h1, f h2)) :: acc) 
-      | _                           -> failwith "Did not provide a pair of field-values"
-  in function
-    | None   -> None 
-    | Some l -> Some (collate' f l [])
+      | []            -> List.rev acc
+      | h1 :: h2 :: t -> collate' f t ((h1, f h2) :: acc) 
+      | _             -> failwith "Did not provide a pair of field-values"
+  in
+  collate' f l []
 
 let score_transformer = collate float_of_string 
 
 (* ZRANGE, but with the WITHSCORES option added on. *)
 let zrange_with_scores connection key start stop =
   let cmd = ["ZRANGE"; key; string_of_int start; string_of_int stop; "WITHSCORES"] in
-  score_transformer (expect_multi (send_multi connection cmd))
+  score_transformer (expect_list (send_multi connection cmd))
 
 (* ZREVRANGE, please note that the word 'end' is a keyword in ocaml, 
 so it has been replaced by 'stop' *)
 let zrevrange connection key start stop =
   let cmd = ["ZREVRANGE"; key; string_of_int start; string_of_int stop] in
-  expect_multi (send_multi connection cmd)
+  expect_list (send_multi connection cmd)
 
 (* ZRANGE, but with the WITHSCORES option added on. *)
 let zrevrange_with_scores connection key start stop =
   let cmd = ["ZREVRANGE"; key; string_of_int start; 
              string_of_int stop; "WITHSCORES"] in
-  score_transformer (expect_multi 
-                       (send_multi connection cmd))
+  score_transformer (expect_list (send_multi connection cmd))
 
 (* ZRANGEBYSCORE, please note that the word 'end' is a keyword in ocaml, 
    so it has been replaced by 'stop' *)
@@ -371,7 +368,7 @@ let zrangebyscore connection ?(limit = Unlimited) key start stop =
   let cmd = ["ZRANGEBYSCORE"; key; 
              format_float start;
              format_float stop] @ limit in
-  expect_multi (send_multi connection cmd)
+  expect_list (send_multi connection cmd)
 
 (* ZINCRBY *)
 let zincrby connection key increment member =
@@ -480,23 +477,16 @@ let hlen connection key =
 
 (* HKEYS *)
 let hkeys connection key =
-  expect_multi (send_multi connection ["HKEYS"; key])
+  expect_list (send_multi connection ["HKEYS"; key])
 
 (* HVALS *)
 let hvals connection key =
-  expect_multi (send_multi connection ["HVALS"; key])
+  expect_list (send_multi connection ["HVALS"; key])
 
 (* HGETALL *)
 let hgetall connection key =
-  let result = expect_multi (send_multi connection ["HGETALL"; key]) in
-  let l = collate (fun x -> x) result in
-  let f = function 
-    | Some (a, b) -> a, b
-    | None -> failwith "Nil value in result from hgetall"
-  in
-  match l with 
-    | Some l -> List.map f l
-    | None   -> failwith "Nil value in result from hgetall"
+  let result = expect_list (send_multi connection ["HGETALL"; key]) in
+  collate (fun x -> x) result
 
 (***********)
 (* Sorting *)
@@ -542,7 +532,7 @@ let sort connection
     let pattern, limit, order, alpha =
       parse_sort_args pattern limit order alpha in
     "SORT " ^ key ^ pattern ^ limit ^ (parse_get_arg get) ^ order ^ alpha in
-  expect_multi (send connection command)
+  expect_list (send connection command)
 
 (* SORT, for multiple gets *)
 let sort_get_many connection 
@@ -561,17 +551,15 @@ let sort_get_many connection
   let collate count responses =
     let rec iter n l acc1 acc2 =
       match (n, l) with
-        | (0, _)      -> iter count l [] (Some (List.rev acc1) :: acc2)
+        | (0, _)      -> iter count l [] ((List.rev acc1) :: acc2)
         | (count, []) -> List.rev acc2
         | (_, h :: t) -> iter (n - 1) t (h :: acc1) acc2
     in
-    match responses with 
-      | None   -> []
-      | Some l -> iter count l [] []
+    iter count responses [] []
   in
   let patlen = List.length get_patterns in
   let reply = send connection command in
-  collate patlen (expect_multi reply)
+  collate patlen (expect_list reply)
 
 (* SORT, with the STORE keyword *)
 let sort_and_store connection

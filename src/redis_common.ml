@@ -287,6 +287,20 @@ module Helpers = struct
     | Bulk x -> x
     | x      -> fail_with_reply "expect_bulk" x
 
+  let rec expect_string = function
+    | Bulk (Some x) -> x
+    | x             -> fail_with_reply "expect_string" x
+
+  let expect_list = function
+      | MultiBulk (Some l) as x -> 
+        let f = function
+          | Some x -> x
+          | None   -> fail_with_reply "expect_list" x
+        in
+        List.map f l
+      | x -> 
+        fail_with_reply "expect_list" x
+
   let expect_multi = function
     | MultiBulk l -> l
     | x           -> fail_with_reply "expect_multi" x
