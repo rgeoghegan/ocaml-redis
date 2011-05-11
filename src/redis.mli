@@ -24,7 +24,7 @@ module Value : sig
 
   type one = string option
   type pair = (string * string) option
-  type many = one list option
+  type many = one list
 
   val to_string : t -> string
   val get : 'a option -> 'a 

@@ -14,8 +14,7 @@ let suite =
   and teardown conn = 
     Redis.flushall conn;
     Redis.quit conn
-  and one x = Some x 
-  and many l = Some (List.map (fun x -> Some x) l) in
+  and one x = Some x in
   let test f = (bracket setup f teardown) in
   "smoke test" >:::
     [
@@ -26,7 +25,7 @@ let suite =
              Redis.set conn "rory" "cool";
              assert_equal (one "cool") (Redis.get conn "rory");
              assert_equal (one "cool") (Redis.getset conn "rory" "not cool");
-             assert_equal (Some [Some "not cool"; None]) (Redis.mget conn ["rory"; "tim"]);
+             assert_equal [Some "not cool"; None] (Redis.mget conn ["rory"; "tim"]);
 
              assert_equal false (Redis.setnx conn "rory" "uncool");
              assert_equal (one "not cool") (Redis.get conn "rory");
@@ -276,7 +275,7 @@ let suite =
              assert_equal (one "true") (Redis.hget conn "rory" "handsome");
              assert_equal None (Redis.hget conn "rory" "boring");
              
-             assert_equal (Some [Some "true"; None]) (Redis.hmget conn "rory" ["handsome"; "boring"]);
+             assert_equal [Some "true"; None] (Redis.hmget conn "rory" ["handsome"; "boring"]);
              Redis.hmset conn "rory" [("handsome", "false"); ("boring", "true")];
 
              assert_equal 26L (Redis.hincrby conn "rory" "age" 26);

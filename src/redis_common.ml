@@ -76,7 +76,7 @@ module Value = struct
 
   type one = string option
   type pair = (string * string) option
-  type many = one list option
+  type many = one list
 
   let get = function 
     | Some x -> x
@@ -302,8 +302,8 @@ module Helpers = struct
         fail_with_reply "expect_list" x
 
   let expect_multi = function
-    | MultiBulk l -> l
-    | x           -> fail_with_reply "expect_multi" x
+    | MultiBulk (Some l) -> l
+    | x                  -> fail_with_reply "expect_multi" x
 
   let expect_kv_multi = function
     | MultiBulk Some [Some k; Some v] -> Some (k, v)
