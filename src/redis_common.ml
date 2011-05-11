@@ -150,17 +150,14 @@ module Helpers = struct
 
   (* Gets the data from a '$x\r\nx\r\n' response, 
      once the first '$' has already been popped off *)
-  let get_bulk connection =
-    let result = match int_of_string (Connection.read_string connection) with
-      | 0  -> Some ""
-      | -1 -> None
-      | sz -> Some (Connection.read_fixed_string connection sz)
-    in
-    result
+  let get_bulk connection = function
+    |  0 -> Bulk (Some (Connection.read_fixed_string connection 0))
+    | -1 -> Bulk None
+    |  n -> Bulk (Some (Connection.read_fixed_string connection n))
 
   (* Parse list structure, with first '*' already popped off *)
-  let get_multi_bulk conn size =
-    let in_chan, _ = conn in
+  let get_multi_bulk connection size =
+    let in_chan, _ = connection in
     match size with
       |  0 -> MultiBulk (Some [])
       | -1 -> MultiBulk None
@@ -168,8 +165,13 @@ module Helpers = struct
         let acc = ref [] in
         for i = 0 to n - 1 do
           let bulk = match input_char in_chan with
-            | '$' -> get_bulk conn
-            | c   -> failwith ("get_multi_bulk: unexpected char " ^ (Char.escaped c))
+            | '$' -> begin
+              match get_bulk connection (int_of_string (Connection.read_string connection)) with
+                | Bulk x -> x
+                | _      -> failwith "get_multi_bulk: bulk expected"
+            end
+            |  c  -> 
+              failwith ("get_multi_bulk: unexpected char " ^ (Char.escaped c))
           in 
           acc := bulk :: !acc
         done;
@@ -198,7 +200,7 @@ module Helpers = struct
     match c with
       | '+' -> Status (Connection.read_string connection)
       | ':' -> parse_integer_response (Connection.read_string connection)
-      | '$' -> Bulk (get_bulk connection)
+      | '$' -> get_bulk connection (int_of_string (Connection.read_string connection))
       | '*' -> get_multi_bulk connection (int_of_string (Connection.read_string connection))
       | '-' -> Error (Connection.read_string connection)
       |  c  -> failwith ("receive_answer: unexpected char " ^ (Char.escaped c))
