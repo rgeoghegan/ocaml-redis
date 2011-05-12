@@ -74,10 +74,6 @@ module Value = struct
     | Set 
     | SortedSet
 
-  type one = string option
-  type pair = (string * string) option
-  type many = one list
-
   let get = function 
     | Some x -> x
     | None   -> failwith "Value.get: unexpected None"
