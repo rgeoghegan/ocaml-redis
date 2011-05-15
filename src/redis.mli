@@ -42,7 +42,7 @@ exception RedisServerError of string
 module Connection :
     sig
         (** This type is used to represent the connection to be passed around to all the functions. *)
-        type t = in_channel * out_channel
+        type t
     end
 
 (** Returns a {!Connection.t} to be used by all the {!Redis} functions.

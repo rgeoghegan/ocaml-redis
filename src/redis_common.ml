@@ -90,55 +90,54 @@ end
 (* The Connection module handles some low level operations with the sockets *)
 module Connection = struct
     
-  type t = in_channel * out_channel
+  type t = {
+    mutable pipeline : bool;
+    in_ch : in_channel;
+    out_ch : out_channel;
+    in_buf : Buffer.t;
+    out_buf : Buffer.t;
+  }
 
   let create addr port =
     let server = Unix.inet_addr_of_string addr in
-    let in_c, out_c = Unix.open_connection (Unix.ADDR_INET (server, port)) in
-    (in_c, out_c)
+    let in_ch, out_ch = Unix.open_connection (Unix.ADDR_INET (server, port)) in
+    let pipeline = false
+    and in_buf = Buffer.create 100
+    and out_buf = Buffer.create 100 in
+    { pipeline; in_ch; out_ch; in_buf; out_buf }
       
   (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)
-  let read_string (in_chan, _) =
-    let flag = ref true
-    and buffer = Buffer.create 100 in
-    let add = Buffer.add_char buffer in
-    while !flag do
-      match input_char in_chan with
-        | '\r' -> begin match input_char in_chan with
-            | '\n' -> flag := false
-            |   x  -> add '\r'; add x
-        end
-        | x -> add x
-    done;
-    let result = Buffer.contents buffer in
-    result
+  let read_string conn = 
+    let s = input_line conn.in_ch in
+    let n = String.length s - 1 in
+    if s.[n] = '\r' then 
+      String.sub s 0 n
+    else 
+      s
 
   (* Read length caracters from in channel and output them as string *)
-  let read_fixed_string (in_chan, _) length =
-    let out_buf = Buffer.create length in
-    Buffer.add_channel out_buf in_chan length;
-    let result = Buffer.contents out_buf in
-    List.iter (fun x -> assert (x == input_char in_chan)) ['\r'; '\n'];
-    result
+  let read_fixed_string conn length =
+    Buffer.clear conn.in_buf;
+    Buffer.add_channel conn.in_buf conn.in_ch (length + 2); (* + \r\n *)
+    Buffer.sub conn.in_buf 0 length
 
   (* Send the given text out to the connection without flushing *)
-  let send_text_straight (_, out_chan) text =
-    output_string out_chan text;
-    output_string out_chan "\r\n"
+  let send_text_straight conn text =
+    output_string conn.out_ch text;
+    output_string conn.out_ch "\r\n"
 
   (* Send the given text out to the connection *)
-  let send_text connection text =
-    let (_, out_chan) = connection in
-    send_text_straight connection text;
-    flush out_chan
+  let send_text conn text =
+    send_text_straight conn text;
+    flush conn.out_ch
       
   (* Retrieve one character from the connection *)
-  let get_one_char (in_chan, out_chan) =
-    input_char in_chan
+  let get_one_char conn = 
+    input_char conn.in_ch
 
   (* Manually flushes out the outgoing channel *)
-  let flush_connection (in_chan, out_chan) =
-    flush out_chan
+  let flush_connection conn =
+    flush conn.out_ch
 
 end
 
@@ -146,23 +145,22 @@ module Helpers = struct
 
   (* Gets the data from a '$x\r\nx\r\n' response, 
      once the first '$' has already been popped off *)
-  let get_bulk connection = function
-    |  0 -> Bulk (Some (Connection.read_fixed_string connection 0))
+  let get_bulk conn = function
+    |  0 -> Bulk (Some (Connection.read_fixed_string conn 0))
     | -1 -> Bulk None
-    |  n -> Bulk (Some (Connection.read_fixed_string connection n))
+    |  n -> Bulk (Some (Connection.read_fixed_string conn n))
 
   (* Parse list structure, with first '*' already popped off *)
-  let get_multi_bulk connection size =
-    let in_chan, _ = connection in
+  let get_multi_bulk conn size =
     match size with
       |  0 -> MultiBulk (Some [])
       | -1 -> MultiBulk None
       |  n -> 
         let acc = ref [] in
         for i = 0 to n - 1 do
-          let bulk = match input_char in_chan with
+          let bulk = match input_char conn.Connection.in_ch with
             | '$' -> begin
-              match get_bulk connection (int_of_string (Connection.read_string connection)) with
+              match get_bulk conn (int_of_string (Connection.read_string conn)) with
                 | Bulk x -> x
                 | _      -> failwith "get_multi_bulk: bulk expected"
             end
