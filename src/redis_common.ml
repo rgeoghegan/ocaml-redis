@@ -431,7 +431,6 @@ module Helpers = struct
           | Score_transformer f -> f state (score_transformer (expect_list reply))
       in
       Connection.flush_pipeline conn;
-      debug "Pipeline.receive: %d continuations" (List.length conn.Connection.continuations);
       let state = List.fold_left f state (List.rev conn.Connection.continuations) in
       conn.Connection.continuations <- [];
       state
