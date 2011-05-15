@@ -22,7 +22,7 @@ let ping connection =
 
 (* QUIT, also should automatically close the connection *)
 let quit connection =
-  Connection.send_text connection "QUIT"
+  expect_status "OK" (send connection "QUIT")
 
 (* AUTH *)
 let auth connection password =
