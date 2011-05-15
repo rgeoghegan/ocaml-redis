@@ -595,9 +595,9 @@ let lastsave connection =
 
 (* SHUTDOWN *)
 let shutdown connection =
-  Connection.send_text connection "SHUTDOWN";
+  just_send connection "SHUTDOWN";
   try
-    match receive_answer connection with
+    match receive connection with
       | Status x -> failwith x 
       | _        -> failwith "Did not recognize what I got back"
   with End_of_file -> ()
