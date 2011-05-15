@@ -87,24 +87,47 @@ module Value = struct
 
 end
   
+(* Continuation for pipelined receive *)
+
+type 'a continuation = 
+  | Expect_status of string
+  | Expect_success 
+  | Expect_bulk of ('a -> string option -> 'a)
+  | Expect_multi of ('a -> string option list -> 'a)
+  | Expect_bool of ('a -> bool -> 'a)
+  | Expect_large_int of ('a -> int64 -> 'a)
+  | Expect_int of ('a -> int -> 'a)
+  | Expect_string of ('a -> string -> 'a)
+  | Expect_float of ('a -> float -> 'a)
+  | Expect_opt_float of ('a -> float option -> 'a)
+  | Expect_type of ('a -> Value.t -> 'a)
+  | Expect_list of ('a -> string list -> 'a)
+  | Expect_kv_multi of ('a -> (string * string) option -> 'a)
+  | Expect_rank of ('a -> int option -> 'a)
+  | Collate of ('a -> (string * string) list -> 'a)
+  | Collate_n of int * ('a -> string list list -> 'a)
+  | Score_transformer of ('a -> (string * float) list -> 'a)
+
 (* The Connection module handles some low level operations with the sockets *)
 module Connection = struct
     
-  type t = {
+  type 'a t = {
     mutable pipeline : bool;
     in_ch : in_channel;
     out_ch : out_channel;
     in_buf : Buffer.t;
     out_buf : Buffer.t;
+    mutable continuations : 'a continuation list;
   }
 
   let create addr port =
     let server = Unix.inet_addr_of_string addr in
     let in_ch, out_ch = Unix.open_connection (Unix.ADDR_INET (server, port)) in
     let pipeline = false
+    and continuations = []
     and in_buf = Buffer.create 100
     and out_buf = Buffer.create 100 in
-    { pipeline; in_ch; out_ch; in_buf; out_buf }
+    { pipeline; in_ch; out_ch; in_buf; out_buf; continuations }
       
   (* Read arbitratry length string (hopefully quite short) from current pos in in_chan until \r\n *)
   let read_string conn = 
@@ -121,23 +144,24 @@ module Connection = struct
     Buffer.add_channel conn.in_buf conn.in_ch (length + 2); (* + \r\n *)
     Buffer.sub conn.in_buf 0 length
 
-  (* Send the given text out to the connection without flushing *)
-  let send_text_straight conn text =
-    output_string conn.out_ch text;
-    output_string conn.out_ch "\r\n"
-
-  (* Send the given text out to the connection *)
-  let send_text conn text =
-    send_text_straight conn text;
-    flush conn.out_ch
-      
   (* Retrieve one character from the connection *)
   let get_one_char conn = 
     input_char conn.in_ch
 
-  (* Manually flushes out the outgoing channel *)
-  let flush_connection conn =
-    flush conn.out_ch
+  let enable_pipeline conn = 
+    conn.pipeline <- true;
+    Buffer.clear conn.out_buf
+        
+  (* Add text to the pipeline *)
+  let pipeline_cmd conn text =
+    Buffer.add_string conn.out_buf text;
+    Buffer.add_string conn.out_buf "\r\n"
+        
+  let flush_pipeline conn =
+    Buffer.output_buffer conn.out_ch conn.out_buf;
+    flush conn.out_ch;
+    conn.pipeline <- false;
+    Buffer.clear conn.out_buf
 
 end
 
@@ -189,62 +213,69 @@ module Helpers = struct
     | x -> x
 
   (* Get answer back from redis and cast it to the right type *)
-  let receive_answer connection =
-    let c = Connection.get_one_char connection in
-    match c with
-      | '+' -> Status (Connection.read_string connection)
-      | ':' -> parse_integer_response (Connection.read_string connection)
-      | '$' -> get_bulk connection (int_of_string (Connection.read_string connection))
-      | '*' -> get_multi_bulk connection (int_of_string (Connection.read_string connection))
-      | '-' -> Error (Connection.read_string connection)
-      |  c  -> failwith ("receive_answer: unexpected char " ^ (Char.escaped c))
+  let recv conn =
+    Buffer.clear conn.Connection.in_buf;
+    let c = Connection.get_one_char conn in
+    let reply = match c with
+      | '+' -> Status (Connection.read_string conn)
+      | ':' -> parse_integer_response (Connection.read_string conn)
+      | '$' -> get_bulk conn (int_of_string (Connection.read_string conn))
+      | '*' -> get_multi_bulk conn (int_of_string (Connection.read_string conn))
+      | '-' -> Error (Connection.read_string conn)
+      |  c  -> failwith ("recv: unexpected char " ^ (Char.escaped c))
+    in
+    filter_error reply
+
+  let just_send conn command =
+    Connection.pipeline_cmd conn command;
+    Connection.flush_pipeline conn
 
   (* Send command, and receive the result casted to the right type,
      catch and fail on errors *)
-  let send connection command =
-    Connection.send_text connection command;
-    let reply = receive_answer connection in
-    filter_error reply
+  let send conn command =
+    just_send conn command;
+    filter_error (recv conn)
 
-  (* Will send out the command, appended with the length of value, 
-     and will then send out value. Also will catch and fail on any errors. 
-     I.e., given 'foo' 'bar', will send "foo 3\r\nbar\r\n" *)
-  let send_value connection command value =
-    Connection.send_text_straight connection command;
-    Connection.send_text connection value;
-    filter_error (receive_answer connection) 
-
-  (* Given a list of tokens, joins them with command *)
-  let aggregate_command command tokens = 
-    let joiner buf new_item = 
-      Buffer.add_char buf ' ';
-      Buffer.add_string buf new_item
-    in
-    match tokens with 
-      | [] -> failwith "Need at least one key"
-      | x ->
-        let out_buffer = Buffer.create 256 in
-        Buffer.add_string out_buffer command;
-        List.iter (joiner out_buffer) x;
-        Buffer.contents out_buffer
+  let pipe_send conn command k =
+    let open Connection in
+    pipeline_cmd conn command;
+    conn.continuations <- k :: conn.continuations;
+    ()
 
   (* Will send a given list of tokens to send in list
      using the unified request protocol. *)          
-  let send_multi connection tokens =
+  let send_multi conn tokens =
+    let open Connection in
     let token_length = (string_of_int (List.length tokens)) in
     let rec send_in_tokens tokens_left =
       match tokens_left with
         | [] -> ()
         | h :: t -> 
-          Connection.send_text_straight connection ("$" ^ (string_of_int (String.length h)));
-          Connection.send_text_straight connection h;
+          pipeline_cmd conn ("$" ^ (string_of_int (String.length h)));
+          pipeline_cmd conn h;
           send_in_tokens t
     in
-    Connection.send_text_straight connection ("*" ^ token_length);
+    pipeline_cmd conn ("*" ^ token_length);
     send_in_tokens tokens;
-    Connection.flush_connection connection;
-    let reply = receive_answer connection in
+    flush_pipeline conn;
+    let reply = recv conn in
     filter_error reply
+
+  let pipe_send_multi conn tokens k =
+    let open Connection in
+    let token_length = (string_of_int (List.length tokens)) in
+    let rec send_in_tokens tokens_left =
+      match tokens_left with
+        | [] -> ()
+        | h :: t -> 
+          pipeline_cmd conn ("$" ^ (string_of_int (String.length h)));
+          pipeline_cmd conn h;
+          send_in_tokens t
+    in
+    pipeline_cmd conn ("*" ^ token_length);
+    send_in_tokens tokens;
+    conn.continuations <- k :: conn.continuations;
+    ()
 
   let fail_with_reply name reply = 
     failwith (name ^ ": Unexpected " ^ (string_of_response reply))
@@ -329,6 +360,11 @@ module Helpers = struct
       | Bulk None -> None
       | x         -> fail_with_reply "expect_opt_float" x
 
+  let filter_error = function
+    | Error e -> 
+      raise (RedisServerError e)
+    | x -> x
+
   let rec flatten pairs result =
     match pairs with
       | (key, value) :: t -> flatten t (key :: value :: result)
@@ -341,5 +377,65 @@ module Helpers = struct
     | Status "list"   -> Value.List
     | Status "none"   -> Value.Nil
     | x               -> fail_with_reply "expect_type" x
+
+
+  (* Takes a list of [v_1; s_1; v_2; s_2; ...; v_n; s_n] and
+     collates it into a list of pairs [(v_1, s_1); (v_2, s_2); ... ;
+     (v_n, s_n)] *)
+
+  let collate f l = 
+    let rec collate' f l acc =
+      match l with
+        | []            -> List.rev acc
+        | h1 :: h2 :: t -> collate' f t ((h1, f h2) :: acc) 
+        | _             -> failwith "Did not provide a pair of field-values"
+    in
+    collate' f l []
+
+  let score_transformer = collate float_of_string 
+
+  (* Collates the returned list into a series of lists matching the 'GET' parameter *)
+  let collate_n count responses =
+    let rec iter n l acc1 acc2 =
+      match (n, l) with
+        | (0, _)      -> iter count l [] ((List.rev acc1) :: acc2)
+        | (count, []) -> List.rev acc2
+        | (_, h :: t) -> iter (n - 1) t (h :: acc1) acc2
+    in
+    iter count responses [] []
+
+  module Pipeline = struct
+
+    let enable = Connection.enable_pipeline
+        
+    let receive conn state = 
+      let f state k = 
+        let reply = recv conn in
+        match k with 
+          | Expect_status status -> expect_status status reply; state
+          | Expect_success -> expect_success reply; state
+          | Expect_bulk f -> f state (expect_bulk reply)
+          | Expect_multi f -> f state (expect_multi reply)
+          | Expect_bool f -> f state (expect_bool reply)
+          | Expect_large_int f -> f state (expect_large_int reply)
+          | Expect_int f -> f state (expect_int reply)
+          | Expect_string f -> f state (expect_string reply)
+          | Expect_float f -> f state (expect_float reply)
+          | Expect_opt_float f -> f state (expect_opt_float reply)
+          | Expect_type f -> f state (expect_type reply)
+          | Expect_list f -> f state (expect_list reply)
+          | Expect_kv_multi f -> f state (expect_kv_multi reply)
+          | Expect_rank f -> f state (expect_rank reply)
+          | Collate f -> f state (collate (fun x -> x ) (expect_list reply))
+          | Collate_n (n, f) -> f state (collate_n n (expect_list reply))
+          | Score_transformer f -> f state (score_transformer (expect_list reply))
+      in
+      Connection.flush_pipeline conn;
+      debug "Pipeline.receive: %d continuations" (List.length conn.Connection.continuations);
+      let state = List.fold_left f state (List.rev conn.Connection.continuations) in
+      conn.Connection.continuations <- [];
+      state
+
+  end
 
 end
