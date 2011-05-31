@@ -320,11 +320,12 @@ module Helpers = struct
 
   let expect_list = function
       | MultiBulk (Some l) as x -> 
-        let f = function
-          | Some x -> x
-          | None   -> fail_with_reply "expect_list" x
+        let rec f acc = function
+          | [] -> List.rev acc
+          | (Some x) :: t -> f (x :: acc) t
+          | None :: _     -> fail_with_reply "expect_list" x
         in
-        List.map f l
+        f [] l
       | x -> 
         fail_with_reply "expect_list" x
 
